@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Learning Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+:root{
+  --ink:#2b2350; --paper:#fff8e7; --paper-2:#ffefc2; --rocket:#ff6b35; --rocket-dk:#c2431a;
+  --sky:#4fb3f6; --grass:#63c64d; --gold:#ffd23f; --space:#12103a; --white:#fffdf7;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4}
+a{color:inherit}
+.wrap{max-width:960px;margin:0 auto;padding:40px 20px 60px}
+h1{font-family:var(--display);font-weight:700;font-size:48px;line-height:1;margin:0;text-shadow:4px 4px 0 var(--gold)}
+.lede{font-weight:800;font-size:18px;margin:12px 0 36px;max-width:60ch}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
+.tool{
+  display:flex;flex-direction:column;gap:12px;
+  background:var(--white);border:4px solid var(--ink);border-radius:24px;padding:18px 18px 20px;
+  box-shadow:6px 6px 0 var(--ink);text-decoration:none;
+  transition:transform .15s,box-shadow .15s;
+}
+.tool:hover,.tool:focus-visible{transform:translate(-2px,-2px);box-shadow:8px 8px 0 var(--ink);outline:none}
+.tool:focus-visible{outline:4px solid var(--sky);outline-offset:4px}
+.tool .art{
+  height:150px;border-radius:16px;border:3px solid var(--ink);
+  background:linear-gradient(180deg,var(--sky) 0%,#cdeeff 55%,var(--grass) 55%,#3f8f2f 100%);
+  display:flex;align-items:flex-end;justify-content:space-around;padding:0 14px 8px;overflow:hidden;
+}
+.tool .art span{line-height:1;filter:drop-shadow(2px 2px 0 rgba(43,35,80,.35))}
+.tool h2{font-family:var(--display);font-weight:700;font-size:28px;margin:0;line-height:1.05}
+.tool p{margin:0;font-weight:700}
+.meta{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;background:var(--paper-2);border:2px solid var(--ink);border-radius:999px;padding:4px 10px}
+.go{
+  align-self:flex-start;margin-top:4px;font-family:var(--display);font-weight:700;font-size:20px;
+  background:var(--rocket);color:var(--white);border:3px solid var(--ink);border-radius:999px;padding:8px 20px;
+  box-shadow:0 5px 0 var(--rocket-dk),0 5px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+footer{margin-top:48px;font-weight:700;font-size:14px;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Learning Tools</h1>
+  <p class="lede">Small, playful pages for big ideas. Each one is a single file — open it, project it, or send the link home.</p>
+
+  <div class="grid">
+    <!-- To add a tool: drop it in its own folder as index.html, then copy this card. -->
+    <a class="tool" href="zoom-out/">
+      <div class="art" aria-hidden="true">
+        <span style="font-size:22px">🐜</span><span style="font-size:44px">🌳</span><span style="font-size:64px">⛰️</span><span style="font-size:40px">🪐</span><span style="font-size:52px">⭐</span><span style="font-size:46px">🌌</span>
+      </div>
+      <h2>Zoom Out!</h2>
+      <p>Bugs, trees, mountains, planets, stars, galaxies. Every time you zoom out, the "big" things from before shrink into one tiny dot. That's an order of magnitude.</p>
+      <div class="meta"><span class="chip">Grades 1–3</span><span class="chip">Math · Science</span><span class="chip">Interactive</span></div>
+      <span class="go">🚀 Play</span>
+    </a>
+  </div>
+
+  <footer>Made by Zachary Klein. Everything here is a plain HTML file — view the source on <a href="https://github.com/ZacharyKlein/learning-tools">GitHub</a>.</footer>
+</div>
+</body>
+</html>
