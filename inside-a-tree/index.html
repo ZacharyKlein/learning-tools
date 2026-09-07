@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Inside a Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus a tree's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: NEXT PART */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --leaf:#3f9d3a;
+  --leaf-dk:#2e7d32;
+  --bark:#7a4b2a;
+  --soil:#8b5a2b;
+  --water:#3b8beb;
+  --sugar:#ff6f9c;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.3;
+  -webkit-text-size-adjust:100%;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  padding:10px 14px 12px;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold);
+}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;
+  transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.map{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:4px 10px 5px;box-shadow:4px 4px 0 var(--ink);
+}
+.map canvas{width:64px;height:60px;display:block}
+.map span{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:300px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(60%,470px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.stat{
+  position:absolute;right:14px;bottom:12px;display:flex;gap:8px;pointer-events:none;
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(340px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:21px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:14.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;
+  animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(400px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px 12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.quest.tr{left:auto;right:14px;top:12px;bottom:auto}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:15.5px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:7px 13px;line-height:1;box-shadow:0 3px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14px;margin-top:8px;min-height:18px}
+.q-fb.good{color:var(--leaf-dk)}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ---------- */
+.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+.levels{display:flex;gap:5px}
+.lvl{
+  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-size:22px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+
+/* chapter controls: one group shown at a time */
+.ctl{display:flex;justify-content:flex-end;min-width:0}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.off{opacity:.6;text-decoration:line-through}
+.tog.night.on{background:var(--space);color:var(--white)}
+.tog.grow{background:var(--grass);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog.rain{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+.tog.press{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .map{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;gap:4px}
+  .lvl{width:34px;height:34px;font-size:18px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
+  #btnBack{display:none}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 11px;font-size:14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .ctl-label{font-size:11px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{display:none}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .quest.tr{top:12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Inside a Tree</h1>
+      <p class="tagline">How a tree eats, drinks, grows — and who lives in it.</p>
+    </div>
+    <div class="right">
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Tree<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each part of the tree"></div>
+      </div>
+      <div class="map" aria-hidden="true">
+        <canvas id="minimap" width="128" height="120"></canvas>
+        <span>You are here</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <div class="cap-level" id="capLevel"></div>
+        <div class="cap-text" id="capText"></div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap things to learn about them</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack">◀ Back</button>
+      <button class="btn big" id="btnNext">NEXT PART ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-leaf" hidden>
+        <span class="ctl-label">Turn things off:</span>
+        <button class="tog on" id="togSun">☀️ Sun</button>
+        <button class="tog on" id="togWater">💧 Water</button>
+        <button class="tog on" id="togAir">🌬️ Air (CO₂)</button>
+      </div>
+      <div class="ctl-group" id="ctl-roots" hidden>
+        <button class="tog rain" id="btnRain">🌧️ Make it rain!</button>
+        <button class="tog" id="togHot">🥵 Hot day</button>
+      </div>
+      <div class="ctl-group" id="ctl-rings" hidden>
+        <span class="ctl-label">Next year is:</span>
+        <button class="tog" id="wRain">☔ Rainy</button>
+        <button class="tog on" id="wNorm">⛅ Normal</button>
+        <button class="tog" id="wDry">☀️ Dry</button>
+        <button class="tog grow" id="btnGrow">🌱 Grow a year!</button>
+      </div>
+      <div class="ctl-group" id="ctl-wood" hidden>
+        <button class="tog press" id="btnPress">🔩 Press test!</button>
+      </div>
+      <div class="ctl-group" id="ctl-animals" hidden>
+        <button class="tog night" id="togNight">🌙 Night</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   INSIDE A TREE  —  how a tree works, for grades 3–4
+   Five parts of one white oak. Each part is a little animated scene on
+   one canvas, with tap-to-learn cards and a small challenge that earns a
+   badge. Chapter changes "zoom" through a map of the whole tree.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const rnd=Math.random;
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7';
+const LEAF='#3f9d3a', LEAF_DK='#2e7d32', LEAF_LT='#7ccf5a', BARK='#7a4b2a', BARK_DK='#4e2f18', SOIL='#8b5a2b', SOIL_DK='#5a3a1c';
+const WATER='#3b8beb', SUGAR='#ff6f9c', O2='#bfe9ff', CO2='#9aa3b5';
+
+/* ---------- canvas + timing ---------- */
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:520,dpr:1};
+let now=0;                    // seconds since load
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,rot||0,0,TAU); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol){ rrect(x,y,w,h,r); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round'; ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1); ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000'; ctx.fillText(ch,0,px*0.06); ctx.restore(); }
+// a name tag with a soft halo so it reads on any background
+function label(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13, dark=opts.dark, align=opts.align||'center', weight=opts.weight||800, font=opts.display?DISPLAY_FONT:LABEL_FONT;
+  ctx.save(); ctx.textAlign=align; ctx.textBaseline=opts.baseline||'middle'; ctx.lineJoin='round';
+  ctx.font=weight+' '+size+'px '+font;
+  ctx.strokeStyle=dark?'rgba(255,248,231,0.85)':'rgba(43,35,80,0.85)'; ctx.lineWidth=Math.max(3,size*0.32);
+  ctx.strokeText(txt,x,y);
+  ctx.fillStyle=opts.color||(dark?INK:PAPER); ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+// a little sign: rounded box with text, optional pointer line to (px,py)
+function sign(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13; ctx.save(); ctx.font='800 '+size+'px '+LABEL_FONT;
+  const w=ctx.measureText(txt).width+18, h=size+14;
+  let bx=opts.align==='left'?x:opts.align==='right'?x-w:x-w/2, by=y-h/2;
+  bx=clamp(bx,4,V.w-w-4); by=clamp(by,4,V.h-h-4);
+  if(opts.to){ line(bx+w/2,by+h/2,opts.to[0],opts.to[1],INK,2.5); }
+  box(bx,by,w,h,10,opts.fill||WHITE,2.5);
+  ctx.fillStyle=opts.color||INK; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+w/2,by+h/2+1);
+  ctx.restore();
+  return {x:bx,y:by,w,h};
+}
+function cloudPath(x,y,r,n,seed){          // a leafy blob: a circle with a scalloped edge
+  const rr=seeded(seed||1); ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const a0=i/n*TAU, a1=(i+1)/n*TAU, am=(a0+a1)/2, bump=r*(0.12+rr()*0.1);
+    const x0=x+Math.cos(a0)*r, y0=y+Math.sin(a0)*r, x1=x+Math.cos(a1)*r, y1=y+Math.sin(a1)*r;
+    const cx=x+Math.cos(am)*(r+bump*2.2), cy=y+Math.sin(am)*(r+bump*2.2);
+    if(i===0) ctx.moveTo(x0,y0);
+    ctx.quadraticCurveTo(cx,cy,x1,y1);
+  }
+  ctx.closePath();
+}
+function blob(x,y,r,fill,ol,seed,n){ cloudPath(x,y,r,n||Math.max(7,Math.round(r/9)),seed); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b); return `rgb(${Math.round(lerp(A[0],B[0],t))},${Math.round(lerp(A[1],B[1],t))},${Math.round(lerp(A[2],B[2],t))})`; }
+function darker(h,k){ const c=hexRgb(h).map(v=>Math.round(v*(1-k))); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function lighter(h,k){ const c=hexRgb(h).map(v=>Math.round(v+(255-v)*k)); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+// walk a polyline: returns the point at fraction t (0..1) of its length
+function polyLen(P){ let L=0; for(let i=1;i<P.length;i++) L+=dist(P[i-1][0],P[i-1][1],P[i][0],P[i][1]); return L; }
+function polyAt(P,t){
+  const L=polyLen(P); let d=clamp(t,0,1)*L;
+  for(let i=1;i<P.length;i++){ const s=dist(P[i-1][0],P[i-1][1],P[i][0],P[i][1]); if(d<=s||i===P.length-1){ const k=s?d/s:0; return [lerp(P[i-1][0],P[i][0],k),lerp(P[i-1][1],P[i][1],k)]; } d-=s; }
+  return P[P.length-1];
+}
+function bezPts(p0,p1,p2,n){ const out=[]; for(let i=0;i<=n;i++){ const t=i/n, u=1-t; out.push([u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]); } return out; }
+
+/* =====================================================================
+   THE OAK  —  one tree, drawn in "tree units": trunk base at (0,0),
+   y grows upward, the crown top is near y = 1.1, roots reach y = -0.4.
+   A frame {cx, gy, s} says where the base sits on screen and how many
+   pixels one unit is. The same tree is the chapter map, the roots
+   scene, and the neighbors scene.
+   ===================================================================== */
+const CROWN=[ [0,0.74,0.34],[-0.29,0.62,0.26],[0.3,0.6,0.27],[-0.15,0.9,0.22],[0.17,0.93,0.2],[-0.43,0.5,0.17],[0.44,0.48,0.18],[0.02,1.02,0.15] ];
+const BRANCHES=[ [[0,0.36],[-0.22,0.46],[-0.46,0.52]], [[0,0.42],[0.2,0.5],[0.44,0.5]], [[0,0.48],[-0.14,0.66],[-0.3,0.82]], [[0,0.5],[0.12,0.7],[0.28,0.88]], [[0,0.55],[0.02,0.8],[0.0,1.02]], [[0,0.27],[-0.2,0.3],[-0.47,0.33]], [[0,0.3],[0.22,0.34],[0.47,0.41]] ];
+const ROOTS=[ [[-0.06,0.02],[-0.32,-0.08],[-0.78,-0.14]], [[0.06,0.02],[0.34,-0.07],[0.8,-0.16]], [[-0.04,0.0],[-0.18,-0.2],[-0.5,-0.3]], [[0.04,0.0],[0.2,-0.19],[0.52,-0.31]], [[-0.02,0.0],[-0.06,-0.22],[-0.14,-0.42]], [[0.02,0.0],[0.1,-0.24],[0.24,-0.4]] ];
+const ROOTLETS=[ [0,0.55,-1],[0,0.8,1],[1,0.5,1],[1,0.75,-1],[2,0.6,1],[3,0.55,-1],[4,0.6,-1],[5,0.5,1],[0,0.35,1],[1,0.3,-1] ];  // [root index, fraction along, side]
+
+function treeGeom(F){        // screen-space geometry for a frame
+  const X=x=>F.cx+x*F.s, Y=y=>F.gy-y*F.s;
+  const roots=ROOTS.map(r=>bezPts([X(r[0][0]),Y(r[0][1])],[X(r[1][0]),Y(r[1][1])],[X(r[2][0]),Y(r[2][1])],14));
+  const rootlets=ROOTLETS.map(([ri,t,side])=>{ const P=roots[ri]; const a=polyAt(P,t), b=polyAt(P,Math.min(1,t+0.12)); const dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1; const nx=-dy/L*side, ny=dx/L*side; const len=F.s*0.11; return [a,[a[0]+nx*len*0.6+dx/L*len*0.4, a[1]+ny*len*0.6+dy/L*len*0.4+F.s*0.03],[a[0]+nx*len+dx/L*len*0.6, a[1]+ny*len+dy/L*len*0.6+F.s*0.06]]; });
+  const branches=BRANCHES.map(b=>bezPts([X(b[0][0]),Y(b[0][1])],[X(b[1][0]),Y(b[1][1])],[X(b[2][0]),Y(b[2][1])],10));
+  const crown=CROWN.map(c=>({x:X(c[0]),y:Y(c[1]),r:c[2]*F.s}));
+  return {X,Y,roots,rootlets,branches,crown,trunkW:0.17*F.s};
+}
+function drawSky(F,night,t){
+  const W=V.w,H=V.h, gy=F.gy;
+  const g=ctx.createLinearGradient(0,0,0,gy);
+  if(night<1){ g.addColorStop(0,'#3d9be9'); g.addColorStop(1,'#cdeeff'); ctx.fillStyle=g; ctx.fillRect(0,0,W,Math.max(gy,0)+2); }
+  if(night>0){
+    ctx.globalAlpha=night; const n=ctx.createLinearGradient(0,0,0,gy); n.addColorStop(0,'#12103a'); n.addColorStop(1,'#2b2a6e'); ctx.fillStyle=n; ctx.fillRect(0,0,W,Math.max(gy,0)+2);
+    const rr=seeded(9); ctx.fillStyle='#fff6d8';
+    for(let i=0;i<70;i++){ const x=rr()*W, y=rr()*gy*0.9, s=rr()*1.6+.4; ctx.globalAlpha=night*(0.5+0.5*Math.sin(t*1.6+i)); ctx.beginPath(); ctx.arc(x,y,s,0,TAU); ctx.fill(); }
+    ctx.globalAlpha=night;
+    disc(W*0.84,gy*0.2,26,'#fff3c4',3); circle(W*0.84+11,gy*0.2-6,20,'#2b2a6e'); ring(W*0.84,gy*0.2,26,INK,3);
+    ctx.globalAlpha=1;
+  }
+  if(night<1){
+    ctx.globalAlpha=1-night;
+    const sx0=W*0.84, sy0=gy*0.2; circle(sx0,sy0,30,GOLD); ring(sx0,sy0,30,INK,3);
+    ctx.strokeStyle=GOLD; ctx.lineWidth=5; ctx.lineCap='round';
+    for(let i=0;i<8;i++){ const a=i*TAU/8+t*0.25; ctx.beginPath(); ctx.moveTo(sx0+Math.cos(a)*40,sy0+Math.sin(a)*40); ctx.lineTo(sx0+Math.cos(a)*54,sy0+Math.sin(a)*54); ctx.stroke(); }
+    // a couple of slow clouds
+    ctx.fillStyle='rgba(255,255,255,0.85)';
+    [[0.12,0.22,1],[0.5,0.12,0.7]].forEach(([fx,fy,k],i)=>{ const cx=((fx+t*0.006*(i+1))%1.2-0.1)*W, cy=fy*gy; [[0,0,22],[22,-8,26],[46,0,20],[24,8,18]].forEach(c=>{ ctx.beginPath(); ctx.arc(cx+c[0]*k,cy+c[1]*k,c[2]*k,0,TAU); ctx.fill(); }); });
+    ctx.globalAlpha=1;
+  }
+}
+function drawGround(F,depth){        // grass line + soil down to `depth` px (or bottom)
+  const W=V.w,H=V.h, gy=F.gy, bottom=depth?gy+depth:H;
+  const g=ctx.createLinearGradient(0,gy,0,bottom); g.addColorStop(0,'#a06b38'); g.addColorStop(0.35,SOIL); g.addColorStop(1,SOIL_DK);
+  ctx.fillStyle=g; ctx.fillRect(0,gy,W,bottom-gy);
+  const rr=seeded(4); ctx.fillStyle='rgba(60,35,15,0.35)';
+  for(let i=0;i<50;i++){ const x=rr()*W, y=gy+12+rr()*(bottom-gy-12), r=2+rr()*5; ctx.beginPath(); ctx.ellipse(x,y,r*1.4,r,rr()*3,0,TAU); ctx.fill(); }
+  ctx.fillStyle='#4e7d2b'; ctx.fillRect(0,gy-2,W,6);
+  ctx.fillStyle=GRASS; ctx.fillRect(0,gy-6,W,5);
+  ctx.strokeStyle='#3f8f2f'; ctx.lineWidth=2.5; ctx.lineCap='round';
+  for(let x=6;x<W;x+=14){ const h=8+((x*7)%9); ctx.beginPath(); ctx.moveTo(x,gy-4); ctx.lineTo(x+((x%3)-1)*3,gy-4-h); ctx.stroke(); }
+}
+function drawRootsOf(G,F,opts){
+  opts=opts||{}; const s=F.s;
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  const drawRoot=(P,w0)=>{
+    for(let i=1;i<P.length;i++){ const k=1-i/P.length; ctx.strokeStyle=INK; ctx.lineWidth=w0*k+4; ctx.beginPath(); ctx.moveTo(P[i-1][0],P[i-1][1]); ctx.lineTo(P[i][0],P[i][1]); ctx.stroke(); }
+    for(let i=1;i<P.length;i++){ const k=1-i/P.length; ctx.strokeStyle=opts.color||'#b8874f'; ctx.lineWidth=Math.max(1.5,w0*k); ctx.beginPath(); ctx.moveTo(P[i-1][0],P[i-1][1]); ctx.lineTo(P[i][0],P[i][1]); ctx.stroke(); }
+  };
+  G.rootlets.forEach(P=>drawRoot(P,s*0.03));
+  G.roots.forEach((P,i)=>drawRoot(P,s*(i<2?0.075:0.055)));
+  if(opts.hairs){ // fuzzy root hairs at the tips
+    ctx.strokeStyle='#e9d3b0'; ctx.lineWidth=1.5;
+    const tips=[...G.roots.map(P=>P.slice(-4)),...G.rootlets.map(P=>P.slice(-2))];
+    tips.forEach((T,ti)=>{ const rr=seeded(ti+3); T.forEach(p=>{ for(let k=0;k<5;k++){ const a=rr()*TAU, l=s*0.008+rr()*s*0.014; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(p[0]+Math.cos(a)*l,p[1]+Math.sin(a)*l); ctx.stroke(); } }); });
+  }
+}
+function drawTrunk(G,F,opts){
+  opts=opts||{}; const s=F.s, X=G.X, Y=G.Y, w=G.trunkW;
+  const top=Y(0.62), base=Y(0), flare=w*0.35;
+  ctx.beginPath();
+  ctx.moveTo(X(0)-w/2-flare,base+s*0.02);
+  ctx.quadraticCurveTo(X(0)-w/2,base-s*0.06,X(0)-w*0.46,Y(0.2));
+  ctx.lineTo(X(0)-w*0.36,top);
+  ctx.lineTo(X(0)+w*0.36,top);
+  ctx.lineTo(X(0)+w*0.46,Y(0.2));
+  ctx.quadraticCurveTo(X(0)+w/2,base-s*0.06,X(0)+w/2+flare,base+s*0.02);
+  ctx.closePath();
+  ctx.fillStyle=opts.color||'#8d6b52'; ctx.fill();
+  ctx.save(); ctx.clip();
+  // bark: scaly vertical plates, the white oak look
+  const rr=seeded(21); ctx.strokeStyle='rgba(60,35,20,0.35)'; ctx.lineWidth=Math.max(1.5,s*0.012); ctx.lineCap='round';
+  for(let i=0;i<26;i++){ const x=X(0)-w*0.45+rr()*w*0.9, y0=base-rr()*s*0.6, l=s*(0.05+rr()*0.12); ctx.beginPath(); ctx.moveTo(x,y0); ctx.lineTo(x+(rr()-.5)*s*0.02,y0-l); ctx.stroke(); }
+  ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fillRect(X(0)-w*0.42,top,w*0.16,base-top+10);
+  ctx.restore();
+  ctx.strokeStyle=INK; ctx.lineWidth=Math.max(2,s*0.012); ctx.lineJoin='round'; ctx.stroke();
+}
+function drawBranches(G,F){
+  const s=F.s;
+  G.branches.forEach(P=>{ path(P,INK,s*0.05+4); path(P,'#8d6b52',s*0.05); });
+}
+function drawCrown(G,F,opts){
+  opts=opts||{}; const s=F.s, col=opts.color||LEAF, ol=Math.max(2,s*0.012);
+  G.crown.forEach((c,i)=>{ blob(c.x,c.y,c.r,darker(col,0.12),ol,i+1); });
+  G.crown.forEach((c,i)=>{ blob(c.x,c.y,c.r*0.86,col,0,i+1); });
+  G.crown.forEach((c,i)=>{ blob(c.x-c.r*0.22,c.y-c.r*0.25,c.r*0.42,lighter(col,0.22),0,i+11); });
+  if(opts.acorns&&s>150){ const rr=seeded(5); ctx.fillStyle='#b98a4a'; for(let i=0;i<10;i++){ const c=G.crown[i%G.crown.length]; const x=c.x+(rr()-.5)*c.r*1.2, y=c.y+(rr()-.5)*c.r*1.2; disc(x,y,s*0.012,'#c9975a',1.2); circle(x,y-s*0.008,s*0.012,'#6e4426'); } }
+}
+function drawOak(F,opts){         // the whole tree at a frame
+  opts=opts||{};
+  const G=treeGeom(F);
+  drawSky(F,opts.night||0,now);
+  drawGround(F,opts.depth);
+  drawRootsOf(G,F,{hairs:opts.hairs});
+  drawTrunk(G,F,opts);
+  drawBranches(G,F);
+  drawCrown(G,F,{acorns:opts.acorns});
+  return G;
+}
+function mapFrame(){                // the framing used for the chapter map + neighbors scene
+  const W=V.w,H=V.h, gy=H*0.7;
+  const s=Math.min((gy-12)/1.12, W/1.75, (H-gy)/0.46);
+  return {cx:W/2,gy,s};
+}
+// where each chapter "lives" on the map, in tree units
+const ANCHORS={leaf:[0.33,0.86], roots:[0.25,-0.2], rings:[0,0.22], wood:[0.0,0.08], animals:[0,0.7]};
+function anchorPx(id,F){ const a=ANCHORS[id]; return [F.cx+a[0]*F.s, F.gy-a[1]*F.s]; }
+
+/* =====================================================================
+   CHAPTERS, SCENES, CARDS
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'leaf', icon:'🍃', name:'Leaves', title:'🍃 Leaves: the sugar factory',
+   caption:'A leaf makes the tree\'s food from <b>sunlight</b>, <b>water</b>, and <b>air</b>. That\'s <b>photosynthesis</b> (FOH-toh-SIN-thuh-sis).'},
+  {id:'roots', icon:'💧', name:'Roots', title:'💧 Roots: the tree\'s straws',
+   caption:'Roots drink water from the soil. Tiny tubes carry it <b>all the way up</b> to the leaves — even 100 feet high!'},
+  {id:'rings', icon:'🪵', name:'Rings', title:'🪵 Trunk: a ring for every year',
+   caption:'Each year the trunk grows a <b>new layer of wood</b>. Count the rings and you know the tree\'s age!'},
+  {id:'wood', icon:'🔨', name:'Wood', title:'🔨 Wood: which tree made it?',
+   caption:'Different trees make different wood. Some is <b>hard and heavy</b>, some is <b>soft and light</b>. Pick the right wood for the job!'},
+  {id:'animals', icon:'🦉', name:'Neighbors', title:'🦉 Neighbors: who lives here?',
+   caption:'A tree is a home, a kitchen, and a hiding place. <b>Tap the animals</b> — then try switching to night!'},
+];
+const SCENES={};             // id -> scene object (filled in below)
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};             // id -> true once the challenge is done
+let selected=null;           // the tapped thing (for a highlight ring)
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'), cardClose:$('cardClose'), thumb:$('thumb'),
+  toast:$('toast'), levels:$('levels'), btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'), questClose:$('questClose'),
+  badges:$('badges'), meter:$('meter'), minimap:$('minimap') };
+
+/* ---------- header: badges + you-are-here ---------- */
+CHAPTERS.forEach(c=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge'; els.badges.appendChild(b); c.badgeEl=b; });
+const mctx=els.minimap.getContext('2d');
+function drawMinimap(){
+  const S=64, real=ctx; ctx=mctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,S,60);
+  const F={cx:S/2,gy:40,s:34};
+  ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,40); ctx.fillStyle=SOIL; ctx.fillRect(0,40,S,20); ctx.fillStyle=GRASS; ctx.fillRect(0,38,S,3);
+  const G=treeGeom(F);
+  ctx.lineCap='round'; G.roots.forEach(P=>path(P,'#b8874f',2));
+  ctx.fillStyle='#8d6b52'; ctx.fillRect(F.cx-3,F.gy-24,6,25);
+  G.crown.forEach(c=>circle(c.x,c.y,c.r,LEAF));
+  const id=CHAPTERS[current].id, a=anchorPx(id,F);
+  if(id==='animals'){ ring(F.cx,F.gy-14,26,GOLD,3); } else { ring(a[0],a[1],9,GOLD,3.5); ring(a[0],a[1],9,INK,1); }
+  ctx=real;
+}
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(item.thumb) item.thumb(84); else if(item.emoji) emoji(item.emoji,42,42,50);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const c=CHAPTERS.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🌳 All 5 badges — you are a TREE EXPERT!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+// A challenge is a list of steps. Each step has a prompt; either `options`
+// (buttons; `ok` says which are right) or `tap` (a function of what was
+// tapped on the canvas that returns true/false/'almost').
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const scene=SCENES[id]; if(!scene.quest) return;
+  closeCard(); quest.active=scene.quest(); quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true;
+  els.quest.classList.toggle('tr',scene.questPos==='tr'); document.body.classList.add('questing');
+  if(quest.active.onStart) quest.active.onStart();
+  renderStep();
+}
+function endQuest(){ if(quest.active&&quest.active.onEnd) quest.active.onEnd(); quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing'); }
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML=''; Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){
+    els.qOpts.hidden=false;
+    S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); });
+  }else{ els.qOpts.hidden=true; }
+  if(S.onShow) S.onShow();
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
+  else setTimeout(renderStep,1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true); if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){          // the canvas was tapped while a tap-step is open
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){
+    const p=confetti[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt;
+    if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore();
+  }
+}
+
+/* =====================================================================
+   SCENE 1 · THE LEAF — a cross-section of a leaf, run as a factory.
+   Sunlight lands on the chloroplasts, CO₂ comes in through the stomata,
+   water arrives by the vein; when one chloroplast has all three it makes
+   a sugar (which leaves by the phloem) and an oxygen (out a stoma).
+   ===================================================================== */
+SCENES.leaf=(()=>{
+  const L={}; let chloro=[], stomata=[], photons=[], co2s=[], waters=[], sugars=[], o2s=[], items=[];
+  let sugarMade=0, o2Made=0, night=0, jar=0, acc={p:0,c:0,w:0};
+  const tog={sun:true,water:true,air:true};
+  const sunThumb=S=>{ ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,S); disc(S/2,S/2,S*0.22,GOLD,3); ctx.strokeStyle=GOLD; ctx.lineWidth=5; ctx.lineCap='round'; for(let i=0;i<8;i++){ const a=i*TAU/8; ctx.beginPath(); ctx.moveTo(S/2+Math.cos(a)*S*0.3,S/2+Math.sin(a)*S*0.3); ctx.lineTo(S/2+Math.cos(a)*S*0.42,S/2+Math.sin(a)*S*0.42); ctx.stroke(); } };
+  const gasThumb=(fill,txt)=>S=>{ ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,S); disc(S/2,S/2,S*0.3,fill,3); ctx.fillStyle=INK; ctx.font='700 20px '+DISPLAY_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,S/2,S/2+1); };
+  const cards={
+    sun:{name:'Sunlight',sub:'The energy',fact:'Sunlight powers the factory. No light, no sugar — at night the leaf rests and waits for morning.',thumb:sunThumb},
+    chloro:{name:'Chlorophyll',sub:'KLOR-oh-fil · the green stuff',fact:'Chlorophyll catches sunlight. It\'s what makes leaves green! In fall it fades away, and the yellow and orange that were hiding all summer finally show.',extra:'Big word: chloroplast — a tiny green pocket full of chlorophyll.',
+      thumb:S=>{ ctx.fillStyle='#e6f4c8'; ctx.fillRect(0,0,S,S); ellipse(S/2,S/2,S*0.36,S*0.24,-0.5,LEAF_DK,3); ellipse(S/2-7,S/2-7,S*0.13,S*0.07,-0.5,LEAF_LT,0); }},
+    stoma:{name:'Stomata',sub:'stoh-MAH-tuh · tiny mouths',fact:'Thousands of tiny mouths on the underside of a leaf. They open to let air in and oxygen out — and close to keep water from escaping.',extra:'One mouth is a stoma. Lots of them are stomata.',
+      thumb:S=>{ ctx.fillStyle='#dff2b8'; ctx.fillRect(0,0,S,S); ellipse(S/2-13,S/2,11,22,0,'#8fc96b',3); ellipse(S/2+13,S/2,11,22,0,'#8fc96b',3); ellipse(S/2,S/2,5,12,0,'#cdeeff',0); }},
+    xylem:{name:'Water pipe (xylem)',sub:'ZY-lem',fact:'Water comes up from the roots in these tubes. The leaf needs it to make sugar — and to stay stiff and flat.',
+      thumb:S=>{ ctx.fillStyle='#e6f4c8'; ctx.fillRect(0,0,S,S); box(0,S/2-12,S,24,0,'#7fb8ff',3); for(let i=0;i<3;i++) disc(16+i*26,S/2,5,WATER,1.5); }},
+    phloem:{name:'Sugar pipe (phloem)',sub:'FLOH-em',fact:'Fresh sugar leaves through these tubes to feed the whole tree — the roots, the buds, and the acorns.',
+      thumb:S=>{ ctx.fillStyle='#e6f4c8'; ctx.fillRect(0,0,S,S); box(0,S/2-12,S,24,0,'#ffb36b',3); for(let i=0;i<3;i++) box(11+i*26,S/2-5,10,10,2,SUGAR,1.5); }},
+    co2:{name:'Carbon dioxide',sub:'CO₂ · a gas in the air',fact:'You breathe OUT carbon dioxide. The leaf breathes it IN, and uses the carbon in it to build sugar.',thumb:gasThumb(CO2,'CO₂')},
+    o2:{name:'Oxygen',sub:'O₂ · the gas you breathe',fact:'The factory\'s leftover is oxygen — the gas you need every second. Almost all the oxygen on Earth was made by plants and tiny ocean plants.',thumb:gasThumb(O2,'O₂')},
+    sugar:{name:'Sugar',sub:'The tree\'s food',fact:'Trees don\'t eat dirt. They make their own food: sugar! The tree uses it to grow wood, leaves, roots, and acorns.',extra:'For big kids: 6 water + 6 carbon dioxide + light → 1 sugar + 6 oxygen',
+      thumb:S=>{ ctx.fillStyle='#ffe8ef'; ctx.fillRect(0,0,S,S); box(S/2-16,S/2-16,32,32,6,SUGAR,3); label('✦',S/2-6,S/2-6,{size:14,color:WHITE,dark:false}); }},
+  };
+  function layout(){
+    const W=V.w,H=V.h, narrow=W<640;
+    L.sun={x:narrow?W*0.82:W*0.6, y:narrow?H*0.27:H*0.16, r:narrow?24:30};
+    L.x0=W*0.16; L.x1=W*0.965; L.y0=H*(narrow?0.44:0.40); L.y1=H*(narrow?0.68:0.66); L.T=L.y1-L.y0; L.cy=(L.y0+L.y1)/2;
+    L.vr=Math.min(L.T*0.4,46); L.vx=L.x0+L.vr*1.15; L.e=L.T*0.1; L.pipeW=L.vr*0.5;
+    L.xyl={x:L.vx,y:L.cy-L.vr*0.4}; L.phl={x:L.vx,y:L.cy+L.vr*0.42};
+    L.channelY=L.y0+L.T*0.74;
+    chloro=[]; L.cells=[];
+    const cellW=Math.max(26,Math.min(46,W*0.046)), xs=L.vx+L.vr+cellW*0.5, xe=L.x1-cellW*0.8, n=Math.max(4,Math.floor((xe-xs)/cellW));
+    for(let i=0;i<n;i++){ const cx=xs+cellW*(i+0.5); L.cells.push({x:cx-cellW*0.43,y:L.y0+L.e,w:cellW*0.86,h:L.T*0.44});
+      for(let k=0;k<2;k++) chloro.push({x:cx+(k?cellW*0.19:-cellW*0.19), y:L.y0+L.e+L.T*0.44*(k?0.68:0.3), light:0,co2:0,water:0,flash:0}); }
+    stomata=[0.33,0.57,0.81].map(f=>({x:L.x0+(L.x1-L.x0)*f,y:L.y1,open:1}));
+    const rr=seeded(8); L.spongy=[]; for(let x=xs+8;x<L.x1-L.T*0.5;x+=L.T*0.19){ for(let row=0;row<2;row++) L.spongy.push({x:x+(rr()-.5)*6+(row?L.T*0.09:0),y:L.y0+L.T*(row?0.83:0.67)+(rr()-.5)*4,r:L.T*(0.055+rr()*0.02)}); }
+    photons=[]; co2s=[]; waters=[]; sugars=[]; o2s=[];
+    chloro.forEach(c=>{ c.light=rnd()<0.5?1:0; c.co2=rnd()<0.5?1:0; c.water=rnd()<0.5?1:0; });   // the factory is already humming
+    // tappable things, first match wins
+    items=[
+      {card:'sun', hit:(x,y)=>dist(x,y,L.sun.x,L.sun.y)<L.sun.r+16, pos:()=>[L.sun.x,L.sun.y,L.sun.r+18]},
+      ...stomata.map(s=>({card:'stoma', hit:(x,y)=>dist(x,y,s.x,s.y)<24, pos:()=>[s.x,s.y,26]})),
+      {card:'xylem', hit:(x,y)=>(y>L.xyl.y-L.pipeW&&y<L.xyl.y+L.pipeW*0.2&&x<L.vx)||(dist(x,y,L.vx,L.cy)<L.vr&&y<L.cy), pos:()=>[L.xyl.x,L.xyl.y,L.vr*0.6]},
+      {card:'phloem', hit:(x,y)=>(y>L.phl.y-L.pipeW*0.2&&y<L.phl.y+L.pipeW&&x<L.vx)||(dist(x,y,L.vx,L.cy)<L.vr&&y>=L.cy), pos:()=>[L.phl.x,L.phl.y,L.vr*0.6]},
+      {card:'chloro', hit:(x,y)=>x>L.vx+L.vr&&x<L.x1&&y>L.y0&&y<L.y0+L.T*0.56, pos:()=>{ const c=chloro[Math.floor(chloro.length/2)]; return [c.x,c.y,22]; }},
+      {card:'co2', hit:(x,y)=>x>L.x0&&y>L.y1+6&&y<V.h, pos:()=>[stomata[1].x,L.y1+44,26]},
+      {card:'sugar', hit:(x,y)=>x>L.vx+L.vr&&x<L.x1&&y>=L.y0+L.T*0.56&&y<L.y1, pos:()=>[L.x0+(L.x1-L.x0)*0.5,L.channelY,24]},
+    ];
+    items.forEach(it=>Object.assign(it,cards[it.card]));
+  }
+  const pickTarget=res=>{ const need=chloro.filter(c=>c[res]<1); const pool=need.length?need:chloro.filter(c=>c[res]<2); return pool.length?pool[Math.floor(rnd()*pool.length)]:null; };
+  function spawnPhoton(){ const t=pickTarget('light'); if(!t||photons.length>40) return; photons.push({x:L.sun.x+(rnd()-.5)*20,y:L.sun.y+(rnd()-.5)*20,t,px:0,py:0}); }
+  function spawnCO2(){ const t=pickTarget('co2'); if(!t||co2s.length>24) return; const s=stomata[Math.floor(rnd()*stomata.length)]; co2s.push({x:L.x0+rnd()*(L.x1-L.x0),y:L.y1+40+rnd()*(V.h-L.y1-60),s,t,ph:0,w:rnd()*TAU}); }
+  function spawnWater(){ const t=pickTarget('water'); if(!t||waters.length>24) return; waters.push({P:[[-12,L.xyl.y],[L.xyl.x,L.xyl.y],[L.vx+L.vr*0.9,L.channelY],[t.x,L.channelY],[t.x,t.y+8]],k:0,t}); }
+  function react(c){
+    c.light--; c.co2--; c.water--; c.flash=0.7; sugarMade++; o2Made++;
+    sugars.push({P:[[c.x,c.y],[c.x,L.channelY],[L.vx+L.vr*0.9,L.channelY],[L.phl.x,L.phl.y],[-16,L.phl.y]],k:0});
+    let s=stomata[0]; stomata.forEach(q=>{ if(Math.abs(q.x-c.x)<Math.abs(s.x-c.x)) s=q; });
+    o2s.push({x:c.x,y:c.y,s,ph:0,w:rnd()*TAU});
+  }
+  function update(dt){
+    night+=((tog.sun?0:1)-night)*Math.min(1,dt*3); jar+=((tog.air?0:1)-jar)*Math.min(1,dt*3);
+    if(tog.sun){ acc.p+=dt*5; while(acc.p>=1){ acc.p--; spawnPhoton(); } }
+    if(tog.air){ acc.c+=dt*2.4; while(acc.c>=1){ acc.c--; spawnCO2(); } }
+    if(tog.water){ acc.w+=dt*2.4; while(acc.w>=1){ acc.w--; spawnWater(); } }
+    for(let i=photons.length-1;i>=0;i--){ const p=photons[i], tx=p.t.x, ty=L.y0-2; const d=dist(p.x,p.y,tx,ty); p.px=p.x; p.py=p.y; if(d<6){ p.t.light=Math.min(2,p.t.light+1); photons.splice(i,1); continue; } const v=300*dt; p.x+=(tx-p.x)/d*v; p.y+=(ty-p.y)/d*v; }
+    for(let i=co2s.length-1;i>=0;i--){ const p=co2s[i]; const tx=p.ph?p.t.x:p.s.x, ty=p.ph?p.t.y+10:p.s.y+12; const d=dist(p.x,p.y,tx,ty); const v=(p.ph?130:80)*dt; if(d<v){ if(p.ph){ p.t.co2=Math.min(2,p.t.co2+1); co2s.splice(i,1); } else { p.ph=1; p.x=tx; p.y=ty; } continue; } p.x+=(tx-p.x)/d*v+(p.ph?0:Math.sin(now*3+p.w)*20*dt); p.y+=(ty-p.y)/d*v; }
+    for(let i=waters.length-1;i>=0;i--){ const p=waters[i]; p.k+=dt*330/polyLen(p.P); if(p.k>=1){ p.t.water=Math.min(2,p.t.water+1); waters.splice(i,1); } }
+    for(let i=sugars.length-1;i>=0;i--){ const p=sugars[i]; p.k+=dt*260/polyLen(p.P); if(p.k>=1) sugars.splice(i,1); }
+    for(let i=o2s.length-1;i>=0;i--){ const p=o2s[i];
+      if(p.ph===0){ const tx=p.s.x, ty=p.s.y+16, d=dist(p.x,p.y,tx,ty), v=120*dt; if(d<v){ p.ph=1; p.x=tx; p.y=ty; } else { p.x+=(tx-p.x)/d*v; p.y+=(ty-p.y)/d*v; } }
+      else if(p.ph===1){ p.y+=60*dt; if(p.y>L.y1+34) p.ph=2; }
+      else { p.x+=55*dt+Math.sin(now*4+p.w)*14*dt; p.y-=40*dt; if(p.x>V.w+20||p.y<-20) o2s.splice(i,1); } }
+    chloro.forEach(c=>{ if(c.light>=1&&c.co2>=1&&c.water>=1) react(c); c.flash=Math.max(0,c.flash-dt); });
+    stomata.forEach(s=>{ s.open+=((tog.air?1:0.15)-s.open)*Math.min(1,dt*4); });
+    const st='🍬 Sugar made: <b>'+sugarMade+'</b>'; if(els.stat.dataset.v!==st+o2Made){ els.stat.dataset.v=st+o2Made; setStat('<span>'+st+'</span><span>💨 Oxygen out: <b>'+o2Made+'</b></span>'); }
+  }
+  function draw(){
+    const W=V.w,H=V.h;
+    // sky, sun or moon
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#3d9be9'); g.addColorStop(1,'#cdeeff'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    if(night>0){ ctx.globalAlpha=night; const n=ctx.createLinearGradient(0,0,0,H); n.addColorStop(0,'#12103a'); n.addColorStop(1,'#3a3d8a'); ctx.fillStyle=n; ctx.fillRect(0,0,W,H);
+      const rr=seeded(9); ctx.fillStyle='#fff6d8'; for(let i=0;i<60;i++){ const x=rr()*W,y=rr()*H*0.38; ctx.globalAlpha=night*(0.5+0.5*Math.sin(now*1.6+i)); ctx.beginPath(); ctx.arc(x,y,rr()*1.6+.4,0,TAU); ctx.fill(); }
+      ctx.globalAlpha=night; disc(L.sun.x,L.sun.y,L.sun.r,'#fff3c4',3); circle(L.sun.x+L.sun.r*0.4,L.sun.y-L.sun.r*0.2,L.sun.r*0.72,'#2b2a6e'); ring(L.sun.x,L.sun.y,L.sun.r,INK,3);
+      label('z z z',L.sun.x+L.sun.r+26,L.sun.y-L.sun.r,{size:16,display:true,dark:false}); ctx.globalAlpha=1; }
+    if(night<1){ ctx.globalAlpha=1-night; disc(L.sun.x,L.sun.y,L.sun.r,GOLD,3); ctx.strokeStyle=GOLD; ctx.lineWidth=5; ctx.lineCap='round';
+      for(let i=0;i<8;i++){ const a=i*TAU/8+now*0.25; ctx.beginPath(); ctx.moveTo(L.sun.x+Math.cos(a)*(L.sun.r+10),L.sun.y+Math.sin(a)*(L.sun.r+10)); ctx.lineTo(L.sun.x+Math.cos(a)*(L.sun.r+24),L.sun.y+Math.sin(a)*(L.sun.r+24)); ctx.stroke(); } ctx.globalAlpha=1; }
+    // photons in flight
+    ctx.lineCap='round'; photons.forEach(p=>{ line(p.px,p.py,p.x,p.y,'rgba(255,210,63,0.5)',6); circle(p.x,p.y,3.5,'#fff3a0'); });
+    // the pipes in from the tree
+    box(-10,L.xyl.y-L.pipeW/2,L.vx+10,L.pipeW,0,'#7fb8ff',3);
+    box(-10,L.phl.y-L.pipeW/2,L.vx+10,L.pipeW,0,'#ffb36b',3);
+    // leaf body
+    const T=L.T, x0=L.x0, x1=L.x1, y0=L.y0, y1=L.y1;
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-T*0.6,y0); ctx.quadraticCurveTo(x1+T*0.05,y0,x1,L.cy); ctx.quadraticCurveTo(x1+T*0.05,y1,x1-T*0.6,y1); ctx.lineTo(x0,y1); ctx.closePath();
+    ctx.fillStyle='#c8e6a0'; ctx.fill(); ctx.save(); ctx.clip();
+    ctx.fillStyle='#dff2b8'; ctx.fillRect(x0,y0,x1-x0,L.e); ctx.fillRect(x0,y1-L.e,x1-x0,L.e);
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.fillRect(x0,y0+2,x1-x0,3);   // waxy cuticle
+    // spongy layer
+    L.spongy.forEach((s,i)=>{ disc(s.x,s.y,s.r,'#b9df8a',1.5); });
+    // palisade cells + chloroplasts
+    L.cells.forEach(c=>{ box(c.x,c.y,c.w,c.h,6,'#a9d975',1.5); });
+    chloro.forEach(c=>{
+      const glow=c.flash>0?c.flash/0.7:0;
+      if(glow>0){ const gg=ctx.createRadialGradient(c.x,c.y,2,c.x,c.y,26); gg.addColorStop(0,'rgba(255,240,150,'+(0.9*glow)+')'); gg.addColorStop(1,'rgba(255,240,150,0)'); circle(c.x,c.y,26,gg); }
+      ellipse(c.x,c.y,10,6.5,-0.4,glow>0.4?'#7bd35e':LEAF_DK,1.5); ellipse(c.x-3,c.y-2,4,2,-0.4,'rgba(255,255,255,0.35)',0);
+      // what it is holding, waiting for the rest
+      const dots=[[c.light,'#ffd23f'],[c.co2,CO2],[c.water,WATER]]; let k=0; dots.forEach(([n,col])=>{ if(n>0){ disc(c.x-9+k*9,c.y-12,3.5,col,1); k++; } });
+    });
+    // the vein: xylem (water) on top, phloem (sugar) below
+    disc(L.vx,L.cy,L.vr,'#c8e6a0',2.5);
+    ctx.save(); ctx.beginPath(); ctx.arc(L.vx,L.cy,L.vr-3,0,TAU); ctx.clip();
+    ctx.fillStyle='#7fb8ff'; ctx.fillRect(L.vx-L.vr,L.cy-L.vr,2*L.vr,L.vr); ctx.fillStyle='#ffb36b'; ctx.fillRect(L.vx-L.vr,L.cy,2*L.vr,L.vr);
+    for(let i=0;i<5;i++){ disc(L.vx+(i-2)*L.vr*0.36,L.cy-L.vr*0.42,L.vr*0.14,'#e8f2ff',1); disc(L.vx+(i-2)*L.vr*0.36,L.cy+L.vr*0.42,L.vr*0.12,'#fff0d8',1); }
+    ctx.restore(); ring(L.vx,L.cy,L.vr,INK,2.5);
+    ctx.restore();
+    // outline of the leaf
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1-T*0.6,y0); ctx.quadraticCurveTo(x1+T*0.05,y0,x1,L.cy); ctx.quadraticCurveTo(x1+T*0.05,y1,x1-T*0.6,y1); ctx.lineTo(x0,y1); ctx.closePath(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke();
+    // stomata: two guard cells with a gap that opens and closes
+    stomata.forEach(s=>{ const gap=4+12*s.open; box(s.x-gap/2,y1-L.e-1,gap,L.e+3,0,'#cdeeff',0); ellipse(s.x-gap/2-8,y1-L.e/2,8,L.e*0.55,0,'#8fc96b',2); ellipse(s.x+gap/2+8,y1-L.e/2,8,L.e*0.55,0,'#8fc96b',2); });
+    // particles inside and around
+    waters.forEach(p=>{ const q=polyAt(p.P,p.k); disc(q[0],q[1],5,WATER,1.5); });
+    sugars.forEach(p=>{ const q=polyAt(p.P,p.k); box(q[0]-6,q[1]-6,12,12,3,SUGAR,1.5); });
+    co2s.forEach(p=>{ disc(p.x,p.y,9,CO2,1.5); ctx.fillStyle=INK; ctx.font='700 8px '+DISPLAY_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('CO₂',p.x,p.y+1); });
+    o2s.forEach(p=>{ disc(p.x,p.y,9,O2,1.5); ctx.fillStyle=INK; ctx.font='700 9px '+DISPLAY_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('O₂',p.x,p.y+1); });
+    // the bell jar when the air is switched off
+    if(jar>0.02){ ctx.save(); ctx.globalAlpha=jar; ctx.setLineDash([10,8]); ctx.strokeStyle=INK; ctx.lineWidth=3; rrect(x0-14,y0-30,x1-x0+28,y1-y0+80,30); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle='rgba(180,220,255,0.25)'; ctx.fill(); ctx.restore(); if(jar>0.5) sign('🫙 No fresh air — no CO₂',(x0+x1)/2,y1+56,{size:14}); }
+    // signs
+    sign('💧 water from the roots',8,L.xyl.y-L.pipeW*0.5-14,{align:'left',size:12});
+    sign('🍬 sugar to the tree',8,L.phl.y+L.pipeW*0.5+14,{align:'left',size:12});
+    const narrow=V.w<640;
+    if(jar<0.5) sign(tog.air?'air (CO₂) in ↑':'',stomata[narrow?0:1].x,y1+30,{size:12});
+    sign('oxygen out ↗',x1-T*(narrow?0.5:0.9),y1+30,{size:12});
+    if(night>0.5) sign('🌙 Night: the factory rests',L.sun.x-40,L.sun.y+L.sun.r+30,{size:13});
+    if(!tog.water) sign('🥀 No water — the leaf is thirsty',L.vx+L.vr+120,y0-24,{size:13});
+  }
+  function hit(x,y){ return items.find(it=>it.hit(x,y))||null; }
+  function stat(){ return '<span>🍬 Sugar made: <b>'+sugarMade+'</b></span><span>💨 Oxygen out: <b>'+o2Made+'</b></span>'; }
+  const T=[['togSun','sun'],['togWater','water'],['togAir','air']];
+  T.forEach(([id,k])=>{ $(id).addEventListener('click',()=>{ tog[k]=!tog[k]; $(id).classList.toggle('on',tog[k]); $(id).classList.toggle('off',!tog[k]);
+    if(!tog[k]) toast(k==='sun'?'No sun? The factory stops until morning.':k==='water'?'No water? The factory slows and the leaf wilts.':'No air? No carbon dioxide, no sugar.',3500); }); });
+  function quest(){ return {id:'leaf',title:'🍃 The leaf\'s recipe',steps:[
+    {prompt:'What does a leaf need to make sugar? <b>Pick 3.</b>',need:3,options:[
+      {text:'☀️ Sunlight',ok:true,say:'Yes! Sunlight is the energy.'},{text:'🪨 Rocks',say:'Trees don\'t eat rocks. Roots only sip water and minerals.'},
+      {text:'💧 Water',ok:true,say:'Yes! Water comes up from the roots.'},{text:'🌙 Moonlight',say:'Too weak — the factory rests at night.'},
+      {text:'🍕 Pizza',say:'Trees make their OWN food. No pizza needed!'},{text:'🌬️ Carbon dioxide',ok:true,say:'Yes! CO₂ comes in through the stomata.'} ]},
+    {prompt:'What comes OUT of the factory? <b>Pick 2.</b>',need:2,options:[
+      {text:'🍬 Sugar',ok:true,say:'Yes! Sugar is the tree\'s food.'},{text:'🪨 Dirt',say:'Nope — trees don\'t make dirt.'},
+      {text:'🌬️ Carbon dioxide',say:'That goes IN, not out.'},{text:'💨 Oxygen',ok:true,say:'Yes! Oxygen for you to breathe.'},{text:'🥛 Milk',say:'Only cows make milk!'} ]},
+  ]}; }
+  return {layout,update,draw,hit,stat,quest,enter(){},leave(){}};
+})();
+
+/* =====================================================================
+   SCENE 2 · THE ROOTS — the oak, framed at the ground line, with the
+   soil cut open. Water droplets in the soil get pulled to the fuzzy root
+   tips, ride the roots to the trunk, climb the xylem "straws" in a
+   cutaway window, and leave the leaves as vapor. Sugar rides down.
+   ===================================================================== */
+SCENES.roots=(()=>{
+  let F=null, G=null, zones=[], soil=[], travelers=[], vapor=[], rain=[], sugar=[], items=[];
+  let sentUp=0, rainT=0, rainAcc=0, sugarAcc=0, hot=false, dry=0, sugarPaths=[], cut={};
+  const cards={
+    hairs:{name:'Root hairs',sub:'Fuzzy tips that drink',fact:'Root tips are covered in fuzz called root hairs. They soak up water and minerals from the soil. Most roots stay in the top few feet of soil — but they spread out wider than the branches!',
+      thumb:S=>{ ctx.fillStyle=SOIL; ctx.fillRect(0,0,S,S); path([[0,10],[30,30],[52,60],[62,80]],INK,12); path([[0,10],[30,30],[52,60],[62,80]],'#b8874f',8); ctx.strokeStyle='#e9d3b0'; ctx.lineWidth=1.5; const rr=seeded(2); for(let i=0;i<40;i++){ const t=0.4+rr()*0.6, p=polyAt([[0,10],[30,30],[52,60],[62,80]],t), a=rr()*TAU; ctx.beginPath(); ctx.moveTo(p[0],p[1]); ctx.lineTo(p[0]+Math.cos(a)*9,p[1]+Math.sin(a)*9); ctx.stroke(); } disc(20,60,5,WATER,1.5); disc(70,40,5,WATER,1.5); }},
+    xylem:{name:'Xylem',sub:'ZY-lem · water goes UP',fact:'Xylem tubes are like a bundle of straws. Water climbs them from the roots to the very top leaf — and it never stops, day or night.',
+      thumb:S=>{ ctx.fillStyle='#e8c58f'; ctx.fillRect(0,0,S,S); for(let i=0;i<3;i++){ box(14+i*22,0,14,S,0,'#7fb8ff',2); label('⬆',21+i*22,S/2,{size:14,color:INK,dark:true}); } }},
+    phloem:{name:'Phloem',sub:'FLOH-em · sugar goes DOWN',fact:'Phloem tubes carry sugar from the leaves down to the roots and out to every growing part. Roots can\'t make food — the leaves feed them.',
+      thumb:S=>{ ctx.fillStyle='#e8c58f'; ctx.fillRect(0,0,S,S); box(32,0,20,S,0,'#ffb36b',2); box(37,14,10,10,2,SUGAR,1.5); box(37,44,10,10,2,SUGAR,1.5); label('⬇',42,70,{size:14,color:INK,dark:true}); }},
+    vapor:{name:'Transpiration',sub:'tran-spuh-RAY-shun',fact:'Leaves let water out as vapor. As it leaves, it pulls more water up from below — like sipping through a straw. A big oak can pull up 40,000 gallons a year. That\'s about 800 bathtubs!',
+      thumb:S=>{ ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,S); blob(42,58,22,LEAF,2.5,3); ctx.fillStyle='rgba(255,255,255,0.9)'; [[30,26,9],[44,18,12],[58,26,9],[44,30,10]].forEach(c=>circle(c[0],c[1],c[2],'rgba(255,255,255,0.9)')); }},
+    soil:{name:'Soil water',sub:'Rain that soaked in',fact:'Rain sinks into the soil and hides between the bits of dirt. That\'s where roots drink — so a dry summer means a thirsty tree.',extra:'The gold sparkles are minerals. Trees need them to build leaves and wood, and they hitch a ride with the water.',
+      thumb:S=>{ ctx.fillStyle=SOIL; ctx.fillRect(0,0,S,S); const rr=seeded(6); for(let i=0;i<7;i++){ const x=10+rr()*64,y=10+rr()*64; disc(x,y,5,WATER,1.5); if(i%3===0) circle(x,y,1.8,GOLD); } }},
+    fungus:{name:'Fungus friends',sub:'Mycorrhiza · my-ko-RY-zuh',fact:'Thin fungus threads wrap around the roots and reach where roots can\'t. The fungus finds water and minerals for the tree — and the tree pays it back with sugar. Teamwork!',bg:SOIL,
+      thumb:S=>{ ctx.fillStyle=SOIL; ctx.fillRect(0,0,S,S); path([[0,40],[40,48],[84,44]],INK,10); path([[0,40],[40,48],[84,44]],'#b8874f',6); ctx.strokeStyle='#f3ead6'; ctx.lineWidth=1.5; const rr=seeded(4); for(let i=0;i<14;i++){ const x=6+rr()*70; ctx.beginPath(); ctx.moveTo(x,44); ctx.bezierCurveTo(x+(rr()-.5)*20,44+(rr()-.5)*30,x+(rr()-.5)*30,44+(rr()-.5)*40,x+(rr()-.5)*40,44+(rr()-.5)*50); ctx.stroke(); } emoji('🍄',66,20,22); }},
+    anchor:{name:'Roots hold on',sub:'The tree\'s anchor',fact:'Big roots grip the ground so storms can\'t tip the tree over. They also store sugar for winter, like a pantry — that\'s how the tree grows new leaves in spring before it can make food.',
+      thumb:S=>{ ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,42); ctx.fillStyle=SOIL; ctx.fillRect(0,42,S,42); [[42,42],[10,62],[74,60],[30,80],[58,78]].forEach((p,i)=>{ if(i){ path([[42,42],p],INK,9); path([[42,42],p],'#b8874f',5); } }); box(32,0,20,44,4,'#8d6b52',2.5); }},
+  };
+  function layout(){
+    const W=V.w,H=V.h;
+    F={cx:W/2,gy:H*0.42,s:Math.min(W/1.75,H*0.9)};
+    G=treeGeom(F);
+    const tubes=[-0.2,-0.08,0.04].map(k=>F.cx+k*G.trunkW);
+    cut={x:F.cx-G.trunkW*0.31,y:-10,w:G.trunkW*0.62,h:F.gy-F.s*0.02+10,tubes,tubeW:G.trunkW*0.1,phx:F.cx+G.trunkW*0.19,phW:G.trunkW*0.08};
+    // absorb zones: the tips of every root and rootlet, each with a full path to the top of the trunk
+    zones=[]; let ti=0;
+    G.roots.forEach((P,i)=>{ const tip=P[P.length-1]; const tx=tubes[ti++%3]; zones.push({x:tip[0],y:tip[1],path:[...P.slice().reverse(),[tx,F.gy+4],[tx,-30]]}); });
+    G.rootlets.forEach((R,j)=>{ const [ri,t]=ROOTLETS[j]; const P=G.roots[ri], n=Math.round(t*(P.length-1)); const tx=tubes[ti++%3]; const tip=R[R.length-1]; zones.push({x:tip[0],y:tip[1],path:[...R.slice().reverse(),...P.slice(0,n+1).reverse(),[tx,F.gy+4],[tx,-30]]}); });
+    sugarPaths=G.roots.map(P=>[[cut.phx,-10],[cut.phx,F.gy+2],...P]);
+    // soil water to start with
+    const rr=seeded(13); soil=[]; for(let i=0;i<34;i++) addSoil(F.cx+(rr()-.5)*F.s*1.9,F.gy+16+rr()*(H-F.gy-30),rr);
+    travelers=[]; vapor=[]; rain=[]; sugar=[]; rainT=0;
+    for(let i=0;i<7;i++){ const z=zones[Math.floor(rr()*zones.length)]; travelers.push({path:z.path,k:rr()*0.9,len:polyLen(z.path),mineral:rr()<0.3}); }   // water already on its way up
+    L_items();
+  }
+  function addSoil(x,y,r){ r=r||rnd; soil.push({x,y,mineral:r()<0.3,sink:y,w:r()*TAU}); }
+  function L_items(){
+    const W=V.w,H=V.h;
+    const nearZone=(x,y)=>zones.some(z=>dist(x,y,z.x,z.y)<F.s*0.09);
+    const inCut=(x,y)=>x>cut.x&&x<cut.x+cut.w&&y>cut.y&&y<cut.y+cut.h;
+    const mush={x:F.cx-F.s*0.62,y:F.gy-6};
+    items=[
+      {card:'hairs',hit:nearZone,pos:()=>{ const z=zones[1]; return [z.x,z.y,F.s*0.09]; }},
+      {card:'fungus',hit:(x,y)=>dist(x,y,mush.x,mush.y)<26||(y>F.gy&&dist(x,y,zones[2].x,zones[2].y)<F.s*0.16),pos:()=>[mush.x,mush.y,26]},
+      {card:'phloem',hit:(x,y)=>inCut(x,y)&&x>cut.phx-cut.phW,pos:()=>[cut.phx,F.gy*0.55,G.trunkW*0.2]},
+      {card:'xylem',hit:inCut,pos:()=>[cut.tubes[1],F.gy*0.55,G.trunkW*0.28]},
+      {card:'vapor',hit:(x,y)=>y<F.gy-F.s*0.34,pos:()=>[F.cx,Math.max(30,F.gy-F.s*0.42),50]},
+      {card:'anchor',hit:(x,y)=>y>F.gy-10&&y<F.gy+F.s*0.16&&Math.abs(x-F.cx)<F.s*0.28,pos:()=>[F.cx,F.gy+F.s*0.06,F.s*0.16]},
+      {card:'soil',hit:(x,y)=>y>F.gy,pos:()=>{ const d=soil[0]; return d?[d.x,d.y,16]:[F.cx,F.gy+60,16]; }},
+    ];
+    items.forEach(it=>Object.assign(it,cards[it.card]));
+    items.mush=mush;
+  }
+  function update(dt){
+    const k=hot?2:1;
+    // rain
+    if(rainT>0){ rainT-=dt; rainAcc+=dt*30; while(rainAcc>=1){ rainAcc--; rain.push({x:rnd()*V.w,y:-12,vy:380+rnd()*120}); } }
+    for(let i=rain.length-1;i>=0;i--){ const r=rain[i]; r.y+=r.vy*dt; r.x-=40*dt; if(r.y>=F.gy-2){ rain.splice(i,1); if(soil.length<70) addSoil(r.x,F.gy+8); soil[soil.length-1].sink=F.gy+18+rnd()*(V.h-F.gy-40); } }
+    // soil droplets sink in, then get pulled to the nearest root tip
+    for(let i=soil.length-1;i>=0;i--){ const d=soil[i];
+      if(d.y<d.sink){ d.y=Math.min(d.sink,d.y+45*dt); continue; }
+      let z=null,best=1e9; zones.forEach(q=>{ const dd=dist(d.x,d.y,q.x,q.y); if(dd<best){best=dd;z=q;} });
+      const v=(best<F.s*0.3?34:16)*k*dt; d.x+=(z.x-d.x)/best*v+Math.sin(now*2+d.w)*6*dt; d.y+=(z.y-d.y)/best*v;
+      if(best<5){ soil.splice(i,1); travelers.push({path:z.path,k:0,len:polyLen(z.path),mineral:d.mineral}); }
+    }
+    for(let i=travelers.length-1;i>=0;i--){ const t=travelers[i]; t.k+=dt*210*k/t.len; if(t.k>=1){ travelers.splice(i,1); sentUp++; const p=t.path[t.path.length-1]; vapor.push({x:p[0]+(rnd()-.5)*60,y:Math.max(14,F.gy-F.s*0.5)+rnd()*30,r:10,a:0.9}); } }
+    for(let i=vapor.length-1;i>=0;i--){ const v=vapor[i]; v.y-=28*dt*k; v.r+=14*dt; v.a-=0.45*dt; v.x+=Math.sin(now*2+v.r)*10*dt; if(v.a<=0) vapor.splice(i,1); }
+    sugarAcc+=dt; if(sugarAcc>1.4){ sugarAcc=0; if(sugar.length<8) sugar.push({path:sugarPaths[Math.floor(rnd()*sugarPaths.length)],k:0}); }
+    for(let i=sugar.length-1;i>=0;i--){ const s=sugar[i]; s.k+=dt*130/polyLen(s.path); if(s.k>=1) sugar.splice(i,1); }
+    dry+=((soil.length<6?1:0)-dry)*Math.min(1,dt*1.5);
+    const st=soil.length+'/'+sentUp; if(els.stat.dataset.v!==st){ els.stat.dataset.v=st; setStat(stat()); }
+  }
+  function stat(){ return '<span>💧 Soil water: <b>'+soil.length+'</b></span><span>☁️ Sent up to the leaves: <b>'+sentUp+'</b></span>'; }
+  function draw(){
+    const W=V.w,H=V.h;
+    drawSky(F,0,now);
+    if(rainT>0){ ctx.fillStyle='rgba(60,60,90,'+Math.min(0.35,rainT*0.3)+')'; ctx.fillRect(0,0,W,F.gy); }
+    if(hot){ const gg=ctx.createRadialGradient(W*0.84,F.gy*0.2,20,W*0.84,F.gy*0.2,160); gg.addColorStop(0,'rgba(255,210,63,0.55)'); gg.addColorStop(1,'rgba(255,210,63,0)'); circle(W*0.84,F.gy*0.2,160,gg); }
+    drawGround(F);
+    // fungus threads near two root tips
+    ctx.strokeStyle='rgba(243,234,214,0.8)'; ctx.lineWidth=1.3; const rr=seeded(17);
+    [zones[2],zones[3]].forEach(z=>{ for(let i=0;i<12;i++){ const a=rr()*TAU, l=F.s*(0.06+rr()*0.1); ctx.beginPath(); ctx.moveTo(z.x,z.y); ctx.quadraticCurveTo(z.x+Math.cos(a)*l*0.6+(rr()-.5)*20,z.y+Math.sin(a)*l*0.6,z.x+Math.cos(a)*l,z.y+Math.sin(a)*l); ctx.stroke(); } });
+    drawRootsOf(G,F,{hairs:true});
+    drawTrunk(G,F,{});
+    drawBranches(G,F);
+    drawCrown(G,F,{color:mix(LEAF,'#a8a040',dry)});
+    emoji('🍄',items.mush.x,items.mush.y-8,26);
+    // soil water
+    soil.forEach(d=>{ disc(d.x,d.y,5,WATER,1.2); circle(d.x-1.5,d.y-1.5,1.5,'rgba(255,255,255,0.8)'); if(d.mineral) circle(d.x+1.5,d.y+1.5,1.7,GOLD); });
+    // the cutaway window into the trunk
+    box(cut.x,cut.y,cut.w,cut.h,8,'#e8c58f',3);
+    cut.tubes.forEach(x=>box(x-cut.tubeW/2,cut.y,cut.tubeW,cut.h,3,'#7fb8ff',2));
+    box(cut.phx-cut.phW/2,cut.y,cut.phW,cut.h,3,'#ffb36b',2);
+    for(let y=F.gy*0.15;y<F.gy-20;y+=F.gy*0.25){ cut.tubes.forEach(x=>label('⬆',x,y,{size:11,color:'#1f4f9a',dark:true,weight:900})); label('⬇',cut.phx,y+F.gy*0.12,{size:11,color:'#8a3a00',dark:true,weight:900}); }
+    // water on the move, sugar on the way down
+    travelers.forEach(t=>{ const p=polyAt(t.path,t.k); disc(p[0],p[1],5,WATER,1.2); if(t.mineral) circle(p[0]+1.5,p[1]+1.5,1.7,GOLD); });
+    sugar.forEach(s=>{ const p=polyAt(s.path,s.k); box(p[0]-5,p[1]-5,10,10,3,SUGAR,1.5); });
+    vapor.forEach(v=>{ ctx.globalAlpha=v.a*0.8; circle(v.x,v.y,v.r,'#ffffff'); circle(v.x+v.r*0.6,v.y+v.r*0.2,v.r*0.7,'#ffffff'); ctx.globalAlpha=1; });
+    rain.forEach(r=>line(r.x,r.y,r.x+3,r.y-18,'rgba(90,160,255,0.95)',3));
+    // signs
+    const z=zones[1]; sign('root hairs drink',z.x+20,z.y+28,{size:12,to:[z.x,z.y],align:'left'});
+    sign('water climbs UP',cut.x-8,F.gy*0.66,{size:12,align:'right'});
+    sign('sugar goes DOWN',cut.x+cut.w+8,F.gy*0.7,{size:12,align:'left'});
+    sign('☁️ vapor out',F.cx+F.s*0.25,Math.max(26,F.gy-F.s*0.46),{size:12});
+    if(dry>0.5) sign('🥀 Thirsty! Make it rain.',F.cx-F.s*0.3,F.gy-F.s*0.2,{size:14,fill:GOLD});
+    if(hot) sign('🥵 Hot day: the leaves sweat faster',W*0.84,F.gy*0.2+52,{size:12});
+  }
+  function hit(x,y){ return items.find(it=>it.hit(x,y))||null; }
+  $('btnRain').addEventListener('click',()=>{ rainT=2.2; toast('🌧️ Rain! Watch it soak in.',2500); });
+  $('togHot').addEventListener('click',()=>{ hot=!hot; $('togHot').classList.toggle('on',hot); if(hot) toast('🥵 Hot day! The leaves sweat, so the roots pull faster.',3500); });
+  function quest(){ return {id:'roots',title:'💧 The water highway',steps:[
+    {prompt:'Water starts in the soil. Where does it get <b>into</b> the tree? Tap it on the picture.',tap:it=>it&&it.card==='hairs'?true:(it&&it.card==='xylem')?'Not yet — those tubes come later. Look at the fuzzy root tips.':'Look underground, at the tips of the roots.',yes:'Yes! The fuzzy root hairs drink it in.'},
+    {prompt:'Now the water climbs. Tap the tubes it goes <b>UP</b> in.',tap:it=>it&&it.card==='xylem'?true:(it&&it.card==='phloem')?'Orange is the sugar pipe, going DOWN. Try the other tubes.':'Look inside the trunk window.',yes:'Yes! Up the xylem straws it goes.'},
+    {prompt:'Last stop! Where does the water <b>leave</b> the tree as vapor? Tap it.',tap:it=>it&&it.card==='vapor'?true:'Higher! Where the leaves are.',yes:'Yes! Out of the leaves and into the sky.'},
+  ]}; }
+  return {layout,update,draw,hit,stat,quest,enter(){ if(soil.length<10&&rainT<=0) rainT=1.5; },leave(){}};
+})();
+
+/* =====================================================================
+   SCENE 3 · THE RINGS — a stump seen from above. Each year is a light
+   earlywood band (spring, fast) and a dark latewood band (summer, slow).
+   "Grow a year" adds a ring as wide as that year's weather allows.
+   ===================================================================== */
+SCENES.rings=(()=>{
+  const WEATHER={rain:{ew:1.7,lw:0.5,icon:'☔',word:'rainy',note:'a wide ring'},norm:{ew:1.0,lw:0.42,icon:'⛅',word:'normal',note:'a medium ring'},dry:{ew:0.42,lw:0.3,icon:'☀️',word:'dry',note:'a thin ring'}};
+  const EARLY='#f3e2bd', LATE='#9a6530';
+  let main=[], chal=null, years=null, weather='norm', grow=null, bits=[], items=[], Lm={};
+  const mk=w=>({w,ew:WEATHER[w].ew,lw:WEATHER[w].lw});
+  function reset(){ main=['norm','rain','norm','dry','norm','norm'].map(mk); years=main; }
+  const cards={
+    bark:{name:'Bark',sub:'The tree\'s skin',fact:'Bark keeps out bugs, cold, and sickness. The outside of the bark is dead — the tree keeps pushing out new bark from the inside, so the old bark cracks and flakes.',thumb:S=>{ ctx.fillStyle='#5a3a1c'; ctx.fillRect(0,0,S,S); ctx.strokeStyle='#2e1a08'; ctx.lineWidth=3; for(let i=0;i<6;i++){ ctx.beginPath(); ctx.moveTo(8+i*14,0); ctx.lineTo(4+i*14+(i%2)*8,S); ctx.stroke(); } }},
+    inner:{name:'Inner bark',sub:'The sugar pipes (phloem)',fact:'A thin, living layer right under the bark. Sugar from the leaves travels down through it. If someone cuts a ring all the way around a trunk, the roots starve.',thumb:S=>{ ctx.fillStyle='#d9a066'; ctx.fillRect(0,0,S,S); for(let i=0;i<4;i++) box(8+i*20,0,10,S,0,'#ffb36b',1.5); }},
+    cambium:{name:'Cambium',sub:'KAM-bee-um · the growing layer',fact:'Thinner than a piece of paper — but it\'s the only part of the trunk that grows! On the inside it makes new wood. On the outside it makes new bark.',thumb:S=>{ ctx.fillStyle=EARLY; ctx.fillRect(0,0,S/2,S); ctx.fillStyle='#d9a066'; ctx.fillRect(S/2,0,S/2,S); box(S/2-3,0,6,S,0,'#8be04a',1.5); label('wood',S*0.25,S/2,{size:11,dark:true}); label('bark',S*0.75,S/2,{size:11,dark:true}); }},
+    sapwood:{name:'Sapwood',sub:'Young wood',fact:'The lighter outer wood is sapwood. It\'s alive and busy: this is where water climbs up to the leaves.',thumb:S=>{ ctx.fillStyle=EARLY; ctx.fillRect(0,0,S,S); ctx.strokeStyle=LATE; ctx.lineWidth=5; for(let i=0;i<4;i++) ring(S,S,14+i*20,LATE,5); }},
+    heart:{name:'Heartwood',sub:'Old wood',fact:'The darker wood in the middle is heartwood. It isn\'t alive anymore, but it\'s super strong. It holds the whole tree up, like a pole.',thumb:S=>{ ctx.fillStyle='#c48a4a'; ctx.fillRect(0,0,S,S); for(let i=0;i<4;i++) ring(S/2,S/2,8+i*11,'#8a5a2a',4); }},
+    pith:{name:'Pith',sub:'The very first year',fact:'The tiny dot in the middle is the pith — where the tree started life as a skinny little twig.',thumb:S=>{ ctx.fillStyle=EARLY; ctx.fillRect(0,0,S,S); ring(S/2,S/2,30,LATE,5); ring(S/2,S/2,16,LATE,4); disc(S/2,S/2,5,'#3d2410',1.5); }},
+    oldest:{name:'The oldest tree',sub:'A bristlecone pine in California',fact:'Scientists drilled out a pencil-thin core and counted the rings: more than 4,780 years old! It was already a little tree when the Great Pyramid was built in Egypt.',extra:'A ring-counting scientist is a dendrochronologist (den-dro-kron-OL-o-jist).',emoji:'🌲',bg:'#cdeeff'},
+    year:{name:'',fact:''},
+  };
+  function layout(){
+    const W=V.w,H=V.h, narrow=W<640;
+    Lm.cx=narrow?W*0.5:W*0.36; Lm.cy=narrow?H*0.44:H*0.54; Lm.R=narrow?Math.min(H*0.27,W*0.3):Math.min(H*0.38,W*0.26);
+    Lm.labelX=W*0.6; Lm.wheel={x:narrow?W*0.86:W*0.86,y:narrow?H-100:H*0.3,r:narrow?24:38};
+    Lm.narrow=narrow;
+    items=[
+      {card:'oldest',hit:(x,y)=>{ const b=Lm.oldBox; return b&&x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h; },pos:()=>{ const b=Lm.oldBox; return [b.x+b.w/2,b.y+b.h/2,b.w/2+8]; }},
+    ];
+    items.forEach(it=>Object.assign(it,cards[it.card]));
+  }
+  // radii (px) for the current stump. Returns {u, wood, rings:[{r0,r1,rl}], heart, cambium, inner, outer}
+  function geom(){
+    const total=0.5+years.reduce((s,y)=>s+y.ew+y.lw,0)+(grow?grow.ew+grow.lw:0);
+    const woodMax=Lm.R*0.8, u=Math.min(woodMax/10,woodMax/total);
+    let r=0.5*u; const rings=years.map(y=>{ const r0=r, rl=r+y.ew*u, r1=rl+y.lw*u; r=r1; return {r0,rl,r1}; });
+    if(grow){ const r0=r, rl=r+grow.ew*u, r1=rl+grow.lw*u; rings.push({r0,rl,r1,growing:true}); r=r1; }
+    const wood=r, heart=years.length>3?wood*0.52:0;
+    return {u,wood,rings,heart,cambium:wood+2,inner:wood+Lm.R*0.06,outer:wood+Lm.R*0.14};
+  }
+  function ringAt(r){ const g=geom(); for(let i=0;i<g.rings.length;i++) if(r>=g.rings[i].r0&&r<g.rings[i].r1) return i; return -1; }
+  function drawStump(cx,cy,gm,seed){
+    // bark first (a scalloped outside edge), then inner bark, cambium, then the rings from the outside in
+    ctx.beginPath(); for(let i=0;i<=120;i++){ const a=i/120*TAU, r=gm.outer*(1+0.035*Math.sin(a*9+seed)+0.025*Math.sin(a*17+seed*2)+0.02*Math.sin(a*29)); i?ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r):ctx.moveTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r); } ctx.closePath();
+    ctx.fillStyle='#5a3a1c'; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.stroke();
+    ctx.save(); ctx.clip(); ctx.strokeStyle='rgba(30,15,5,0.45)'; ctx.lineWidth=2; for(let k=0;k<40;k++){ const a=k/40*TAU; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*gm.inner,cy+Math.sin(a)*gm.inner); ctx.lineTo(cx+Math.cos(a+0.05)*gm.outer*1.05,cy+Math.sin(a+0.05)*gm.outer*1.05); ctx.stroke(); } ctx.restore();
+    disc(cx,cy,gm.inner,'#d9a066',1.5);
+    disc(cx,cy,gm.cambium,'#8be04a',0);
+    for(let i=gm.rings.length-1;i>=0;i--){ const R=gm.rings[i]; circle(cx,cy,R.r1,LATE); circle(cx,cy,R.rl,EARLY); }
+    if(gm.heart>0){ ctx.globalAlpha=0.26; circle(cx,cy,gm.heart,'#7a3a10'); ctx.globalAlpha=1; }
+    circle(cx,cy,Math.max(3,gm.u*0.5),'#3d2410');
+    // a few faint cracks so it reads as wood
+    ctx.strokeStyle='rgba(80,40,10,0.18)'; ctx.lineWidth=2; for(let k=0;k<3;k++){ const a=k*2.1+0.4; ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*gm.wood*0.3,cy+Math.sin(a)*gm.wood*0.3); ctx.lineTo(cx+Math.cos(a)*gm.wood*0.95,cy+Math.sin(a)*gm.wood*0.95); ctx.stroke(); }
+  }
+  function update(dt){
+    if(grow){ grow.t+=dt/2.7; const k=grow.t;
+      grow.ew=WEATHER[grow.w].ew*smooth(clamp(k/0.45,0,1)); grow.lw=WEATHER[grow.w].lw*smooth(clamp((k-0.45)/0.3,0,1));
+      if(k>0.75&&k<1&&!REDUCED&&rnd()<0.5) bits.push({x:Lm.wheel.x+(rnd()-.5)*140,y:Lm.wheel.y-30,vy:40+rnd()*40,t:1,ch:k<0.88?'🍂':'❄️'});
+      if(k>=1){ years.push(mk(grow.w)); grow=null; $('btnGrow').disabled=false; setStat(stat()); }
+    }
+    for(let i=bits.length-1;i>=0;i--){ const b=bits[i]; b.y+=b.vy*dt; b.x+=Math.sin(now*3+i)*20*dt; b.t-=dt*0.6; if(b.t<=0) bits.splice(i,1); }
+  }
+  function stat(){ return years===main?'<span>🌳 This tree is <b>'+years.length+'</b> years old</span>':'<span>🔎 A mystery tree</span>'; }
+  function draw(){
+    const W=V.w,H=V.h, cx=Lm.cx, cy=Lm.cy;
+    const g=ctx.createLinearGradient(0,0,0,H); g.addColorStop(0,'#3d9be9'); g.addColorStop(1,'#cdeeff'); ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle=GRASS; ctx.fillRect(0,H*0.82,W,H); ctx.fillStyle='#4e7d2b'; ctx.fillRect(0,H*0.82,W,5);
+    const gm=geom();
+    // stump shadow + side
+    ctx.globalAlpha=0.25; circle(cx+10,cy+14,gm.outer,'#2b2350'); ctx.globalAlpha=1;
+    drawStump(cx,cy,gm,years===main?5:9);
+    if(grow){ // the cambium is where the new ring appears
+      const R=gm.rings[gm.rings.length-1]; ctx.save(); ctx.globalAlpha=0.6+0.4*Math.sin(now*8); ring(cx,cy,R.r1,'#8be04a',3); ctx.restore();
+      const k=grow.t, season=k<0.45?'🌱 Spring: fast growth, light wood':k<0.75?'☀️ Summer: slow growth, dark wood':k<0.88?'🍂 Fall: leaves drop, growth stops':'❄️ Winter: resting';
+      sign(season,Lm.narrow?cx:Lm.wheel.x,Lm.narrow?cy+gm.outer+60:Lm.wheel.y+Lm.wheel.r+44,{size:13,fill:GOLD});
+    }
+    // the season wheel
+    const w=Lm.wheel; const seasons=[['🌱','#a6e05a'],['☀️',GOLD],['🍂','#ff9f43'],['❄️','#bfe9ff']];
+    seasons.forEach((s,i)=>{ ctx.beginPath(); ctx.moveTo(w.x,w.y); ctx.arc(w.x,w.y,w.r,-Math.PI/2+i*Math.PI/2,-Math.PI/2+(i+1)*Math.PI/2); ctx.closePath(); ctx.fillStyle=s[1]; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=2.5; ctx.stroke(); const a=-Math.PI/2+(i+0.5)*Math.PI/2; emoji(s[0],w.x+Math.cos(a)*w.r*0.62,w.y+Math.sin(a)*w.r*0.62,w.r*0.5); });
+    const ang=-Math.PI/2+(grow?clamp(grow.t,0,1):0)*TAU; line(w.x,w.y,w.x+Math.cos(ang)*(w.r+6),w.y+Math.sin(ang)*(w.r+6),INK,4); disc(w.x,w.y,5,WHITE,2);
+    label(grow?'':'one year',w.x,w.y+w.r+16,{size:12,dark:true});
+    bits.forEach(b=>{ ctx.globalAlpha=clamp(b.t,0,1); emoji(b.ch,b.x,b.y,18); ctx.globalAlpha=1; });
+    // labels with pointers (wide screens get the full set)
+    const yrs=gm.rings.length, rr=gm.rings, pt=(r,a)=>[cx+Math.cos(a)*r,cy+Math.sin(a)*r];
+    Lm.labels=[];
+    const put=(txt,card,ly,r,a,opts)=>{ const p=pt(r,a); const b=sign(txt,Lm.narrow?opts.nx:Lm.labelX,ly,Object.assign({align:'left',size:13,to:p},opts||{})); Lm.labels.push({b,card}); };
+    if(!Lm.narrow){
+      const y0=cy-gm.outer*0.9, step=Math.max(30,gm.outer*0.42);
+      put('Bark — the skin','bark',y0,gm.outer-4,-0.55,{});
+      put('Inner bark — sugar pipes','inner',y0+step,(gm.inner+gm.wood)/2,-0.28,{});
+      put('Cambium — the growing line','cambium',y0+step*2,gm.cambium,-0.05,{});
+      put('Sapwood — water climbs here','sapwood',y0+step*3,(gm.wood+Math.max(gm.heart,gm.wood*0.6))/2,0.2,{});
+      if(gm.heart>0) put('Heartwood — old, strong','heart',y0+step*4,gm.heart*0.6,0.45,{});
+      put('Pith — year one','pith',y0+step*5,Math.max(3,gm.u*0.5),0.7,{});
+    }else{
+      put('Bark','bark',cy-gm.outer-24,gm.outer-4,-1.2,{nx:cx-70,align:'center'});
+      put('Heartwood','heart',cy-gm.outer-24,gm.heart*0.5,-0.9,{nx:cx+70,align:'center'});
+      put('Cambium','cambium',cy+gm.outer+24,gm.cambium,1.0,{nx:cx+40,align:'center'});
+    }
+    if(yrs>0){ const R=rr[Math.min(yrs-1,Math.max(0,yrs-2))]; const p=pt((R.r0+R.r1)/2,2.6); sign('light + dark = 1 year',cx-gm.outer*0.5,cy+gm.outer+(Lm.narrow?50:28),{size:12,to:p}); }
+    Lm.oldBox=Lm.narrow?sign('🏆 Oldest tree?',14,H-30,{size:12,align:'left'}):sign('🏆 Who is the oldest tree?',W-14,H-14-6-40,{size:13,align:'right'});
+  }
+  function hit(x,y){
+    const lab=(Lm.labels||[]).find(l=>x>l.b.x&&x<l.b.x+l.b.w&&y>l.b.y&&y<l.b.y+l.b.h); if(lab) return Object.assign({card:lab.card,pos:()=>[lab.b.x+lab.b.w/2,lab.b.y+lab.b.h/2,lab.b.w/2+8]},cards[lab.card]);
+    const it=items.find(it=>it.hit(x,y)); if(it) return it;
+    const gm=geom(), r=dist(x,y,Lm.cx,Lm.cy), a=Math.atan2(y-Lm.cy,x-Lm.cx);
+    const at=R=>[Lm.cx+Math.cos(a)*R,Lm.cy+Math.sin(a)*R,Math.max(14,gm.u*0.7)];
+    if(r>gm.outer+6) return null;
+    if(r>gm.inner) return Object.assign({card:'bark',pos:()=>at((gm.inner+gm.outer)/2)},cards.bark);
+    if(r>gm.cambium+4) return Object.assign({card:'inner',pos:()=>at((gm.inner+gm.cambium)/2)},cards.inner);
+    if(r>gm.wood-4) return Object.assign({card:'cambium',pos:()=>at(gm.cambium)},cards.cambium);
+    if(r<Math.max(5,gm.u*0.5)+3) return Object.assign({card:'pith',pos:()=>[Lm.cx,Lm.cy,14]},cards.pith);
+    const i=ringAt(r); if(i<0) return null;
+    const yr=years[i]||grow, wx=WEATHER[yr.w], age=i+1, inHeart=r<gm.heart;
+    return {card:'ring',ring:i,name:'Ring '+age+' of '+gm.rings.length,sub:wx.icon+' A '+wx.word+' year — '+wx.note,
+      fact:(i===0?'The first ring — the tree was just a sprout. ':'')+'Light band: spring, when the tree grows fast and makes big, airy cells. Dark band: summer, when growth slows and the cells pack tight. Light + dark = one year.',
+      extra:inHeart?'This ring is heartwood now: old, dead, and strong.':'This ring is sapwood: alive, and carrying water up.',
+      pos:()=>at((gm.rings[i].r0+gm.rings[i].r1)/2),
+      thumb:S=>{ ctx.fillStyle=EARLY; ctx.fillRect(0,0,S,S); const wpx=clamp(wx.ew*22,8,38); ctx.fillStyle=LATE; ctx.fillRect(0,S/2+wpx/2-4,S,Math.max(4,wx.lw*18)); ctx.fillStyle=EARLY; ctx.fillRect(0,S/2-wpx/2-4,S,wpx); ctx.fillStyle=LATE; ctx.fillRect(0,S/2-wpx/2-4-8,S,8); label(wx.icon,S/2,S/2-4,{size:22,dark:true}); }};
+  }
+  ['wRain','wNorm','wDry'].forEach(id=>$(id).addEventListener('click',()=>{ weather=id==='wRain'?'rain':id==='wNorm'?'norm':'dry'; ['wRain','wNorm','wDry'].forEach(k=>$(k).classList.toggle('on',k===id)); }));
+  $('btnGrow').addEventListener('click',()=>{ if(grow||years!==main) return; closeCard(); grow={w:weather,t:0,ew:0,lw:0}; $('btnGrow').disabled=true; });
+  function quest(){
+    const n=5+Math.floor(rnd()*7), dryI=1+Math.floor(rnd()*(n-1));
+    chal=[]; for(let i=0;i<n;i++) chal.push(mk(i===dryI?'dry':(rnd()<0.3?'rain':'norm')));
+    const opts=[n-2,n-1,n,n+1].filter(v=>v>0).sort(()=>rnd()-.5).map(v=>({text:String(v),ok:v===n,say:v===n?'Yes! '+n+' rings, '+n+' years old.':(v<n?'Count again — there are more. One light band + one dark band = one year.':'Count again — that\'s too many. One light band + one dark band = one year.')}));
+    return {id:'rings',title:'🪵 Count the rings',onStart(){ years=chal; setStat(stat()); },onEnd(){ years=main; setStat(stat()); },steps:[
+      {prompt:'A mystery tree! <b>How old is it?</b> Count the rings.',options:opts},
+      {prompt:'One year was a <b>dry</b> year. <b>Tap the thinnest ring.</b>',tap:it=>it&&it.card==='ring'?(it.ring===dryI?true:'That ring is wider — a good year. Look for the skinniest ring.'):'Tap on the wood, on a ring.',yes:'Yes! A thin ring means a dry, hard year. You read the weather diary!'},
+    ]};
+  }
+  reset();
+  return {layout,update,draw,hit,stat,quest,enter(){ setStat(stat()); },leave(){ if(grow){ years.push(mk(grow.w)); grow=null; $('btnGrow').disabled=false; } }};
+})();
+
+/* =====================================================================
+   SCENE 4 · THE WOOD — a workshop shelf of eight blocks and a hardness
+   press. The press is the real Janka test: a steel ball pushed halfway
+   into the wood; the number is the pounds of push it took.
+   ===================================================================== */
+SCENES.wood=(()=>{
+  const WOODS=[
+    {id:'balsa',name:'Balsa',tree:'the balsa tree, a leafy rainforest tree',type:'hard',janka:70,color:'#f5e9cf',grain:{line:'#e2d2ae',gap:9,wave:0.2},uses:'✈️ model airplanes · 🛟 rafts and floats · 🎨 craft sticks',fact:'The softest wood of all — and it\'s officially a hardwood, because it comes from a leafy tree! It floats like a cork.'},
+    {id:'walnut',name:'Walnut',tree:'the black walnut tree',type:'hard',janka:1010,color:'#5e3d2a',grain:{line:'#3f2718',gap:7,wave:1.2},uses:'🪑 fancy furniture · 🥣 bowls · 🎸 guitar parts',fact:'Chocolate-brown and beautiful. Walnut is one of the most valuable woods that grows in Missouri — and the tree drops tasty nuts, too.'},
+    {id:'redoak',name:'Red oak',tree:'the northern red oak tree',type:'hard',janka:1290,color:'#dba57f',grain:{line:'#b47a55',gap:6,wave:0.3},uses:'🪜 stairs and floors · 🪑 furniture · 🚪 doors',fact:'Red oak has open tubes: dip a short stick in soapy water and blow through the other end — bubbles come out! That\'s why a red oak barrel would leak.'},
+    {id:'whiteoak',name:'White oak',tree:'the white oak, Missouri\'s big, long-lived oak',type:'hard',janka:1360,color:'#d9bd8e',grain:{line:'#b39466',gap:6,wave:0.3,flecks:true},uses:'🛢️ barrels · 🏠 floors · ⛵ boats',fact:'White oak\'s tubes are plugged, so it holds liquid without leaking. It\'s THE barrel wood — and the world\'s biggest barrel maker is in Lebanon, Missouri!'},
+    {id:'maple',name:'Maple',tree:'the sugar maple tree',type:'hard',janka:1450,color:'#f2dfba',grain:{line:'#dcc59a',gap:8,wave:1.5},uses:'🏀 basketball courts · 🎳 bowling pins · ⚾ baseball bats',fact:'Hard and smooth. Basketball courts and bowling lanes are maple — and in spring the very same tree gives sap for maple syrup.'},
+    {id:'hickory',name:'Hickory',tree:'the shagbark hickory, a leafy tree with peeling bark',type:'hard',janka:1820,color:'#cfa26a',grain:{line:'#9f7040',gap:5,wave:0.5,bands:true},uses:'🪓 axe handles · 🥁 drumsticks · 🍖 barbecue smoke',fact:'The toughest wood on the shelf. It bends a little instead of snapping, so it\'s perfect for tool handles and drumsticks.'},
+    {id:'pine',name:'White pine',tree:'the eastern white pine, a cone tree with soft needles',type:'soft',janka:380,color:'#f1d79f',grain:{line:'#d3ad66',gap:11,wave:0.9,knot:true},uses:'🏠 house frames · 🪑 furniture · 📄 paper',fact:'Long, straight, and light. Most of the boards in a house frame come from pines and their cousins — and so does a lot of paper.'},
+    {id:'cedar',name:'Cedar',tree:'the eastern red cedar, a cone tree that grows all over Missouri',type:'soft',janka:900,color:'#c96a44',grain:{line:'#9b4a2c',gap:7,wave:0.6,streak:'#f3dcb5'},uses:'✏️ pencils · 📦 cedar chests · 🪵 fence posts',fact:'Smells great — and moths hate it, so people build closets and chests from it. The wood won\'t rot easily either, so fence posts last for years.'},
+  ];
+  let Lw={}, sel=null, lift=0, press=null, dent={}, items=[];
+  const kids=j=>Math.max(1,Math.round(j/65));
+  const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  const cards={
+    hardwood:{name:'Hardwoods',sub:'From trees with leaves',fact:'Hardwood comes from leafy trees like oak, maple, and walnut. They grow slowly, so the wood is usually dense and heavy — but not always! Balsa is a hardwood, and it\'s the softest wood of all.',emoji:'🍂',bg:'#ffe9c2'},
+    softwood:{name:'Softwoods',sub:'From trees with cones and needles',fact:'Softwood comes from cone trees like pine, cedar, and spruce. They grow fast and straight, so most house boards and most paper come from them.',emoji:'🌲',bg:'#dff2b8'},
+    press:{name:'The hardness test',sub:'The Janka test',fact:'Wood scientists press a steel ball halfway into a block and measure how many pounds of push it takes. Soft wood: a small push. Hard wood: a huge push! Tap a block, then press.',
+      thumb:S=>{ ctx.fillStyle='#f6e7c8'; ctx.fillRect(0,0,S,S); box(12,50,60,30,4,'#d9bd8e',2.5); box(36,0,12,34,3,'#9aa3b5',2.5); disc(42,44,12,'#c9d1dd',2.5); }},
+  };
+  function drawBlock(w,x,y,bw,bh,dented){        // front face at (x,y) top-left, plus a top and a side face
+    const d=bw*0.18;
+    poly([[x,y],[x+d,y-d],[x+bw+d,y-d],[x+bw,y]],lighter(w.color,0.25),2.5);
+    poly([[x+bw,y],[x+bw+d,y-d],[x+bw+d,y+bh-d],[x+bw,y+bh]],darker(w.color,0.25),2.5);
+    box(x,y,bw,bh,2,w.color,0);
+    ctx.save(); ctx.beginPath(); ctx.rect(x,y,bw,bh); ctx.clip();
+    const g=w.grain; ctx.strokeStyle=g.line; ctx.lineWidth=1.6;
+    for(let yy=y-6;yy<y+bh+6;yy+=g.gap){ ctx.beginPath(); for(let xx=x;xx<=x+bw;xx+=4){ const v=Math.sin((xx-x)/bw*5+yy*0.2)*g.wave*3+Math.sin((xx-x)*0.3+yy)*g.wave; xx===x?ctx.moveTo(xx,yy+v):ctx.lineTo(xx,yy+v); } ctx.stroke(); }
+    if(g.bands) for(let yy=y;yy<y+bh;yy+=g.gap*3){ ctx.fillStyle='rgba(120,70,30,0.18)'; ctx.fillRect(x,yy,bw,g.gap); }
+    if(g.flecks){ ctx.fillStyle='rgba(255,255,255,0.45)'; for(let i=0;i<9;i++) ctx.fillRect(x+(i*37)%bw,y+(i*23)%bh,2,6); }
+    if(g.streak){ ctx.fillStyle=g.streak; ctx.beginPath(); ctx.moveTo(x+bw*0.65,y); ctx.lineTo(x+bw,y); ctx.lineTo(x+bw,y+bh*0.5); ctx.closePath(); ctx.fill(); }
+    if(g.knot){ ellipse(x+bw*0.62,y+bh*0.55,bw*0.11,bh*0.09,0.3,'#a97a3a',1.5); ellipse(x+bw*0.62,y+bh*0.55,bw*0.05,bh*0.04,0.3,'#7a4f1e',0); }
+    if(dented>0){ const cx=x+bw/2, top=y; ctx.fillStyle='rgba(0,0,0,0.28)'; ctx.beginPath(); ctx.ellipse(cx,top+dented*0.5,Lw.ball*0.9,dented*0.6+2,0,0,TAU); ctx.fill(); }
+    ctx.restore();
+    ctx.strokeStyle=INK; ctx.lineWidth=2.5; ctx.strokeRect(x,y,bw,bh);
+    if(Lw.narrow&&bw>30) emoji(w.type==='hard'?'🍂':'🌲',x+bw-9,y+bh-9,13);
+  }
+  function layout(){
+    const W=V.w,H=V.h, narrow=W<640;
+    const cols=narrow?4:8, bw=Math.min(100,(W-30)/cols-14), bh=bw*0.78, rows=narrow?[H*0.64,H*0.9]:[H*0.86];
+    Lw.narrow=narrow; Lw.bw=bw; Lw.bh=bh; Lw.rows=rows;
+    Lw.slots=WOODS.map((w,i)=>{ const row=Math.floor(i/cols), col=i%cols, n=Math.min(cols,WOODS.length-row*cols), x0=W/2-(n*(bw+14))/2+7+col*(bw+14); return {x:x0,y:rows[row]-bh}; });
+    Lw.stand={x:W/2,y:narrow?H*0.36:H*0.5}; Lw.ball=Math.max(11,bw*0.16);
+    Lw.hardX=narrow?W*0.86:W*0.72;
+    lift=0; press=null;
+    items=[
+      {card:'press',hit:(x,y)=>Math.abs(x-Lw.stand.x)<bw*0.9&&y>Lw.stand.y-bh*2.6&&y<Lw.stand.y+bh*0.6&&!(sel&&lift>0.5&&y>Lw.stand.y-bh),pos:()=>[Lw.stand.x,Lw.stand.y-bh*1.5,bh]},
+      {card:'hardwood',hit:(x,y)=>{ const b=Lw.hwBox; return b&&x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h; },pos:()=>{ const b=Lw.hwBox; return [b.x+b.w/2,b.y+b.h/2,b.w/2+8]; }},
+      {card:'softwood',hit:(x,y)=>{ const b=Lw.swBox; return b&&x>b.x&&x<b.x+b.w&&y>b.y&&y<b.y+b.h; },pos:()=>{ const b=Lw.swBox; return [b.x+b.w/2,b.y+b.h/2,b.w/2+8]; }},
+    ];
+    items.forEach(it=>Object.assign(it,cards[it.card]));
+  }
+  function blockPos(i){ const s=Lw.slots[i], w=WOODS[i]; if(w===sel){ const k=smooth(lift); return {x:lerp(s.x,Lw.stand.x-Lw.bw/2,k),y:lerp(s.y,Lw.stand.y-Lw.bh,k)}; } return s; }
+  function dentDepth(w){ return Lw.bh*0.55*(1-Math.log10(w.janka/50)/Math.log10(2000/50)); }
+  function update(dt){
+    lift=clamp(lift+(sel?1:-1)*dt*3,0,1);
+    if(press){ press.t=Math.min(1,press.t+dt/1.8); if(press.t>=1&&!press.done){ press.done=true; $('btnPress').disabled=false; } }
+  }
+  function draw(){
+    const W=V.w,H=V.h;
+    ctx.fillStyle='#f6e7c8'; ctx.fillRect(0,0,W,H);
+    // pegboard wall + plank floor
+    ctx.fillStyle='rgba(43,35,80,0.07)'; for(let y=24;y<H*0.5;y+=28) for(let x=24;x<W;x+=28) { ctx.beginPath(); ctx.arc(x,y,2.2,0,TAU); ctx.fill(); }
+    Lw.rows.forEach(ry=>{ box(-10,ry-4,W+20,Lw.narrow?18:22,4,'#a97a4a',3); ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.fillRect(-10,ry+8,W+20,6); });
+    // group brackets
+    const hw=Lw.slots.filter((s,i)=>WOODS[i].type==='hard'), sw=Lw.slots.filter((s,i)=>WOODS[i].type==='soft');
+    const bracket=(slots,txt,fill)=>{ const x0=Math.min(...slots.map(s=>s.x))-4, x1=Math.max(...slots.map(s=>s.x))+Lw.bw+Lw.bw*0.18+4, y=Math.min(...slots.map(s=>s.y))-Lw.bw*0.2-14; line(x0,y,x1,y,INK,3); line(x0,y,x0,y+8,INK,3); line(x1,y,x1,y+8,INK,3); return sign(txt,(x0+x1)/2,y-14,{size:12,fill}); };
+    if(!Lw.narrow){ Lw.hwBox=bracket(hw,'HARDWOODS — from leafy trees 🍂','#ffe9c2'); Lw.swBox=bracket(sw,'SOFTWOODS — from cone trees 🌲','#dff2b8'); }
+    else{ Lw.hwBox=sign('🍂 = hardwood (leafy tree)',14,H-22,{size:11,align:'left',fill:'#ffe9c2'}); Lw.swBox=sign('🌲 = softwood (cone tree)',W-14,H-22,{size:11,align:'right',fill:'#dff2b8'}); }
+    // the press
+    const st=Lw.stand, bh=Lw.bh, bw=Lw.bw;
+    box(st.x-bw*1.1,st.y+10,bw*2.2,16,4,'#7c8595',2.5);                                // base plate
+    box(st.x-bw*0.7,st.y,bw*1.4,14,4,'#5f6877',2.5);                                   // the stand
+    box(st.x-bw*1.0,st.y-bh*2.9,bw*0.2,bh*2.9+14,4,'#9aa3b5',2.5);                  // left post
+    box(st.x+bw*0.8,st.y-bh*2.9,bw*0.2,bh*2.9+14,4,'#9aa3b5',2.5);                   // right post
+    box(st.x-bw*1.0,st.y-bh*2.9,bw*2.0,bw*0.26,4,'#9aa3b5',2.5);                     // top beam
+    box(st.x-bw*0.2,st.y-bh*2.9+bw*0.26-2,bw*0.4,bh*0.5,4,'#7c8595',2.5);            // the cylinder
+    const w=sel, d=w?dentDepth(w):0, k=press?smooth(clamp(press.t/0.7,0,1)):0, ramTop=st.y-bh*2.9+bw*0.24;
+    const ballY=(sel&&lift>0.99)?lerp(st.y-bh-Lw.ball-bh*0.7,st.y-bh+d-Lw.ball,k):st.y-bh-Lw.ball-bh*0.7;
+    box(st.x-bw*0.11,ramTop-2,bw*0.22,ballY-ramTop-Lw.ball*0.3,3,'#b9c2d0',2.5);       // the ram
+    // blocks (selected one last so it sits on top), then the ball
+    WOODS.forEach((wd,i)=>{ if(wd!==sel){ const p=blockPos(i); drawBlock(wd,p.x,p.y,bw,bh,dent[wd.id]||0); label(wd.name,p.x+bw/2,p.y+bh+12,{size:Lw.narrow?10:12,dark:true}); } });
+    if(sel){ const i=WOODS.indexOf(sel), p=blockPos(i); drawBlock(sel,p.x,p.y,bw,bh,lift>0.99?Math.max(dent[sel.id]||0,d*k):dent[sel.id]||0); label(sel.name,p.x+bw/2,p.y+bh+12,{size:Lw.narrow?10:12,dark:true}); }
+    disc(st.x,ballY,Lw.ball,'#d7dee8',2.5); circle(st.x-Lw.ball*0.3,ballY-Lw.ball*0.3,Lw.ball*0.25,'rgba(255,255,255,0.8)');
+    // the gauge
+    if(sel){ const gx=Lw.hardX, gy0=st.y-bh*2.6, gh=bh*2.4, val=press?Math.round(sel.janka*clamp(press.t/0.7,0,1)):0;
+      box(gx-14,gy0,28,gh,8,WHITE,2.5); const f=val/2000; box(gx-10,gy0+gh-4-(gh-8)*f,20,(gh-8)*f,5,val>1200?ROCKET:val>600?GOLD:GRASS,0);
+      label(fmt(val)+' lb',gx,gy0-16,{size:14,display:true,dark:true});
+      label('push needed',gx,gy0+gh+14,{size:11,dark:true});
+      if(press&&press.t>0.75){ const n=kids(sel.janka); sign('🧒 × '+n+(n===1?' kid':' kids')+' standing on it',gx,gy0+gh+40,{size:12,fill:GOLD}); }
+    }else{ sign('👆 Tap a block to put it under the press',st.x,st.y+46,{size:13}); }
+    if(press&&press.t<0.7){ sign('pressing…',st.x+bw*1.2,st.y-bh*1.6,{size:12}); }
+  }
+  function hit(x,y){
+    for(let i=WOODS.length-1;i>=0;i--){ const w=WOODS[i], p=blockPos(i); if(x>p.x-4&&x<p.x+Lw.bw+Lw.bw*0.18+4&&y>p.y-Lw.bw*0.18-4&&y<p.y+Lw.bh+16) return woodItem(w); }
+    return items.find(it=>it.hit(x,y))||null;
+  }
+  function woodItem(w){ return {card:'wood',id:w.id,name:w.name,sub:(w.type==='hard'?'Hardwood':'Softwood')+' · from '+w.tree,fact:w.fact,extra:'Made into: '+w.uses+' · Hardness: '+fmt(w.janka)+' lb',pos:()=>{ const p=blockPos(WOODS.indexOf(w)); return [p.x+Lw.bw/2,p.y+Lw.bh/2,Lw.bw*0.75]; },thumb:S=>{ ctx.fillStyle='#f6e7c8'; ctx.fillRect(0,0,S,S); drawBlock(w,14,26,52,44,0); }}; }
+  function onTap(it){ if(it.card==='wood'){ const w=WOODS.find(x=>x.id===it.id); if(sel!==w){ sel=w; lift=0; press=null; } $('btnPress').disabled=false; } }
+  $('btnPress').addEventListener('click',()=>{ if(!sel){ toast('Tap a block first!',2000); return; } if(press&&!press.done) return; press={t:0}; dent[sel.id]=0; $('btnPress').disabled=true; closeCard(); setTimeout(()=>{ if(sel) dent[sel.id]=dentDepth(sel); },1300); });
+  function quest(){
+    const job=(text,id,no)=>({prompt:text+' <b>Tap the wood.</b>',tap:it=>it&&it.card==='wood'?(it.id===id?true:(no[it.id]||no.other)):'Tap one of the blocks on the shelf.',yes:'Yes! '+WOODS.find(w=>w.id===id).name+' is the one.'});
+    return {id:'wood',title:'🔨 Pick the wood for the job',steps:[
+      job('You\'re building a model airplane. It has to be super light.','balsa',{other:'Too heavy! Which wood floats like a cork?'}),
+      job('You\'re making a barrel that must not leak a drop.','whiteoak',{redoak:'Red oak\'s tubes are open — it leaks! Try its cousin.',other:'Barrel makers use just one wood on this shelf. Its tubes are plugged.'}),
+      job('You need a chest that keeps moths away from wool sweaters.','cedar',{other:'Sniff around — which wood smells so strong that moths stay away?'}),
+      job('You\'re making drumsticks that get whacked thousands of times.','hickory',{other:'Not tough enough! Which wood is the hardest one on the shelf?'}),
+      job('You\'re framing a house and need lots of long, light, cheap boards.','pine',{other:'Builders want long, straight, light boards — from a cone tree with soft needles.'}),
+      job('You\'re building a basketball court floor.','maple',{other:'Hard and smooth — and the same tree makes syrup!'}),
+    ]};
+  }
+  return {layout,update,draw,hit,onTap,quest,questPos:'tr',enter(){ $('btnPress').disabled=!sel; },leave(){}};
+})();
+
+/* =====================================================================
+   SCENE 5 · THE NEIGHBORS — the whole oak, above and below ground, with
+   the Missouri animals that live in it. Day animals and night animals
+   trade places when the sun goes down.
+   ===================================================================== */
+SCENES.animals=(()=>{
+  let F=null, G=null, night=0, wantNight=false, found={}, fireflies=[], peck=0, items=[];
+  const ANIMALS=[
+    {id:'squirrel',emoji:'🐿️',name:'Gray squirrel',at:[0.3,0.38],size:0.11,when:'day',where:'On the branches · its nest is a ball of leaves called a drey',fact:'Squirrels bury acorns for winter and forget some of them. Forgotten acorns grow into new oaks — so squirrels plant trees!'},
+    {id:'jay',draw:'jay',name:'Blue jay',at:[0.34,0.96],size:0.085,when:'day',where:'High in the crown',fact:'Blue jays stuff acorns into a throat pouch and carry them far away to bury. They are some of the best oak planters around.'},
+    {id:'caterpillar',emoji:'🐛',name:'Caterpillar',at:[-0.12,1.03],size:0.07,when:'day',where:'On the leaves',fact:'More than 500 kinds of caterpillars can eat an oak\'s leaves. A chickadee needs 6,000 to 9,000 caterpillars to raise one nest of babies!'},
+    {id:'cicada',draw:'cicada',name:'Periodical cicada',at:[0.075,0.3],size:0.075,when:'day',where:'On the trunk, singing',fact:'Periodical cicadas spend 13 or 17 years underground sipping juice from tree roots. Then they climb the trunk, split their skin, and sing all summer.'},
+    {id:'woodpecker',draw:'woodpecker',name:'Pileated woodpecker',at:[-0.075,0.19],size:0.13,when:'day',where:'On the trunk · digs rectangular holes',fact:'As big as a crow, with a red crest. It chops rectangular holes to hunt carpenter ants. Its old holes become homes for owls, ducks, and bats.'},
+    {id:'duck',emoji:'🦆',name:'Wood duck',at:[-0.03,0.34],size:0.065,when:'day',where:'In an old woodpecker hole',fact:'A duck in a tree? Yes! Wood ducks nest in tree holes. The day after they hatch, the ducklings jump out and bounce — then waddle to the water.'},
+    {id:'chipmunk',draw:'chipmunk',name:'Eastern chipmunk',at:[0.28,0.035],size:0.085,when:'day',where:'A burrow among the roots',fact:'Chipmunks dig tunnels right under the tree and stuff their cheeks with acorns to carry home.'},
+    {id:'owl',emoji:'🦉',name:'Barred owl',at:[-0.3,0.31],size:0.1,when:'night',where:'In a hollow on a big limb',fact:'Its call sounds like "Who cooks for you? Who cooks for you-all?" It nests in tree hollows and hunts mice at night.'},
+    {id:'raccoon',emoji:'🦝',name:'Raccoon',at:[0.0,0.07],size:0.1,when:'night',where:'A hollow at the base of the trunk',fact:'Raccoons sleep all day inside hollow trees and come out at night. They love acorns — and anything else they can grab.'},
+    {id:'bat',emoji:'🦇',name:'Bat',at:[-0.15,0.31],size:0.065,when:'night',flies:true,where:'Under loose bark by day · in the air by night',fact:'Some Missouri bats squeeze under loose, peeling bark to sleep all day. At night one bat can eat hundreds of bugs.'},
+    {id:'frog',emoji:'🐸',name:'Gray treefrog',at:[0.07,0.16],size:0.06,when:'both',where:'On the bark',fact:'It can change from gray to green to match the bark — look how hard it is to see in the daytime! Sticky toe pads let it climb straight up the trunk. At night the males sing.'},
+    {id:'flyer',draw:'flyer',name:'Flying squirrel',at:[0.36,0.8],size:0.085,when:'night',glides:true,where:'In a tree hole · glides tree to tree',fact:'Missouri has flying squirrels! They don\'t really fly — they glide on skin flaps stretched between their legs, like a kite.'},
+    {id:'nymph',draw:'nymph',name:'Cicada nymph',at:[-0.36,-0.15],size:0.06,when:'both',where:'On a root, underground',fact:'This baby cicada is drinking root juice in the dark. It will stay down here for 13 or 17 years before it climbs out!'},
+    {id:'worm',emoji:'🪱',name:'Earthworm',at:[0.3,-0.26],size:0.07,when:'both',where:'In the soil',fact:'Worms eat dead leaves and tunnel through the soil. Their tunnels let rain and air reach the roots.'},
+    {id:'fungus',emoji:'🍄',name:'Fungus friends',at:[0.6,0.03],size:0.07,when:'both',where:'Threads on the roots, mushrooms on top',fact:'Fungus threads wrap around the roots and find water and minerals for the tree. The tree pays them back with sugar.'},
+  ];
+  const sleepy={owl:'Asleep in its hollow. Switch to 🌙 night to see it come out!',raccoon:'Snoring inside the hollow. Switch to 🌙 night!',bat:'Tucked under a flap of loose bark, fast asleep. Switch to 🌙 night!',flyer:'Asleep in a tree hole. Switch to 🌙 night to see it glide!'};
+  const P=a=>[F.cx+a.at[0]*F.s,F.gy-a.at[1]*F.s];
+  function layout(){ F=mapFrame(); G=treeGeom(F); const rr=seeded(31); fireflies=[]; for(let i=0;i<14;i++) fireflies.push({x:rr(),y:rr(),p:rr()*TAU,v:rr()*0.6+0.4});
+    items=ANIMALS.map(a=>({a,card:'animal',id:a.id,name:a.name,fact:a.fact,sub:a.where,emoji:a.emoji,thumb:a.draw?S=>{ ctx.fillStyle=a.id==='nymph'?SOIL:'#cdeeff'; ctx.fillRect(0,0,S,S); drawCustom(a,S/2,S/2,S*0.7,1); }:null,bg:a.id==='worm'||a.id==='nymph'?SOIL:undefined,
+      pos:()=>{ const p=pos(a); return [p[0],p[1],a.size*F.s*0.6+12]; }})); }
+  function alphaOf(a){ return a.when==='day'?1-night:a.when==='night'?night:1; }
+  function pos(a){
+    const p=P(a);
+    if(a.flies){ const t=now*0.9; return [F.cx+Math.sin(t)*F.s*0.55, F.gy-F.s*(0.75+Math.sin(t*2)*0.22)]; }
+    if(a.glides){ const c=(now%7), k=clamp(c/2.6,0,1); const A=P(a), B=[F.cx-F.s*0.6,F.gy-F.s*0.42]; return [lerp(A[0],B[0],k),lerp(A[1],B[1],k)+Math.sin(k*Math.PI)*-F.s*0.05]; }
+    return p;
+  }
+  function drawCustom(a,x,y,sz,al){
+    ctx.save(); ctx.translate(x,y); ctx.globalAlpha=al; const s=sz/40;
+    if(a.draw==='woodpecker'){
+      const bob=peck>0?Math.sin(now*40)*0.25:0;
+      ctx.scale(s,s);
+      line(-2,16,-6,30,'#1b1b24',5); line(3,16,4,30,'#1b1b24',5);                    // tail braced on the bark
+      ellipse(0,4,10,16,0.1,'#1b1b24',2.2);                                           // body, clinging upright
+      line(-6,-4,-2,10,'#ffffff',3);                                                  // white wing stripe
+      ctx.save(); ctx.translate(3,-14); ctx.rotate(bob);
+      ellipse(0,0,9,8,0,'#1b1b24',2.2); poly([[-4,-6],[4,-18],[10,-4]],'#e2262b',2);   // head + the big red crest
+      line(-7,2,2,6,'#ffffff',3); line(-2,-2,6,-3,'#ffffff',2); line(8,0,20,2,'#9a9a9a',3.5); circle(3,-3,1.6,'#fff');
+      ctx.restore();
+    }else if(a.draw==='jay'){
+      ctx.scale(s,s); ellipse(0,2,12,9,0,'#4f8fe6',2.2); ellipse(2,5,8,5,0,'#f4f6ff',0); ellipse(-9,-6,6,6,0,'#4f8fe6',2.2); poly([[-10,-11],[-6,-18],[-3,-11]],'#3b6fc4',2); line(-15,-5,-19,-4,'#333',2.5); line(-5,-1,-2,4,'#1b1b24',2); line(10,0,20,-4,'#3b6fc4',6); circle(-11,-7,1.4,'#111');
+    }else if(a.draw==='cicada'){
+      ctx.scale(s,s); ctx.rotate(-0.9); ellipse(6,0,10,5,0,'rgba(220,240,255,0.55)',1.2); ellipse(6,4,10,4,0.15,'rgba(220,240,255,0.55)',1.2); ellipse(0,0,9,6,0,'#2a2a30',2); circle(-6,-3,2.2,'#e2262b'); circle(-6,3,2.2,'#e2262b'); line(2,-5,8,-1,'#7ab',1); line(2,5,8,1,'#7ab',1);
+    }else if(a.draw==='chipmunk'){
+      ctx.scale(s,s); ellipse(0,4,12,7,0,'#b5773d',2.2); ellipse(10,-2,6,5,0,'#b5773d',2.2); line(-6,-1,6,-1,'#3d2410',2); line(-6,4,6,4,'#f3e2bd',1.5); line(-6,8,6,8,'#3d2410',2); circle(12,-3,1.4,'#111'); line(-11,2,-16,-9,'#7a4b2a',4); circle(9,-7,2,'#b5773d');
+    }else if(a.draw==='nymph'){
+      ctx.scale(s,s); ellipse(0,0,11,7,0,'#8a5a2a',2.2); ellipse(-8,0,5,4,0,'#6e4426',2); for(let k=0;k<3;k++){ line(-2+k*5,-6,0+k*6,-12,'#4e2f18',2); line(-2+k*5,6,0+k*6,12,'#4e2f18',2); } line(-10,-3,-16,-8,'#4e2f18',3); circle(-11,-2,1.5,'#e2262b');
+    }else if(a.draw==='flyer'){
+      ctx.scale(s,s); poly([[-14,-10],[14,-10],[18,8],[-18,8]],'#8d7b68',2.2); ellipse(0,0,12,7,0,'#a8957f',0); circle(14,-2,5,'#8d7b68'); ring(14,-2,5,INK,2); circle(15,-3,2.2,'#111'); circle(15.6,-3.6,0.8,'#fff'); line(-16,0,-24,4,'#6e5a48',5);
+    }
+    ctx.restore();
+  }
+  function drawHoles(){
+    const s=F.s, X=G.X, Y=G.Y;
+    ellipse(X(-0.3),Y(0.31),s*0.075,s*0.07,0,'#8d6b52',2.5); ellipse(X(-0.3),Y(0.31),s*0.05,s*0.058,0,'#2a1608',2.5);   // the owl's hollow, a bulge on the big limb
+    ctx.beginPath(); ctx.moveTo(X(-0.065),Y(0)+4); ctx.arc(X(0),Y(0.07),s*0.065,Math.PI,0); ctx.lineTo(X(0.065),Y(0)+4); ctx.closePath(); ctx.fillStyle='#2a1608'; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=2.5; ctx.stroke();   // base hollow
+    box(X(0.03)-s*0.02,Y(0.2)-s*0.045,s*0.04,s*0.09,s*0.008,'#2a1608',2.5);          // the woodpecker's rectangle
+    ellipse(X(-0.03),Y(0.34),s*0.035,s*0.035,0,'#2a1608',2.5);                       // the duck's hole
+    poly([[X(-0.19),Y(0.3)],[X(-0.12),Y(0.34)],[X(-0.1),Y(0.27)]],'#5a3a1c',2);       // a flap of loose bark for the bat
+    ellipse(X(0.34),Y(-0.02),s*0.03,s*0.018,0,'#2a1608',2.5);                        // the chipmunk's burrow
+  }
+  function update(dt){
+    night+=((wantNight?1:0)-night)*Math.min(1,dt*2.2);
+    peck-=dt; if(peck<-2.6) peck=0.7;
+  }
+  function draw(){
+    const W=V.w,H=V.h;
+    drawSky(F,night,now);
+    drawGround(F);
+    // underground neighbors first, then the roots over them
+    ANIMALS.filter(a=>a.at[1]<0).forEach(a=>drawAnimal(a));
+    drawRootsOf(G,F,{});
+    drawTrunk(G,F,{}); drawBranches(G,F); drawCrown(G,F,{acorns:true});
+    drawHoles();
+    // eyes glow in the hollows at dusk
+    if(night>0.2&&night<0.85){ ctx.globalAlpha=night; circle(G.X(-0.315),G.Y(0.315),2.5,GOLD); circle(G.X(-0.285),G.Y(0.315),2.5,GOLD); ctx.globalAlpha=1; }
+    // the drey (squirrel's leaf nest) in the right side of the crown
+    blob(G.X(0.46),G.Y(0.52),F.s*0.06,'#8a6a3a',2,4,9); blob(G.X(0.46),G.Y(0.52),F.s*0.045,'#a98a55',0,4,9);
+    ANIMALS.filter(a=>a.at[1]>=0).forEach(a=>drawAnimal(a));
+    if(night>0.3){ ctx.globalAlpha=night; fireflies.forEach(f=>{ const b=0.5+0.5*Math.sin(now*f.v*3+f.p); if(b>0.55){ const x=f.x*W, y=F.gy-10-f.y*F.s*0.25; circle(x,y,3+b*2,'rgba(255,240,120,'+b+')'); circle(x,y,1.6,'#fff9c4'); } }); ctx.globalAlpha=1; }
+    if(night>0.5){ const p=P(ANIMALS.find(a=>a.id==='frog')); ctx.globalAlpha=night; label('♪',p[0]+22+Math.sin(now*3)*4,p[1]-16-((now*20)%22),{size:14,display:true,dark:false,color:GOLD}); ctx.globalAlpha=1; }
+    if(night<0.5){ const p=P(ANIMALS.find(a=>a.id==='cicada')); ctx.globalAlpha=1-night; label('bzzz',p[0]+24,p[1]-14+Math.sin(now*6)*2,{size:12,display:true,dark:true}); ctx.globalAlpha=1; }
+    const log=logSpot(F); drawLog(log.x,log.y,log.s);
+    const n=Object.keys(found).length; sign('🔎 Found '+n+' of '+ANIMALS.length+' neighbors',W-14,H-14-16,{size:12,align:'right',fill:n===ANIMALS.length?GOLD:WHITE});
+  }
+  function drawAnimal(a){
+    const al=alphaOf(a); if(al<0.03) return;
+    const p=pos(a), sz=a.size*F.s;
+    if(a.id==='frog'){ ctx.save(); ctx.globalAlpha=al; if(night<0.5){ ctx.filter='grayscale(0.85) brightness(0.9)'; } emoji('🐸',p[0],p[1],sz); ctx.restore(); return; }
+    if(a.draw){ drawCustom(a,p[0],p[1],sz,al); return; }
+    ctx.save(); ctx.globalAlpha=al; const bob=a.flies?0:Math.sin(now*2+a.at[0]*7)*1.5; emoji(a.emoji,p[0],p[1]+bob,sz,a.flip); ctx.restore();
+  }
+  function hit(x,y){
+    for(let i=items.length-1;i>=0;i--){ const it=items[i], a=it.a, p=pos(a), r=a.size*F.s*0.6+12;
+      if(dist(x,y,p[0],p[1])<r){ if(alphaOf(a)<0.4){ return Object.assign({},it,{name:a.name+' (asleep)',sub:a.where,fact:sleepy[a.id]||a.fact,id:a.id+'_asleep',pos:it.pos}); } found[a.id]=true; return it; } }
+    // tapping a hollow while its owner is out
+    return null;
+  }
+  function setNight(v){ wantNight=v; $('togNight').classList.toggle('on',v); $('togNight').textContent=v?'☀️ Day':'🌙 Night'; }
+  $('togNight').addEventListener('click',()=>{ setNight(!wantNight); toast(wantNight?'🌙 Night! Who came out?':'☀️ Morning! Who went to bed?',3000); });
+  function quest(){
+    const who=(text,id,n,hint)=>({prompt:text+' <b>Tap me!</b>',tap:it=>it&&it.id===id?true:(it&&it.id===id+'_asleep')?'That\'s me — but I\'m asleep! Switch to night.':hint,yes:'Yes!',onShow(){ setNight(n); }});
+    return {id:'animals',title:'🦉 Who am I?',steps:[
+      who('I chop rectangular holes in the trunk to hunt ants.','woodpecker',false,'Look on the trunk, by the rectangular hole.'),
+      who('I have a fluffy tail. I bury acorns and forget some — so I plant new oaks!','squirrel',false,'Look on the branches, near the ball of leaves.'),
+      who('I lived underground for 17 years. Now I\'m on the trunk, singing.','cicada',false,'Listen for the bzzz on the trunk.'),
+      who('My babies jump out of the nest hole the day after they hatch.','duck',false,'I\'m a bird, but I nest in a hole in the trunk.'),
+      who('I hoot "Who cooks for you?" from my hollow.','owl',true,'Look for glowing eyes in a hollow.'),
+      who('I turn gray or green to match the bark, and my toes are sticky.','frog',true,'Look low on the trunk. Listen for the ♪.'),
+    ]};
+  }
+  return {layout,update,draw,hit,quest,enter(){},leave(){}};
+})();
+
+/* @@SCENES@@ */
+
+/* =====================================================================
+   NAVIGATION: chips, buttons, the zoom-through-the-map transition
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b;
+});
+function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?(narrowMQ.matches?'🔁 Again':'🔁 Back to the leaves'):'NEXT PART ▶';
+  els.btnNext.classList.toggle('home',last);
+  const id=CHAPTERS[current].id, won=!!badges[id];
+  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  CHAPTERS.forEach(c=>{ const g=$('ctl-'+c.id); if(g) g.hidden=(c.id!==id); });
+}
+let trans=null;   // {from,to,t0,dur}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current&&!trans) return;
+  if(trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true;
+  const from=current;
+  if(REDUCED){ switchTo(i); return; }
+  trans={from,to:i,t0:performance.now(),dur:1250};
+  SCENES[CHAPTERS[i].id].enter();
+}
+function switchTo(i){
+  SCENES[CHAPTERS[current].id].leave(); current=i; SCENES[CHAPTERS[i].id].enter();
+  setCaption(i); updateChips(); updateButtons(); drawMinimap(); setStat(SCENES[CHAPTERS[i].id].stat&&SCENES[CHAPTERS[i].id].stat());
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  const scene=SCENES[CHAPTERS[current].id];
+  const item=scene.hit?scene.hit(x,y):null;
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item){ if(scene.onTap&&scene.onTap(item)===false) return; showCard(item); } else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='5') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+// on phones the Challenge button moves down next to the chapter controls
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(320,Math.round(r.width)); V.h=Math.max(240,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  Object.values(SCENES).forEach(s=>s.layout&&s.layout());
+}
+function drawMapOverlay(a,r){      // the chapter map, everywhere except inside a circle
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,V.w,V.h); ctx.arc(a[0],a[1],Math.max(0,r),0,TAU,true); ctx.clip();
+  const F=mapFrame(); drawOak(F,{acorns:true});
+  const log=logSpot(F); drawLog(log.x,log.y,log.s);
+  ctx.restore();
+}
+function logSpot(F){ return {x:F.cx+F.s*0.86, y:F.gy-F.s*0.04, s:F.s*0.11}; }
+function drawLog(x,y,s){            // a cut log on the ground: where the wood chapter lives on the map
+  ctx.save(); ctx.translate(x,y);
+  box(-s*1.6,-s*0.55,s*2.2,s*1.1,s*0.2,'#8d6b52',2.5);
+  ellipse(s*0.6,0,s*0.5,s*0.55,0,'#e8c58f',2.5);
+  for(let k=1;k<=3;k++) ring(s*0.6,0,s*0.5*k/4,'#b07a3b',1.5);
+  ctx.restore();
+}
+let lastT=performance.now();
+function frame(nowMs){
+  const dt=Math.min(0.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  const cur=SCENES[CHAPTERS[current].id];
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    const F=mapFrame(), a0=anchorPx(CHAPTERS[trans.from].id,F), a1=anchorPx(CHAPTERS[trans.to].id,F);
+    const R=Math.hypot(V.w,V.h)*0.75;
+    if(k<0.38){ cur.update(dt); cur.draw(); const u=1-easeOut(k/0.38); drawMapOverlay(a0,R*u*u); }
+    else if(k<0.62){ drawMapOverlay([0,0],0); const u=smooth((k-0.38)/0.24); const a=[lerp(a0[0],a1[0],u),lerp(a0[1],a1[1],u)]; ring(a[0],a[1],14+4*Math.sin(now*12),GOLD,4); ring(a[0],a[1],14+4*Math.sin(now*12),INK,1.5); }
+    else{ if(current!==trans.to) switchTo(trans.to); const nxt=SCENES[CHAPTERS[trans.to].id]; nxt.update(dt); nxt.draw(); const u=easeInOut((k-0.62)/0.38); drawMapOverlay(a1,R*u); }
+    if(k>=1) trans=null;
+  }else{ cur.update(dt); cur.draw(); }
+  if(selected&&selected.pos){ const p=selected.pos(); if(p){ ctx.save(); ctx.setLineDash([8,6]); ctx.lineDashOffset=-now*30; ring(p[0],p[1],p[2]||30,GOLD,4); ctx.restore(); } }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.insideATree={SCENES,CHAPTERS,goTo,award,startQuest,quest,badges};   // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+resize();
+SCENES[CHAPTERS[0].id].enter();
+setCaption(0); updateChips(); updateButtons(); drawMinimap(); setStat(SCENES.leaf.stat&&SCENES.leaf.stat());
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
