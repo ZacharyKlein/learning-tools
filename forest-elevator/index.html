@@ -1,0 +1,1301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forest Elevator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the forest's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: NEXT FLOOR */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --leaf:#3f9d3a;
+  --leaf-dk:#2e7d32;
+  --soil:#8b5a2b;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.3;
+  -webkit-text-size-adjust:100%;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  padding:10px 14px 12px;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold);
+}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;
+  transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.map{
+  display:flex;align-items:center;gap:8px;
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:4px 10px 4px 6px;box-shadow:4px 4px 0 var(--ink);
+}
+.map canvas{width:44px;height:64px;display:block}
+.map span{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;line-height:1.2;text-align:center}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:300px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(58%,460px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+body.peeking .caption{display:none}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.stat{
+  position:absolute;right:14px;bottom:12px;display:flex;gap:8px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px);
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(350px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:15.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12.5px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;
+  animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(420px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px 12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:16px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:8px 14px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14.5px;margin-top:8px;min-height:18px}
+.q-fb.good{color:var(--leaf-dk)}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ---------- */
+.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+.levels{display:flex;gap:5px}
+.lvl{
+  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-size:22px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+
+/* chapter controls: one or two groups shown at a time */
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.grow{background:var(--grass);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog.storm{background:var(--space);color:var(--white);text-shadow:1px 1px 0 #000}
+.tog.acorn{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .map{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;gap:4px}
+  .lvl{width:34px;height:34px;font-size:18px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
+  #btnBack{display:none}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 11px;font-size:14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .ctl-label{font-size:11px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{display:none}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  body.questing .caption,body.carding .caption{display:none}
+  body.peeking .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Forest Elevator</h1>
+      <p class="tagline">Ride from the treetops down to the roots — and meet who lives on every floor.</p>
+    </div>
+    <div class="right">
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Floor<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each floor of the forest"></div>
+      </div>
+      <div class="map" aria-hidden="true">
+        <canvas id="minimap" width="88" height="128"></canvas>
+        <span>You are<br>here</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <div class="cap-level" id="capLevel"></div>
+        <div class="cap-text" id="capText"></div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap plants and animals to meet them</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack">▲ Up</button>
+      <button class="btn big" id="btnNext">GO DOWN ▼</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-season" hidden>
+        <span class="ctl-label">Season:</span>
+        <button class="tog" id="sSpring">🌱 Spring</button>
+        <button class="tog on" id="sSummer">☀️ Summer</button>
+        <button class="tog" id="sFall">🍂 Fall</button>
+      </div>
+      <div class="ctl-group" id="ctl-floor" hidden>
+        <button class="tog" id="btnLog">🪵 Lift the log</button>
+        <button class="tog" id="btnRot">🍂 Watch a leaf rot</button>
+      </div>
+      <div class="ctl-group" id="ctl-roots" hidden>
+        <button class="tog" id="togFungus">🍄 Show the fungus web</button>
+      </div>
+      <div class="ctl-group" id="ctl-grow" hidden>
+        <button class="tog acorn" id="btnAcorns">🌰 Drop 100 acorns!</button>
+        <button class="tog grow" id="btnYear">⏩ Next year</button>
+        <button class="tog storm" id="btnStorm">🌩️ Storm!</button>
+        <button class="tog" id="btnReset">↺ Start over</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   FOREST ELEVATOR  —  the floors of a forest, for grades 1–3
+   One Missouri oak-hickory forest, drawn as a single tall world in
+   meters (ground at y = 0, treetops near y = 30, roots to y = -6).
+   An elevator car rides the camera from floor to floor. Every floor has
+   tap-to-meet residents and a small challenge that earns a badge. The
+   last stop steps out into a clearing to grow a forest from acorns.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const rnd=Math.random;
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7';
+const LEAF='#3f9d3a', LEAF_DK='#2e7d32', LEAF_LT='#7ccf5a', BARK='#8d6b52', BARK_DK='#4e2f18', SOIL='#8b5a2b', SOIL_DK='#5a3a1c';
+
+/* ---------- canvas + timing ---------- */
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:520,dpr:1};
+let now=0;                    // seconds since load
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(0.1,rx),Math.max(0.1,ry),rot||0,0,TAU); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol){ rrect(x,y,w,h,r); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round'; ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1); ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000'; ctx.fillText(ch,0,px*0.06); ctx.restore(); }
+// a name tag with a soft halo so it reads on any background
+function label(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13, dark=opts.dark, align=opts.align||'center', weight=opts.weight||800, font=opts.display?DISPLAY_FONT:LABEL_FONT;
+  ctx.save(); ctx.textAlign=align; ctx.textBaseline=opts.baseline||'middle'; ctx.lineJoin='round';
+  ctx.font=weight+' '+size+'px '+font;
+  ctx.strokeStyle=dark?'rgba(255,248,231,0.85)':'rgba(43,35,80,0.85)'; ctx.lineWidth=Math.max(3,size*0.32);
+  ctx.strokeText(txt,x,y);
+  ctx.fillStyle=opts.color||(dark?INK:PAPER); ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+// a little sign: rounded box with text, optional pointer line to (px,py)
+function sign(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13; ctx.save(); ctx.font='800 '+size+'px '+LABEL_FONT;
+  const w=ctx.measureText(txt).width+18, h=size+14;
+  let bx=opts.align==='left'?x:opts.align==='right'?x-w:x-w/2, by=y-h/2;
+  bx=clamp(bx,4,V.w-w-4); by=clamp(by,4,V.h-h-4);
+  if(opts.to){ line(bx+w/2,by+h/2,opts.to[0],opts.to[1],INK,2.5); }
+  box(bx,by,w,h,10,opts.fill||WHITE,2.5);
+  ctx.fillStyle=opts.color||INK; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+w/2,by+h/2+1);
+  ctx.restore();
+  return {x:bx,y:by,w,h};
+}
+function cloudPath(x,y,r,n,seed){          // a leafy blob: a circle with a scalloped edge
+  const rr=seeded(seed||1); ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const a0=i/n*TAU, a1=(i+1)/n*TAU, am=(a0+a1)/2, bump=r*(0.12+rr()*0.1);
+    const x0=x+Math.cos(a0)*r, y0=y+Math.sin(a0)*r, x1=x+Math.cos(a1)*r, y1=y+Math.sin(a1)*r;
+    const cx=x+Math.cos(am)*(r+bump*2.2), cy=y+Math.sin(am)*(r+bump*2.2);
+    if(i===0) ctx.moveTo(x0,y0);
+    ctx.quadraticCurveTo(cx,cy,x1,y1);
+  }
+  ctx.closePath();
+}
+function blob(x,y,r,fill,ol,seed,n){ if(r<1) return; cloudPath(x,y,r,n||clamp(Math.round(r/9),7,16),seed); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b); return `rgb(${Math.round(lerp(A[0],B[0],t))},${Math.round(lerp(A[1],B[1],t))},${Math.round(lerp(A[2],B[2],t))})`; }
+function darker(h,k){ const c=hexRgb(h).map(v=>Math.round(v*(1-k))); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function lighter(h,k){ const c=hexRgb(h).map(v=>Math.round(v+(255-v)*k)); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+function bezPts(p0,p1,p2,n){ const out=[]; for(let i=0;i<=n;i++){ const t=i/n, u=1-t; out.push([u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]); } return out; }
+
+/* =====================================================================
+   THE CAMERA — the world is measured in meters. cam.hm is how many
+   meters tall the stage is right now; K is pixels per meter.
+   ===================================================================== */
+const cam={cx:20,cy:23,hm:15};
+let K=30;
+function sx(x){ return V.w/2+(x-cam.cx)*K; }
+function sy(y){ return V.h/2-(y-cam.cy)*K; }
+function toWorld(px,py){ return [cam.cx+(px-V.w/2)/K, cam.cy-(py-V.h/2)/K]; }
+function onScreen(x0,y0,x1,y1){ return sx(x1)>-40&&sx(x0)<V.w+40&&sy(y0)>-40&&sy(y1)<V.h+40; }   // world box (y0 low, y1 high)
+const M=m=>m*K;                                     // meters → pixels
+const LW=(m,min)=>Math.max(min||1.5,m*K);          // a line width in meters, never thinner than `min` px
+function viewBox(){ const a=V.w/V.h; return {x0:cam.cx-cam.hm*a/2,x1:cam.cx+cam.hm*a/2,y0:cam.cy-cam.hm/2,y1:cam.cy+cam.hm/2}; }
+
+/* ---------- seasons + how much sun reaches each floor ---------- */
+let season='summer';
+const LIGHT={ summer:{canopy:100,under:20,shrub:8,floor:3}, spring:{canopy:100,under:75,shrub:60,floor:50}, fall:{canopy:100,under:45,shrub:30,floor:22} };
+const light=id=>LIGHT[season][id==='roots'?'floor':id];
+
+/* =====================================================================
+   THE FOREST — trees, understory, shrubs, floor and soil, all in meters.
+   The big white oak at x = 19.5 is the one the elevator rides beside.
+   ===================================================================== */
+const TREES=[
+  {x:4.5,h:25,r:5,kind:'oak',seed:1},
+  {x:11,h:22,r:4.5,kind:'hickory',seed:2},
+  {x:19.5,h:30,r:6.5,kind:'oak',seed:3,big:true,limbs:[[21.4,12.6,3.2,0.35]]},
+  {x:28.5,h:24,r:5,kind:'oak',seed:4,limbs:[[26.5,8.2,-2.4,0.3]]},
+  {x:36,h:27,r:5.5,kind:'hickory',seed:5},
+];
+const BACK=[{x:-1,h:23,r:5},{x:8,h:26,r:5.5},{x:15,h:24,r:5},{x:24,h:26,r:5.5},{x:32,h:23,r:5},{x:41,h:25,r:5.5}];
+const UNDER=[ {id:'dogwood',x:13.8,h:6.5,r:2.3}, {id:'redbud',x:25.2,h:7,r:2.5}, {id:'pawpaw',x:29.6,h:6,r:2.1}, {id:'sapling',x:16.0,h:3.2,r:0.9}, {id:'sapling',x:23.0,h:4.4,r:1.2} ];
+const CROWN_OFF=[[0,0,1],[-0.6,-0.3,0.75],[0.6,-0.35,0.75],[-0.3,0.45,0.6],[0.35,0.5,0.6],[-0.9,-0.6,0.5],[0.9,-0.55,0.5]];
+function crownColor(kind){
+  if(season==='summer') return kind==='hickory'?'#4aa843':LEAF;
+  if(season==='fall') return kind==='hickory'?'#e0a020':'#c2542a';
+  return kind==='hickory'?'#a4d66a':'#8fcf5c';
+}
+function crownY(t){ return t.h-t.r*0.65; }
+// the crown as a cluster of scalloped blobs; in spring the new leaves are small, so the sky shows through
+function drawCrownAt(x,y,r,kind,seed,alpha){
+  const col=crownColor(kind), sp=season==='spring', sc=sp?0.78:1, ol=LW(0.09,1.5);
+  ctx.save(); ctx.globalAlpha=(alpha==null?1:alpha)*(sp?0.7:1);
+  CROWN_OFF.forEach((c,i)=>{ const bx=sx(x+c[0]*r), by=sy(y+c[1]*r), br=M(c[2]*r*sc); blob(bx,by,br,darker(col,0.14),ol,seed*7+i); });
+  CROWN_OFF.forEach((c,i)=>{ const bx=sx(x+c[0]*r), by=sy(y+c[1]*r), br=M(c[2]*r*sc*0.86); blob(bx,by,br,col,0,seed*7+i); });
+  CROWN_OFF.forEach((c,i)=>{ const bx=sx(x+c[0]*r-c[2]*r*0.22), by=sy(y+c[1]*r+c[2]*r*0.25), br=M(c[2]*r*sc*0.4); blob(bx,by,br,lighter(col,0.22),0,seed*7+i+3); });
+  ctx.restore();
+}
+function drawTrunk(x,w,y0,y1,color,seed){
+  const flare=w*0.35;
+  ctx.beginPath();
+  ctx.moveTo(sx(x-w/2-flare),sy(y0)); ctx.quadraticCurveTo(sx(x-w/2),sy(y0+w*1.2),sx(x-w*0.46),sy(y0+(y1-y0)*0.3));
+  ctx.lineTo(sx(x-w*0.36),sy(y1)); ctx.lineTo(sx(x+w*0.36),sy(y1)); ctx.lineTo(sx(x+w*0.46),sy(y0+(y1-y0)*0.3));
+  ctx.quadraticCurveTo(sx(x+w/2),sy(y0+w*1.2),sx(x+w/2+flare),sy(y0)); ctx.closePath();
+  ctx.fillStyle=color; ctx.fill();
+  if(M(w)>14){ ctx.save(); ctx.clip(); const rr=seeded(seed||1); ctx.strokeStyle='rgba(60,35,20,0.35)'; ctx.lineWidth=LW(0.04,1.2); ctx.lineCap='round';
+    const n=clamp(Math.round((y1-y0)*3),8,60); for(let i=0;i<n;i++){ const bx=x-w*0.45+rr()*w*0.9, by=y0+rr()*(y1-y0), l=(y1-y0)*(0.04+rr()*0.08); ctx.beginPath(); ctx.moveTo(sx(bx),sy(by)); ctx.lineTo(sx(bx+(rr()-.5)*0.1),sy(by+l)); ctx.stroke(); }
+    ctx.fillStyle='rgba(255,255,255,0.12)'; ctx.fillRect(sx(x-w*0.42),sy(y1),M(w*0.16),M(y1-y0)); ctx.restore(); }
+  ctx.strokeStyle=INK; ctx.lineWidth=LW(0.06,1.5); ctx.lineJoin='round'; ctx.stroke();
+}
+function drawBranch(P,w){ const S=P.map(p=>[sx(p[0]),sy(p[1])]); path(S,INK,LW(w,1)+3); path(S,BARK,LW(w,1)); }
+function drawTree(t,opts){
+  opts=opts||{};
+  const w=t.w||0.048*t.h, cy=crownY(t), top=cy-t.r*0.2;
+  if(!onScreen(t.x-t.r*1.3,-0.5,t.x+t.r*1.3,t.h+1)) return;
+  drawTrunk(t.x,w,-0.3,top+t.r*0.2,opts.color||BARK,t.seed);
+  // a few limbs into the crown, plus any low limbs the residents perch on
+  const rr=seeded(t.seed||1);
+  for(let i=0;i<4;i++){ const side=i%2?1:-1, y0=top-t.r*0.9+rr()*t.r*0.5, P=bezPts([t.x,y0],[t.x+side*t.r*0.5,y0+t.r*0.5],[t.x+side*t.r*(0.7+rr()*0.3),y0+t.r*(0.6+rr()*0.5)],8); drawBranch(P,w*0.28); }
+  (t.limbs||[]).forEach(L=>{ const [x1,y1,dx,w1]=L; const P=bezPts([t.x,y1-0.6],[t.x+dx*0.4,y1+0.1],[x1+dx*0.35,y1+0.15],8); drawBranch(P,w1); });
+  drawCrownAt(t.x,cy,t.r,t.kind,t.seed||1,opts.alpha);
+  if(t.kind==='oak'&&season!=='spring'&&K>18&&!opts.noAcorns){ const r2=seeded(t.seed*3+1); for(let i=0;i<8;i++){ const ax=t.x+(r2()-.5)*t.r*1.4, ay=cy+(r2()-.5)*t.r*1.2; disc(sx(ax),sy(ay),M(0.09),'#c9975a',1.2); circle(sx(ax),sy(ay)-M(0.06),M(0.09),'#6e4426'); } }
+}
+function drawBackTrees(){ ctx.save(); ctx.globalAlpha=0.45; BACK.forEach((t,i)=>{ if(!onScreen(t.x-t.r*1.3,-0.5,t.x+t.r*1.3,t.h+1)) return; drawTrunk(t.x,0.04*t.h,-0.3,crownY(t)+t.r*0.1,'#a89a8a',i+20); drawCrownAt(t.x,crownY(t),t.r,'oak',i+40,0.9); }); ctx.restore(); }
+
+/* ---------- understory trees, shrubs, ferns, the vine ---------- */
+function drawSmallTree(u){
+  if(!onScreen(u.x-u.r*1.4,-0.3,u.x+u.r*1.4,u.h+0.5)) return;
+  const cy=u.h-u.r*0.7, w=Math.max(0.12,u.h*0.035);
+  drawTrunk(u.x,w,-0.2,cy,'#7d6a5a',u.x*3|0);
+  const rr=seeded(u.x*5|0);
+  for(let i=0;i<3;i++){ const side=i%2?1:-1; drawBranch(bezPts([u.x,cy-u.r*0.4],[u.x+side*u.r*0.4,cy],[u.x+side*u.r*0.8,cy+u.r*0.4],6),w*0.35); }
+  if(u.id==='dogwood'){
+    const col=season==='summer'?'#4d9e48':season==='fall'?'#8e3a4a':'#bfe0a0';
+    ctx.save(); ctx.globalAlpha=season==='spring'?0.55:0.95; blob(sx(u.x),sy(cy),M(u.r),col,LW(0.06),11,11); blob(sx(u.x-u.r*0.5),sy(cy+u.r*0.3),M(u.r*0.6),col,LW(0.06),12,9); blob(sx(u.x+u.r*0.5),sy(cy+u.r*0.25),M(u.r*0.6),col,LW(0.06),13,9); ctx.restore();
+    if(season==='spring'){ for(let i=0;i<26;i++){ const fx=u.x+(rr()-.5)*u.r*2.2, fy=cy+(rr()-.5)*u.r*1.6; const px=sx(fx),py=sy(fy),fr=M(0.16); for(let k=0;k<4;k++){ const a=k*TAU/4; ellipse(px+Math.cos(a)*fr*0.9,py+Math.sin(a)*fr*0.9,fr*0.85,fr*0.5,a,'#fffaf0',Math.min(1.5,fr*0.12)); } circle(px,py,fr*0.3,'#d8e26a'); } }
+    if(season==='fall'){ for(let i=0;i<18;i++){ const fx=u.x+(rr()-.5)*u.r*2, fy=cy+(rr()-.5)*u.r*1.4; disc(sx(fx),sy(fy),M(0.08),'#e6322b',1); } }
+  }else if(u.id==='redbud'){
+    if(season==='spring'){ for(let i=0;i<70;i++){ const fx=u.x+(rr()-.5)*u.r*2.2, fy=cy+(rr()-.5)*u.r*1.8; disc(sx(fx),sy(fy),M(0.13),'#e0489a',Math.min(1.2,M(0.02))); } }
+    else{ const col=season==='summer'?'#5aab4e':'#e8c63c'; blob(sx(u.x),sy(cy),M(u.r),col,LW(0.06),14,11); blob(sx(u.x-u.r*0.55),sy(cy+u.r*0.2),M(u.r*0.55),col,LW(0.06),15,9); blob(sx(u.x+u.r*0.55),sy(cy+u.r*0.3),M(u.r*0.55),col,LW(0.06),16,9);
+      if(K>25){ for(let i=0;i<14;i++){ const fx=u.x+(rr()-.5)*u.r*1.8, fy=cy+(rr()-.5)*u.r*1.4, px=sx(fx),py=sy(fy),s=M(0.22); ctx.fillStyle=darker(col,0.2); ctx.beginPath(); ctx.moveTo(px,py+s); ctx.bezierCurveTo(px-s*1.3,py-s*0.2,px-s*0.5,py-s*1.1,px,py-s*0.4); ctx.bezierCurveTo(px+s*0.5,py-s*1.1,px+s*1.3,py-s*0.2,px,py+s); ctx.fill(); } } }
+  }else if(u.id==='pawpaw'){
+    const col=season==='fall'?'#e8d24a':season==='spring'?'#a6d46a':'#3e8f3c';
+    for(let i=0;i<16;i++){ const lx=u.x+(rr()-.5)*u.r*2.4, ly=cy+(rr()-.5)*u.r*1.6; ellipse(sx(lx),sy(ly-0.35),M(0.22),M(0.55),(rr()-.5)*0.6,col,LW(0.04,1)); }
+    if(season==='summer'){ for(let i=0;i<4;i++){ const fx=u.x+(rr()-.5)*u.r*1.6, fy=cy+(rr()-.5)*u.r; ellipse(sx(fx),sy(fy),M(0.14),M(0.2),0,'#7fae4a',1); } }
+  }else{ // a sapling: a young oak waiting in the shade
+    const col=season==='summer'?LEAF:season==='fall'?'#b9603a':'#9bd35c';
+    blob(sx(u.x),sy(cy),M(u.r),col,LW(0.06),17,9); blob(sx(u.x+u.r*0.3),sy(cy+u.r*0.4),M(u.r*0.5),lighter(col,0.2),0,18,8);
+  }
+}
+const SHRUBS=[ {id:'spicebush',x:15.4,h:2.4,w:1.7}, {id:'hazelnut',x:21.9,h:2.9,w:2.0}, {id:'blueberry',x:24.4,h:0.6,w:1.0}, {id:'fern',x:14.0,h:0.9}, {id:'fern',x:20.9,h:0.85}, {id:'fern',x:12.3,h:0.8}, {id:'fern',x:26.8,h:0.9} ];
+function drawShrub(s){
+  if(!onScreen(s.x-2,-0.2,s.x+2,s.h+0.5)) return;
+  const rr=seeded(s.x*7|0);
+  if(s.id==='fern'){
+    const n=7; for(let i=0;i<n;i++){ const a=-Math.PI/2+(i-(n-1)/2)*0.32, L=s.h*(0.8+rr()*0.3); const tip=[s.x+Math.cos(a)*L, 0.05+Math.sin(-a)*L];
+      const P=bezPts([s.x,0.05],[s.x+Math.cos(a)*L*0.55,0.05+Math.sin(-a)*L*0.75],tip,10).map(p=>[sx(p[0]),sy(p[1])]);
+      path(P,INK,LW(0.05,1)+2); path(P,season==='fall'?'#8f8a3a':'#3f9d3a',LW(0.05,1));
+      if(K>40){ ctx.strokeStyle=season==='fall'?'#b0a84a':'#63c64d'; ctx.lineWidth=LW(0.03,1); for(let k=2;k<9;k++){ const p=P[k], d=M(L*0.09)*(1-k/11); ctx.beginPath(); ctx.moveTo(p[0]-d,p[1]-d*0.6); ctx.lineTo(p[0],p[1]); ctx.lineTo(p[0]+d,p[1]-d*0.6); ctx.stroke(); } } }
+    return;
+  }
+  const col=s.id==='spicebush'?(season==='fall'?'#f0c94a':season==='spring'?'#b6d98a':'#5aa64c'):s.id==='hazelnut'?(season==='fall'?'#c98c3a':'#4e9a45'):(season==='fall'?'#b23a3a':'#4f8f3f');
+  // stems, then a cluster of blobs
+  for(let i=0;i<4;i++){ const dx=(i-1.5)*s.w*0.2; line(sx(s.x+dx*0.3),sy(0),sx(s.x+dx),sy(s.h*0.6),'#6b5140',LW(0.05,1.5)); }
+  const parts=[[0,0.55,0.5],[-0.35,0.35,0.4],[0.35,0.38,0.42],[-0.15,0.8,0.3],[0.2,0.82,0.3]];
+  parts.forEach((p,i)=>{ ctx.save(); if(season==='spring'&&s.id!=='blueberry') ctx.globalAlpha=0.75; blob(sx(s.x+p[0]*s.w),sy(p[1]*s.h),M(p[2]*s.h),col,LW(0.05,1.5),s.x*3+i,9); ctx.restore(); });
+  if(s.id==='spicebush'&&season==='spring'){ for(let i=0;i<30;i++){ disc(sx(s.x+(rr()-.5)*s.w*1.1),sy(s.h*(0.25+rr()*0.7)),M(0.05),'#f3e26a',0.8); } }
+  if(s.id==='spicebush'&&season==='fall'){ for(let i=0;i<10;i++){ disc(sx(s.x+(rr()-.5)*s.w),sy(s.h*(0.3+rr()*0.6)),M(0.045),'#e0262b',1); } }
+  if(s.id==='hazelnut'&&season!=='spring'){ for(let i=0;i<7;i++){ const nx=s.x+(rr()-.5)*s.w*0.9, ny=s.h*(0.35+rr()*0.5); disc(sx(nx),sy(ny),M(0.08),'#b07a3a',1); ellipse(sx(nx),sy(ny+0.05),M(0.09),M(0.05),0,'#8fbf5a',0.8); } }
+  if(s.id==='blueberry'&&season==='summer'){ for(let i=0;i<9;i++){ disc(sx(s.x+(rr()-.5)*s.w),sy(s.h*(0.3+rr()*0.6)),M(0.035),'#3b4fa8',0.8); } }
+}
+function drawVine(){        // poison ivy climbing the big oak: leaves of three
+  if(!onScreen(19.6,0,20.9,3.9)) return;
+  const rr=seeded(77), pts=[]; for(let i=0;i<=14;i++){ const t=i/14; pts.push([20.05+Math.sin(t*9)*0.12+t*0.25, 0.1+t*3.5]); }
+  path(pts.map(p=>[sx(p[0]),sy(p[1])]),'#5a3a1c',LW(0.05,1.5));
+  const col=season==='fall'?'#d0362a':season==='spring'?'#8fc35a':'#3f8f30';
+  for(let i=1;i<14;i+=1){ const p=pts[i], side=i%2?1:-1, lx=p[0]+side*0.28, ly=p[1]+0.05; line(sx(p[0]),sy(p[1]),sx(lx),sy(ly),'#5a3a1c',LW(0.025,1));
+    [[0,0.16],[-0.15,0.02],[0.15,0.02]].forEach(o=>{ ellipse(sx(lx+o[0]*1.2),sy(ly+o[1]+0.06),M(0.075),M(0.11),o[0]*1.5,col,LW(0.02,0.8)); }); }
+}
+/* ---------- the forest floor ---------- */
+const FLOOR={ log:{x0:13.6,x1:15.9,r:0.3}, mush:[[15.95,0.0],[13.3,0.0],[16.1,0.0]] };
+let logLift=0, wantLog=false;
+function drawLitter(x0,x1){       // dead leaves, thicker in fall
+  const rr=seeded(99), n=Math.round((x1-x0)*(season==='fall'?22:12)), cols=season==='fall'?['#c9703a','#d9a441','#b04a2c','#9a6a2a','#e0b95a']:['#9a6a3a','#a3702f','#87643f','#b08a4a'];
+  const big=K>60;
+  for(let i=0;i<n;i++){
+    const lx=x0+rr()*(x1-x0), ly=0.02+rr()*0.08, a=(rr()-.5)*1.1, col=cols[i%cols.length], w=M(0.17), h=M(0.075);
+    if(!big){ ellipse(sx(lx),sy(ly),w,h,a,col,0); continue; }
+    ctx.save(); ctx.translate(sx(lx),sy(ly)); ctx.rotate(a);       // a pointed leaf with a vein
+    ctx.beginPath(); ctx.moveTo(-w,0); ctx.quadraticCurveTo(0,-h*1.5,w,0); ctx.quadraticCurveTo(0,h*1.5,-w,0); ctx.closePath();
+    ctx.fillStyle=col; ctx.fill(); ctx.strokeStyle='rgba(60,35,15,0.5)'; ctx.lineWidth=1; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-w*0.8,0); ctx.lineTo(w*0.8,0); ctx.strokeStyle='rgba(60,35,15,0.35)'; ctx.stroke(); ctx.restore();
+  }
+}
+function drawGroundLine(x0,x1){
+  ctx.fillStyle='#4e7d2b'; ctx.fillRect(sx(x0),sy(0.02),M(x1-x0),M(0.06)+2);
+  ctx.strokeStyle='#3f8f2f'; ctx.lineWidth=LW(0.03,1.5); ctx.lineCap='round';
+  const step=Math.max(0.18,8/K); for(let x=x0;x<x1;x+=step){ const h=0.12+((x*7)%1)*0.1; ctx.beginPath(); ctx.moveTo(sx(x),sy(0.02)); ctx.lineTo(sx(x+(((x*3)%1)-.5)*0.1),sy(0.02+h)); ctx.stroke(); }
+}
+function drawMayapple(x){ if(!onScreen(x-0.6,0,x+0.6,0.6)) return; [[-0.28,0.36],[0.02,0.42],[0.3,0.34]].forEach(o=>{ line(sx(x+o[0]),sy(0.02),sx(x+o[0]),sy(o[1]),'#4e8a3a',LW(0.03,1.5)); blob(sx(x+o[0]),sy(o[1]),M(0.24),season==='fall'?'#a8a040':'#4fa03c',LW(0.02,1),Math.round(x*10)+o[1]*10|0,8); line(sx(x+o[0]-0.2),sy(o[1]),sx(x+o[0]+0.2),sy(o[1]),darker('#4fa03c',0.25),LW(0.015,1)); if(season==='spring') disc(sx(x+o[0]+0.1),sy(o[1]-0.08),M(0.05),'#fffaf0',1); }); }
+function drawMushroom(x,y,s,col){ s=s||0.12; line(sx(x),sy(y),sx(x),sy(y+s*1.1),'#efe4c8',LW(s*0.45,2)); ctx.beginPath(); ctx.arc(sx(x),sy(y+s*1.1),M(s),Math.PI,0); ctx.closePath(); ctx.fillStyle=col||'#c98a4a'; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=LW(s*0.15,1); ctx.stroke(); }
+function drawSpringFlowers(){ if(season!=='spring') return; const rr=seeded(55); for(let i=0;i<22;i++){ const fx=12+rr()*15, fy=0.12+rr()*0.12, px=sx(fx), py=sy(fy); if(px<-20||px>V.w+20) continue; line(px,sy(0.02),px,py,'#5fa04a',LW(0.015,1)); const white=i%3; for(let k=0;k<5;k++){ const a=k*TAU/5; ellipse(px+Math.cos(a)*M(0.05),py+Math.sin(a)*M(0.05),M(0.04),M(0.025),a,white?'#fff6f8':'#f7b6d2',Math.min(1,M(0.008))); } circle(px,py,M(0.02),GOLD); } }
+function drawLog(){
+  const L=FLOOR.log, len=L.x1-L.x0, r=L.r; if(!onScreen(L.x0-0.2,0,L.x1+0.5,2.5)) return;
+  // the damp patch and the critters under it show once the log lifts
+  ellipse(sx((L.x0+L.x1)/2),sy(0.06),M(len*0.55),M(0.1),0,'#4a2e14',0);
+  if(logLift>0.02) drawUnderLog();
+  ctx.save(); ctx.translate(sx(L.x0),sy(0.05)); ctx.rotate(-logLift*1.15); // lift about the left end
+  const w=M(len), h=M(r*2);
+  box(0,-h,w,h,M(r*0.8),'#6e4a2c',LW(0.05,1.5));
+  ctx.save(); rrect(0,-h,w,h,M(r*0.8)); ctx.clip(); ctx.strokeStyle='rgba(30,15,5,0.35)'; ctx.lineWidth=LW(0.03,1); for(let i=0;i<9;i++){ const yy=-h+h*(i+0.5)/9; ctx.beginPath(); ctx.moveTo(0,yy); ctx.quadraticCurveTo(w*0.5,yy+Math.sin(i)*h*0.06,w,yy); ctx.stroke(); }
+  ctx.fillStyle='rgba(120,190,90,0.7)'; for(let i=0;i<7;i++) ellipse(w*(0.1+i*0.13),-h+M(0.03),M(0.13),M(0.05),0,'rgba(120,190,90,0.75)',0); ctx.restore();
+  ellipse(w,-h/2,M(r*0.35),M(r),0,'#e8c58f',LW(0.05,1.5)); for(let k=1;k<=3;k++) ring(w,-h/2,M(r*0.75*k/4),'#b07a3b',LW(0.02,1));
+  ctx.restore();
+  if(K>30){ drawMushroom(L.x1+0.12,0,0.1,'#d9b06a'); drawMushroom(L.x1+0.3,0,0.07,'#c98a4a'); }
+}
+function drawUnderLog(){ const L=FLOOR.log; ctx.strokeStyle='rgba(243,234,214,0.85)'; ctx.lineWidth=LW(0.012,1); const rr=seeded(8); for(let i=0;i<16;i++){ const x=L.x0+rr()*(L.x1-L.x0); ctx.beginPath(); ctx.moveTo(sx(x),sy(0.03)); ctx.bezierCurveTo(sx(x+(rr()-.5)*0.4),sy(0.02),sx(x+(rr()-.5)*0.5),sy(0.05),sx(x+(rr()-.5)*0.6),sy(0.14)); ctx.stroke(); } }
+
+/* ---------- underground ---------- */
+let fungusOn=false;
+const ROOTS=[]; // [tree, points]
+TREES.forEach(t=>{ const w=0.048*t.h; [[-1,0.9],[1,0.9],[-1,0.45],[1,0.5],[0,0.2]].forEach((d,i)=>{ const side=d[0], L=t.r*1.4*d[1]; const P=side?bezPts([t.x+side*w*0.3,-0.05],[t.x+side*L*0.45,-0.5-i*0.15],[t.x+side*L,-0.9-i*0.35],12):bezPts([t.x,-0.1],[t.x+0.3,-1.4],[t.x-0.2,-3.2],10); ROOTS.push({t,P,w:w*(i<2?0.5:0.35)}); }); });
+const TUNNEL=[]; for(let x=12.2;x<=22.6;x+=0.4) TUNNEL.push([x,-0.62+Math.sin(x*1.7)*0.12]);
+const FUNGI=[ bezPts([16.8,-1.2],[15.2,-2.3],[13.0,-1.9],12), bezPts([16.2,-0.9],[14.6,-1.5],[12.6,-1.35],12), bezPts([22.6,-1.35],[24.2,-2.1],[26.0,-1.6],12), bezPts([22.1,-1.0],[23.6,-1.2],[25.2,-1.15],12), bezPts([19.7,-2.2],[20.8,-3.0],[22.4,-2.4],10) ];
+function drawSoil(){
+  const vb=viewBox(); if(vb.y0>0.5) return;
+  const g=ctx.createLinearGradient(0,sy(0),0,sy(-6)); g.addColorStop(0,'#a06b38'); g.addColorStop(0.3,SOIL); g.addColorStop(1,'#4a2f18');
+  ctx.fillStyle=g; ctx.fillRect(0,sy(0),V.w,V.h-sy(0)+2);
+  const rr=seeded(4); ctx.fillStyle='rgba(60,35,15,0.35)';
+  for(let i=0;i<90;i++){ const x=rr()*40, y=-0.15-rr()*4.2, r=0.04+rr()*0.12; if(!onScreen(x-r,y-r,x+r,y+r)) continue; ctx.beginPath(); ctx.ellipse(sx(x),sy(y),M(r*1.4),M(r),rr()*3,0,TAU); ctx.fill(); }
+  if(vb.y0<-4.2){ ctx.fillStyle='#6f6a68'; ctx.fillRect(0,sy(-4.5),V.w,V.h); ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=2; for(let x=0;x<V.w;x+=90){ ctx.beginPath(); ctx.moveTo(x,sy(-4.5)); ctx.lineTo(x+40,sy(-5.2)); ctx.lineTo(x+20,sy(-6)); ctx.stroke(); } }
+}
+function drawUnderground(){
+  const vb=viewBox(); if(vb.y0>0.3) return;
+  // the chipmunk's burrow: a tunnel from the entrance down to a pantry full of acorns
+  const bur=[[16.3,-0.05],[16.0,-0.5],[15.6,-1.0],[15.4,-1.45]].map(p=>[sx(p[0]),sy(p[1])]); path(bur,'#5a3a1c',LW(0.22,4)); ellipse(sx(15.3),sy(-1.55),M(0.55),M(0.32),0,'#5a3a1c',0);
+  const rr=seeded(23); for(let i=0;i<9;i++){ const ax=15.05+rr()*0.5, ay=-1.75+rr()*0.25; disc(sx(ax),sy(ay),M(0.06),'#c9975a',1); circle(sx(ax),sy(ay)-M(0.04),M(0.06),'#6e4426'); }
+  // the mole's tunnel
+  path(TUNNEL.map(p=>[sx(p[0]),sy(p[1])]),'#6b4623',LW(0.3,5)); path(TUNNEL.map(p=>[sx(p[0]),sy(p[1])]),'#7f5530',LW(0.2,3));
+  // fungus threads: faint always, bright when the web is switched on
+  ctx.save(); ctx.globalAlpha=fungusOn?0.95:0.3; ctx.lineCap='round';
+  FUNGI.forEach((F,i)=>{ const S=F.map(p=>[sx(p[0]),sy(p[1])]); path(S,'#f3ead6',LW(0.03,1.2)); for(let k=0;k<3;k++){ const q=F[3+k*3], a=k*2.1+i; const tip=[q[0]+Math.cos(a)*0.4,q[1]+Math.sin(a)*0.3]; line(sx(q[0]),sy(q[1]),sx(tip[0]),sy(tip[1]),'#f3ead6',LW(0.02,1)); } });
+  if(fungusOn){ FUNGI.forEach((F,i)=>{ const t=(now*0.25+i*0.2)%1, n=F.length-1, k=t*n, j=Math.floor(k), p=[lerp(F[j][0],F[Math.min(n,j+1)][0],k-j),lerp(F[j][1],F[Math.min(n,j+1)][1],k-j)]; disc(sx(p[0]),sy(p[1]),M(0.07),i%2?'#ff6f9c':'#3b8beb',1); }); }
+  ctx.restore();
+  // roots
+  ROOTS.forEach(R=>{ const S=R.P.map(p=>[sx(p[0]),sy(p[1])]); if(sx(Math.max(...R.P.map(p=>p[0])))<-20||sx(Math.min(...R.P.map(p=>p[0])))>V.w+20) return; for(let i=1;i<S.length;i++){ const k=1-i/S.length; line(S[i-1][0],S[i-1][1],S[i][0],S[i][1],INK,LW(R.w*k,1)+3); } for(let i=1;i<S.length;i++){ const k=1-i/S.length; line(S[i-1][0],S[i-1][1],S[i][0],S[i][1],'#b8874f',Math.max(1.2,M(R.w*k))); } });
+  // root hairs on the big oak's roots when close enough
+  if(K>50){ ctx.strokeStyle='#e9d3b0'; ctx.lineWidth=1.2; ROOTS.filter(R=>R.t.big).forEach((R,ri)=>{ const rr2=seeded(ri+3); R.P.slice(-5).forEach(p=>{ for(let k=0;k<4;k++){ const a=rr2()*TAU, l=0.06+rr2()*0.1; ctx.beginPath(); ctx.moveTo(sx(p[0]),sy(p[1])); ctx.lineTo(sx(p[0]+Math.cos(a)*l),sy(p[1]+Math.sin(a)*l)); ctx.stroke(); } }); }); }
+  // an acorn that sprouted: a taproot down, a tiny shoot up
+  const ax=21.2; line(sx(ax),sy(-0.05),sx(ax+0.05),sy(-0.7),'#e9d3b0',LW(0.04,1.5)); disc(sx(ax),sy(0.0),M(0.11),'#c9975a',1.2); circle(sx(ax),sy(0.06),M(0.11),'#6e4426'); line(sx(ax),sy(0.1),sx(ax-0.05),sy(0.42),'#5fa04a',LW(0.03,1.5)); ellipse(sx(ax-0.14),sy(0.4),M(0.1),M(0.05),-0.5,'#7ccf5a',1); ellipse(sx(ax+0.06),sy(0.45),M(0.1),M(0.05),0.5,'#7ccf5a',1);
+  // a rock
+  blob(sx(13.2),sy(-3.0),M(0.5),'#8a8580',LW(0.05,1.5),66,8);
+}
+
+/* ---------- sky, sun, sunbeams, shade ---------- */
+function drawSky(dark){
+  const top=sy(34), g=ctx.createLinearGradient(0,Math.min(top,0),0,sy(0));
+  g.addColorStop(0,'#2f8fe0'); g.addColorStop(0.5,'#7cc3f5'); g.addColorStop(1,'#d6f0ff');
+  ctx.fillStyle=g; ctx.fillRect(0,0,V.w,Math.max(0,sy(0))+2);
+  if(dark>0){ ctx.fillStyle='rgba(30,30,70,'+(dark*0.55)+')'; ctx.fillRect(0,0,V.w,Math.max(0,sy(0))+2); }
+}
+function drawSun(x,y,r){
+  if(!onScreen(x-r*2,y-r*2,x+r*2,y+r*2)) return;
+  const px=sx(x),py=sy(y),pr=Math.max(14,M(r));
+  disc(px,py,pr,GOLD,Math.max(2,pr*0.09)); ctx.strokeStyle=GOLD; ctx.lineWidth=Math.max(3,pr*0.15); ctx.lineCap='round';
+  for(let i=0;i<8;i++){ const a=i*TAU/8+now*0.25; ctx.beginPath(); ctx.moveTo(px+Math.cos(a)*pr*1.3,py+Math.sin(a)*pr*1.3); ctx.lineTo(px+Math.cos(a)*pr*1.75,py+Math.sin(a)*pr*1.75); ctx.stroke(); }
+}
+// one sunbeam per meter or so; each stops at the floor that catches it
+let BEAMS=[];
+function makeBeams(){
+  const L=LIGHT[season], rr=seeded(season==='summer'?11:season==='spring'?12:13); BEAMS=[];
+  for(let x=0.4;x<40;x+=1.15){
+    const bx=x+(rr()-.5)*0.6, r=rr(); let stop, layer;
+    if(r>=L.under/100){ let best=TREES[0]; TREES.forEach(t=>{ if(Math.abs(t.x-bx)<Math.abs(best.x-bx)) best=t; }); stop=crownY(best)+(rr()-.35)*best.r*1.1; layer='canopy'; }
+    else if(r>=L.shrub/100){ stop=3.8+rr()*7.5; layer='under'; }
+    else if(r>=L.floor/100){ stop=0.45+rr()*2.4; layer='shrub'; }
+    else { stop=0.05; layer='floor'; }
+    BEAMS.push({x:bx,stop,layer,ph:rr()*TAU});
+  }
+}
+function drawBeams(){
+  const vb=viewBox(); if(vb.y1<-0.1) return;
+  ctx.save(); ctx.lineCap='round';
+  BEAMS.forEach(b=>{ if(sx(b.x)<-20||sx(b.x)>V.w+20||b.stop>vb.y1+2) return;
+    const w=clamp(M(0.22),2,16), y0=Math.min(-10,sy(Math.max(vb.y1,b.stop)+2));
+    ctx.strokeStyle='rgba(255,244,170,0.22)'; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(sx(b.x),y0); ctx.lineTo(sx(b.x),sy(b.stop)); ctx.stroke();
+    const p=0.6+0.4*Math.sin(now*3+b.ph); circle(sx(b.x),sy(b.stop),w*0.55*p,'rgba(255,250,200,'+(0.8*p)+')');
+  });
+  ctx.restore();
+}
+function drawShade(){      // the floors below the roof get dimmer as the roof catches the sun
+  const L=LIGHT[season], top=sy(19), bot=sy(-0.05);
+  if(bot<0||top>V.h) return;
+  const g=ctx.createLinearGradient(0,top,0,bot), a1=(1-L.under/100)*0.3, a2=(1-L.shrub/100)*0.38, a3=(1-L.floor/100)*0.44;
+  g.addColorStop(0,'rgba(18,16,58,0)'); g.addColorStop(0.35,'rgba(18,16,58,'+a1.toFixed(3)+')');
+  g.addColorStop(0.78,'rgba(18,16,58,'+a2.toFixed(3)+')'); g.addColorStop(1,'rgba(18,16,58,'+a3.toFixed(3)+')');
+  ctx.fillStyle=g; ctx.fillRect(0,top,V.w,bot-top);
+}
+// a soft green wall of far-off forest, so the gaps between trunks aren't bare sky
+function drawHaze(){
+  const top=sy(17), bot=sy(0); if(bot<0||top>V.h) return;
+  const g=ctx.createLinearGradient(0,top,0,bot);
+  g.addColorStop(0,'rgba(120,170,140,0)'); g.addColorStop(0.45,'rgba(108,155,128,0.5)'); g.addColorStop(1,'rgba(96,140,112,0.72)');
+  ctx.fillStyle=g; ctx.fillRect(0,top,V.w,bot-top);
+  ctx.save(); ctx.globalAlpha=0.3; const rr=seeded(71);      // a thicket of far trunks
+  for(let i=0;i<26;i++){ const x=-2+rr()*45, w=0.16+rr()*0.2, h=6+rr()*9; if(sx(x)<-30||sx(x)>V.w+30) continue; ctx.fillStyle='#5c7f62'; ctx.fillRect(sx(x),sy(h),M(w),sy(0)-sy(h)); }
+  ctx.restore();
+}
+/* ---------- drifting leaves (fall) ---------- */
+const leaves=[];
+function updateLeaves(dt){
+  if(season==='fall'&&!REDUCED&&leaves.length<45&&rnd()<dt*8){ const vb=viewBox(); const t=TREES[Math.floor(rnd()*TREES.length)]; const x=t.x+(rnd()-.5)*t.r*2, y=crownY(t)+(rnd()-.5)*t.r; if(x>vb.x0-2&&x<vb.x1+2) leaves.push({x,y:Math.min(y,vb.y1+1),vx:(rnd()-.5)*0.6,vy:-(0.9+rnd()*0.6),r:rnd()*TAU,vr:(rnd()-.5)*4,c:['#c9703a','#d9a441','#b04a2c','#e0b95a'][Math.floor(rnd()*4)]}); }
+  for(let i=leaves.length-1;i>=0;i--){ const l=leaves[i]; l.x+=l.vx*dt+Math.sin(now*2+l.r)*0.6*dt; l.y+=l.vy*dt; l.r+=l.vr*dt; if(l.y<0.03||season!=='fall'){ leaves.splice(i,1); } }
+}
+function drawLeaves(){ leaves.forEach(l=>{ if(!onScreen(l.x-0.3,l.y-0.3,l.x+0.3,l.y+0.3)) return; ctx.save(); ctx.translate(sx(l.x),sy(l.y)); ctx.rotate(l.r); ellipse(0,0,Math.max(3,M(0.16)),Math.max(2,M(0.08)),0,l.c,0); ctx.restore(); }); }
+
+/* ---------- the elevator: a beam off the big oak, a rope, a car that rides with the camera ---------- */
+const ELEV={x:18.0};
+function drawElevatorRope(){
+  const bx=sx(ELEV.x), bw=LW(0.12,3);
+  if(sy(29.4)>-40){ line(sx(19.0),sy(29.2),bx-bw,sy(29.2),INK,LW(0.24,5)+3); line(sx(19.0),sy(29.2),bx-bw,sy(29.2),BARK,LW(0.24,5)); disc(bx,sy(29.2),Math.max(5,M(0.3)),'#9aa3b5',2); }
+  line(bx,Math.max(-10,sy(29.2)),bx,Math.min(V.h+10,sy(-5.8)),'#5a4a3a',bw);
+  if(sy(0)<V.h){ // the glass tube through the soil
+    const w=M(1.7); ctx.fillStyle='rgba(200,235,255,0.35)'; ctx.fillRect(bx-w/2,sy(0),w,sy(-5.7)-sy(0)); ctx.strokeStyle='rgba(43,35,80,0.8)'; ctx.lineWidth=LW(0.06,2); ctx.strokeRect(bx-w/2,sy(0),w,sy(-5.7)-sy(0)); }
+}
+function drawElevatorCar(){
+  const px=sx(ELEV.x), py=sy(cam.cy), s=clamp(M(1.4),56,92), w=s*0.78, h=s;
+  ctx.save(); ctx.translate(px,py);
+  line(0,-h/2-s*0.14,0,-h/2,INK,3);
+  box(-w/2,-h/2,w,h,s*0.12,'#ffefc2',3);
+  box(-w/2+s*0.08,-h/2+s*0.1,w-s*0.16,h*0.52,s*0.08,'#cdeeff',2.5);
+  emoji('🧒',0,-h*0.08,s*0.42);
+  box(-w/2,h/2-s*0.14,w,s*0.14,s*0.05,GOLD,2.5);
+  ctx.fillStyle=INK; ctx.font='700 '+Math.round(s*0.13)+'px '+DISPLAY_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(current<5?String(5-current):'★',0,h/2-s*0.07);
+  ctx.restore();
+}
+
+/* =====================================================================
+   RESIDENTS — who lives on each floor. Positions in meters; sizes are
+   "picture meters" (a little bigger than life so small things show).
+   ===================================================================== */
+const DRAWERS={
+  tanager(s){ ctx.scale(s/40,s/40); ellipse(0,2,12,8,0,'#e8262b',2.2); ellipse(-2,-1,8,4,0.3,'#1b1b24',0); ellipse(-10,-6,6,6,0,'#e8262b',2.2); line(-16,-5,-19,-4,'#333',2.5); line(10,0,20,-3,'#1b1b24',6); circle(-12,-7,1.4,'#111'); line(-4,9,-6,14,'#555',2); line(2,9,3,14,'#555',2); },
+  hawk(s){ ctx.scale(s/40,s/40); ellipse(0,4,11,14,0,'#7a5236',2.2); ellipse(1,7,7,9,0,'#d9a070',0); ctx.strokeStyle='#5a3a26'; ctx.lineWidth=1.5; for(let i=0;i<4;i++){ ctx.beginPath(); ctx.moveTo(-4,3+i*3); ctx.lineTo(5,3+i*3); ctx.stroke(); } line(-2,17,0,26,'#6a4a30',6); line(-5,20,-5,25,'#333',2); line(3,20,3,25,'#333',2); circle(0,-10,7,'#7a5236'); ring(0,-10,7,INK,2.2); circle(-2.5,-11,1.6,'#111'); poly([[5,-10],[10,-8],[5,-6]],'#e8c04a',1.5); },
+  cardinal(s){ ctx.scale(s/40,s/40); ellipse(0,3,11,8,0,'#e0262b',2.2); ellipse(-8,-6,6,6,0,'#e0262b',2.2); poly([[-9,-11],[-5,-19],[-3,-11]],'#c41c22',2); poly([[-13,-6],[-9,-3],[-8,-8]],'#1b1b24',0); line(-13,-4,-17,-3,'#e8a03a',3); circle(-10,-7,1.3,'#111'); line(9,2,19,-1,'#c41c22',6); },
+  ovenbird(s){ ctx.scale(s/40,s/40); ellipse(0,3,11,7,0,'#8f7a52',2.2); ellipse(2,6,7,4,0,'#fffaf0',0); ctx.fillStyle='#4a3a20'; for(let i=0;i<4;i++){ ctx.beginPath(); ctx.ellipse(-2+i*3,6,1,2.2,0,0,TAU); ctx.fill(); } ellipse(-9,-4,5.5,5.5,0,'#8f7a52',2.2); line(-12,-8,-5,-8,'#e8862a',2.5); line(-14,-3,-17,-2,'#333',2); circle(-10,-5,1.3,'#111'); line(-4,9,-5,13,'#e8a86a',2); line(3,9,4,13,'#e8a86a',2); line(10,2,18,0,'#7a6542',5); },
+  salamander(s){ ctx.scale(s/40,s/40); path([[-18,2],[-8,0],[4,0],[14,-2],[20,-6]],'#1b1b24',9); ellipse(-2,0,12,5,0,'#1b1b24',0); circle(-16,0,5,'#1b1b24'); [[-13,-2],[-7,-2],[-1,-2],[5,-2],[-10,2],[-4,2],[2,2],[9,-1]].forEach(p=>circle(p[0],p[1],1.5,GOLD)); circle(-18,-2,1,'#fff'); [[-9,4],[3,4]].forEach(p=>{ line(p[0],p[1],p[0]-4,p[1]+5,'#1b1b24',2.5); line(p[0],p[1],p[0]+4,p[1]+5,'#1b1b24',2.5); }); },
+  rolypoly(s){ ctx.scale(s/40,s/40); ellipse(0,0,13,8,0,'#6f7480',2); ctx.strokeStyle='rgba(30,30,50,0.6)'; ctx.lineWidth=1.5; for(let i=-2;i<=2;i++){ ctx.beginPath(); ctx.moveTo(i*4.5,-7); ctx.lineTo(i*4.5,7); ctx.stroke(); } ctx.strokeStyle='#3a3a4a'; for(let i=-2;i<=2;i++){ ctx.beginPath(); ctx.moveTo(i*4.5,7); ctx.lineTo(i*4.5-1,11); ctx.stroke(); } circle(-11,-2,1.2,'#111'); },
+  millipede(s){ ctx.scale(s/40,s/40); path([[-20,4],[-10,0],[0,-2],[10,0],[20,4]],INK,9); path([[-20,4],[-10,0],[0,-2],[10,0],[20,4]],'#7a3a1a',6); ctx.strokeStyle='#3a1a0a'; ctx.lineWidth=1.2; for(let i=-9;i<=9;i++){ const x=i*2.1, y=Math.abs(i)*0.35-1; ctx.beginPath(); ctx.moveTo(x,y+3); ctx.lineTo(x-1,y+7); ctx.stroke(); } circle(-20,4,3.2,'#5a2a10'); line(-22,2,-25,-1,'#3a1a0a',1.2); line(-21,1,-22,-3,'#3a1a0a',1.2); },
+  grub(s){ ctx.scale(s/40,s/40); ctx.strokeStyle='#f3e8d0'; ctx.lineWidth=9; ctx.lineCap='round'; ctx.beginPath(); ctx.arc(0,2,10,Math.PI*1.1,Math.PI*2.05); ctx.stroke(); ctx.strokeStyle=INK; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(0,2,14.5,Math.PI*1.1,Math.PI*2.05); ctx.stroke(); ctx.beginPath(); ctx.arc(0,2,5.5,Math.PI*1.1,Math.PI*2.05); ctx.stroke(); circle(-9,-3,4.5,'#b0703a'); ring(-9,-3,4.5,INK,1.5); },
+  mole(s){ ctx.scale(s/40,s/40); ellipse(0,0,16,9,0,'#5b5560',2.2); circle(14,-1,5,'#5b5560'); ring(14,-1,5,INK,2); circle(19,-1,2.5,'#f4a4b0'); ring(19,-1,2.5,INK,1.2); ellipse(6,7,6,4,0.5,'#f4a4b0',2); ellipse(-6,7,6,4,-0.5,'#f4a4b0',2); ctx.strokeStyle=INK; ctx.lineWidth=1.2; for(let k=0;k<3;k++){ ctx.beginPath(); ctx.moveTo(9+k*1.5,9+k); ctx.lineTo(12+k*1.5,12+k); ctx.stroke(); } circle(13,-3,0.9,'#111'); },
+  chipmunk(s){ ctx.scale(s/40,s/40); ellipse(0,4,12,7,0,'#b5773d',2.2); ellipse(10,-2,6,5,0,'#b5773d',2.2); line(-6,-1,6,-1,'#3d2410',2); line(-6,4,6,4,'#f3e2bd',1.5); line(-6,8,6,8,'#3d2410',2); circle(12,-3,1.4,'#111'); line(-11,2,-16,-9,'#7a4b2a',4); circle(9,-7,2,'#b5773d'); },
+  nymph(s){ ctx.scale(s/40,s/40); ellipse(0,0,11,7,0,'#8a5a2a',2.2); ellipse(-8,0,5,4,0,'#6e4426',2); for(let k=0;k<3;k++){ line(-2+k*5,-6,0+k*6,-12,'#4e2f18',2); line(-2+k*5,6,0+k*6,12,'#4e2f18',2); } line(-10,-3,-16,-8,'#4e2f18',3); circle(-11,-2,1.5,'#e2262b'); },
+  swallowcat(s){ ctx.scale(s/40,s/40); ellipse(2,0,16,7,0,'#7ccf5a',2.2); ellipse(-12,-1,7,7,0,'#7ccf5a',2.2); circle(-14,-3,3,GOLD); ring(-14,-3,3,INK,1.5); circle(-13.5,-3,1.3,'#111'); circle(-10,-3,2,GOLD); ring(-10,-3,2,INK,1.2); circle(-9.6,-3,0.9,'#111'); ctx.strokeStyle='#3f8f30'; ctx.lineWidth=1.2; for(let i=0;i<5;i++){ ctx.beginPath(); ctx.moveTo(-4+i*5,-6); ctx.lineTo(-4+i*5,6); ctx.stroke(); } },
+  jay(s){ ctx.scale(s/40,s/40); ellipse(0,2,12,9,0,'#4f8fe6',2.2); ellipse(2,5,8,5,0,'#f4f6ff',0); ellipse(-9,-6,6,6,0,'#4f8fe6',2.2); poly([[-10,-11],[-6,-18],[-3,-11]],'#3b6fc4',2); line(-15,-5,-19,-4,'#333',2.5); line(-5,-1,-2,4,'#1b1b24',2); line(10,0,20,-4,'#3b6fc4',6); circle(-11,-7,1.4,'#111'); },
+  mouse(s){ ctx.scale(s/40,s/40); ellipse(0,2,12,7,0,'#9a8a7a',2.2); circle(11,-1,5,'#9a8a7a'); ring(11,-1,5,INK,2); circle(9,-6,3,'#e8b0b0'); ring(9,-6,3,INK,1.2); circle(15,-2,1.2,'#111'); line(-12,3,-20,-4,'#e8b0b0',2); },
+};
+const P=(id,floor,x,y,size,name,sub,fact,extra)=>({id,floor,x,y,size,name,sub,fact,extra});
+const RES=[
+  // ---- top floor: the canopy ----
+  Object.assign(P('sun','canopy',31.5,29.5,3,'The Sun','Power for every plant','Sunlight is food power for plants. The canopy grabs it first — so the floors below get only what slips through the leaves.'),{sun:true,emoji:'☀️'}),
+  Object.assign(P('tanager','canopy',16.2,26.5,0.75,'Scarlet tanager','Lives at the very top','Bright red with black wings. He sings from the highest leaves. Every winter he flies all the way to South America!'),{draw:'tanager',bob:1}),
+  Object.assign(P('squirrel','canopy',23.2,23.0,1.0,'Gray squirrel','Sleeps in a ball of leaves called a drey','Runs along branches like sidewalks. Buries acorns for winter and forgets some — and those grow into new trees!'),{emoji:'🐿️',bob:2}),
+  Object.assign(P('caterpillar','canopy',20.6,28.0,0.55,'Caterpillar','Oak leaves are its lunch','Hundreds of kinds of caterpillars munch oak leaves. Birds grab them to feed their babies. That\'s why so many birds live in oaks.'),{emoji:'🐛',bob:1}),
+  Object.assign(P('hawk','canopy',29.9,25.6,1.15,'Red-shouldered hawk','Nests high in a big tree','From the top floor she can see the whole forest. She watches the ground for mice, frogs, and snakes.'),{draw:'hawk'}),
+  Object.assign(P('drey','canopy',24.3,23.5,0.7,'A drey','The squirrel\'s leaf nest','A ball of leaves and twigs wedged in the branches. Inside it\'s cozy and dry — the squirrel\'s bedroom.'),{plant:true}),
+  Object.assign(P('canopy','canopy',19.5,25,0,'Canopy leaves','KAN-uh-pee · the forest\'s roof','The tops of the tallest trees make a leafy roof. It catches almost all the sunlight — that\'s why it\'s shady down below.','Try 🌱 Spring: before the leaves open, sun pours down to the floor.'),{rect:[13,19.5,26.5,31],emoji:'🌳',plant:true}),
+  // ---- middle floor: the understory ----
+  Object.assign(P('owl','under',21.6,12.9,1.05,'Barred owl','Sleeps on a limb by day','"Who cooks for you?" That\'s her call. She lives in a hollow in a big tree, halfway up, and hunts mice at night.'),{emoji:'🦉'}),
+  Object.assign(P('turkey','under',26.9,8.5,1.3,'Wild turkey','Sleeps up here, eats down there','Turkeys flap up to a branch to sleep safe at night. In the morning they hop down to scratch for acorns on the floor.'),{emoji:'🦃',bob:1}),
+  Object.assign(P('dogwood','under',13.8,4.5,0,'Flowering dogwood','Missouri\'s state tree','A small tree that blooms in early spring — BEFORE the canopy has leaves, while sunlight still reaches down here.','Try 🌱 Spring to see it bloom!'),{rect:[11.2,0,16.4,7.2],emoji:'🌸',plant:true}),
+  Object.assign(P('redbud','under',25.2,5,0,'Eastern redbud','Pink flowers right on the branches','Its pink flowers pop out in spring before its leaves do. Bees love them — and the leaves are shaped like hearts.'),{rect:[22.4,0,28,7.8],emoji:'💗',plant:true}),
+  Object.assign(P('pawpaw','under',29.6,4.2,0,'Pawpaw','Missouri\'s biggest wild fruit','Its big droopy leaves catch the few sunbeams that get down here. The fruit tastes like banana pudding! Raccoons love it.'),{rect:[27.4,0,31.8,6.6],emoji:'🍈',plant:true}),
+  Object.assign(P('sapling','under',23.0,3,0,'Young oak (a sapling)','SAP-ling · waiting for its turn','This little tree is stuck in the shade. It may wait many years for a big tree to fall and let the sunlight in.'),{rect:[21.7,0,24.3,4.9],emoji:'🌱',plant:true}),
+  Object.assign(P('sapling','under',16.0,2,0,'Young oak (a sapling)','SAP-ling · waiting for its turn','This little tree is stuck in the shade. It may wait many years for a big tree to fall and let the sunlight in.'),{rect:[15.0,0,17.0,3.6],emoji:'🌱',plant:true}),
+  // ---- low floor: shrubs and ferns ----
+  Object.assign(P('deer','shrub',20.9,0.85,1.7,'White-tailed deer','Eats leaves as high as she can reach','Deer nibble leaves and twigs up to about as high as a grown-up\'s head. Look for the line where the leaves stop — the browse line!'),{emoji:'🦌',flip:true,bob:3}),
+  Object.assign(P('cardinal','shrub',22.5,2.3,0.4,'Northern cardinal','Nests in a thick bush','Cardinals hide their nest in a shrub, just a few feet up, where hawks can\'t spot it. Missouri\'s state bird!'),{draw:'cardinal',bob:1}),
+  Object.assign(P('swallowcat','shrub',15.15,1.95,0.32,'Spicebush swallowtail caterpillar','Those big eyes are FAKE','It eats only spicebush leaves. The pretend eyes make it look like a little snake, so birds leave it alone.'),{draw:'swallowcat'}),
+  Object.assign(P('spider','shrub',16.95,1.55,0.26,'Garden spider','A net between the bushes','She strings her web between the bushes to catch flies. She eats the old web and spins a new one almost every day.'),{emoji:'🕷️',web:true}),
+  Object.assign(P('ivy','shrub',20.3,1.9,0,'Poison ivy','Leaves of three — let it be!','This vine climbs up tree trunks. Touching it can give you an itchy rash. Count the leaves: three in a bunch means don\'t touch.'),{rect:[19.9,0.1,20.9,3.9],emoji:'☘️',plant:true}),
+  Object.assign(P('spicebush','shrub',15.4,1.2,0,'Spicebush','Scratch a twig — it smells like spice','A bush with tiny yellow flowers in early spring and red berries in fall. Birds eat the berries; one caterpillar eats only its leaves.'),{rect:[14.3,0,16.5,2.7],emoji:'🌼',plant:true}),
+  Object.assign(P('hazelnut','shrub',21.9,1.4,0,'Hazelnut','Nuts for squirrels, turkeys, and you','A bushy shrub as tall as a grown-up. In fall its nuts drop — the same nut that goes in chocolate spread!'),{rect:[20.8,0,23.1,3.1],emoji:'🌰',plant:true}),
+  Object.assign(P('fern','shrub',14.0,0.4,0,'Ferns','Ancient shade lovers','Ferns don\'t need much sun — perfect for the dim low floors. They were growing here before the dinosaurs!'),{rect:[13.1,0,14.9,1.1],emoji:'🌿',plant:true}),
+  Object.assign(P('fern','shrub',20.9,0.4,0,'Ferns','Ancient shade lovers','Ferns don\'t need much sun — perfect for the dim low floors. They were growing here before the dinosaurs!'),{rect:[20.1,0,21.7,1.05],emoji:'🌿',plant:true}),
+  // ---- ground floor: the forest floor ----
+  Object.assign(P('turtle','floor',17.0,0.2,0.4,'Three-toed box turtle','Missouri\'s state reptile','She can shut her shell tight like a box. She eats worms, berries, and mushrooms — and can live more than 50 years, right around here.'),{emoji:'🐢',walk:true}),
+  Object.assign(P('ovenbird','floor',18.95,0.17,0.24,'Ovenbird','Builds a nest like a tiny oven','A small brown bird that lives on the floor. She weaves a dome of leaves with a door on the side — like a little oven. Her song: teacher-TEACHER-TEACHER!'),{draw:'ovenbird',bob:1}),
+  Object.assign(P('chipmunk','floor',16.35,0.22,0.3,'Eastern chipmunk','Stuffs its cheeks with acorns','It lives in a burrow under the floor. It carries acorns home in its cheeks and keeps a pantry for winter. Ride down to see it!'),{draw:'chipmunk'}),
+  Object.assign(P('salamander','floor',14.55,0.15,0.5,'Spotted salamander','Hides under the log','Cool and damp is just right for her. She sleeps under logs by day and hunts worms and bugs at night. Count her yellow spots!'),{draw:'salamander',underLog:true}),
+  Object.assign(P('rolypoly','floor',15.25,0.1,0.15,'Roly-polies','Tiny cleanup crew','They chew dead leaves into crumbs. Poke one and it rolls into a ball! Roly-polies breathe with gills, so they stay where it\'s damp.'),{draw:'rolypoly',underLog:true,trio:true}),
+  Object.assign(P('millipede','floor',14.05,0.11,0.3,'Millipede','Hundreds of legs, all slow','A gentle leaf-eater. It has two pairs of legs on every part of its body. It helps turn old leaves into soil.'),{draw:'millipede',underLog:true}),
+  Object.assign(P('grub','floor',15.62,0.1,0.17,'Beetle grub','A baby beetle','This wiggly white grub eats rotting wood. One day it will turn into a beetle. Moles love to eat grubs.'),{draw:'grub',underLog:true}),
+  Object.assign(P('log','floor',14.75,0.3,0,'Fallen log','A home for hundreds','When a tree falls, its log becomes a home. Salamanders, roly-polies, beetles, and mushrooms move in. Slowly it turns back into soil.','Press 🪵 Lift the log to peek underneath!'),{rect:[13.5,0,16.1,0.68],emoji:'🪵',plant:true,logHit:true}),
+  Object.assign(P('mayapple','floor',16.9,0.3,0,'Mayapple','Little green umbrellas','They pop up in spring and open like umbrellas. One white flower hides under each one. Box turtles love the fruit.'),{rect:[16.5,0,17.35,0.55],emoji:'☂️',plant:true}),
+  Object.assign(P('mushroom','floor',16.1,0.1,0,'Mushrooms','The fungus\'s flowers','A mushroom is the part of a fungus you can see. Under the ground, its white threads spread everywhere, eating dead leaves and wood.'),{rect:[15.9,0,16.4,0.32],emoji:'🍄',plant:true}),
+  Object.assign(P('litter','floor',16,0.05,0,'Leaf litter','The floor\'s blanket','Dead leaves pile up here. Bugs, worms, and fungus eat them and turn them back into soil. That\'s called decomposing (dee-kum-POH-zing).','Press 🍂 Watch a leaf rot!'),{rect:[0,-0.05,40,0.14],emoji:'🍂',plant:true}),
+  // ---- the basement: underground ----
+  Object.assign(P('mole','roots',15.5,-0.62,0.42,'Eastern mole','Swims through the soil','Big paddle hands dig the tunnel. He can\'t see well, but he sniffs out worms and grubs — and eats more than 100 in a day!'),{draw:'mole',tunnel:true}),
+  Object.assign(P('worm','roots',16.4,-1.05,0.42,'Earthworm','Eats dirt and dead leaves','Worms tunnel through the soil and let rain and air reach the roots. What comes out the back end is the best plant food there is.'),{emoji:'🪱',bob:1}),
+  Object.assign(P('nymph','roots',22.0,-1.55,0.34,'Cicada nymph','Asleep on a root for 13 years','This baby cicada sips juice from the root in the dark. After many years it will climb up the trunk, shed its skin, and sing all summer.'),{draw:'nymph'}),
+  Object.assign(P('grub2','roots',13.7,-0.85,0.2,'Beetle grub','Mole food','A fat white grub chewing on roots. The mole is coming…'),{draw:'grub'}),
+  Object.assign(P('pantry','roots',15.35,-1.55,0,'The chipmunk\'s pantry','A room full of acorns','The chipmunk dug this burrow. This room is the pantry — stuffed with acorns and nuts for winter. There\'s a bedroom, too.'),{rect:[14.6,-1.95,16.0,-1.15],emoji:'🌰',plant:true}),
+  Object.assign(P('fungus','roots',14.4,-1.95,0,'Fungus threads','The forest\'s underground web','Thin white threads wrap around the roots and reach between the trees. They bring the trees water and minerals. The trees pay them back with sugar.','Press 🍄 to watch the trading!'),{rect:[12.4,-2.6,16.9,-0.85],emoji:'🍄',plant:true}),
+  Object.assign(P('fungus','roots',24.0,-1.5,0,'Fungus threads','The forest\'s underground web','Thin white threads wrap around the roots and reach between the trees. They bring the trees water and minerals. The trees pay them back with sugar.','Press 🍄 to watch the trading!'),{rect:[21.9,-2.3,26.2,-0.9],emoji:'🍄',plant:true}),
+  Object.assign(P('sprout','roots',21.2,0.15,0,'An acorn sprouting','First a root, then a shoot','The root goes down FIRST, to find water. Then a little shoot pushes up toward the light. This one could be a giant someday.'),{rect:[20.7,-0.8,21.7,0.6],emoji:'🌱',plant:true}),
+  Object.assign(P('roots','roots',19.5,-1.5,0,'Roots','The tree\'s anchor and straws','Roots hold the big oak up in storms and drink water for it. They spread out wider than the branches — but not very deep.'),{rect:[16.6,-3.4,23.2,-0.05],emoji:'🌳',plant:true}),
+  Object.assign(P('rock','roots',13.2,-3.0,0,'A rock','Roots go around it','Roots can\'t push through rock, so they bend around it. Deep down, it\'s all rock — that\'s where the forest stops.'),{rect:[12.6,-3.6,13.8,-2.4],emoji:'🪨',plant:true}),
+];
+function resVisible(r){
+  if(r.underLog) return logLift>0.55;
+  return true;
+}
+function resPos(r){   // where it is right now (motion baked in), in meters
+  let x=r.x, y=r.y;
+  if(r.walk){ const t=(now*0.06)%2; const k=t<1?t:2-t; x=r.x-0.5+k*1.0; r.face=t<1?1:-1; }
+  if(r.tunnel){ const t=(now*0.12)%2; const k=smooth(t<1?t:2-t); const i=k*(TUNNEL.length-1), j=Math.floor(i), q=TUNNEL[Math.min(TUNNEL.length-1,j+1)], p=TUNNEL[j]; x=lerp(p[0],q[0],i-j); y=lerp(p[1],q[1],i-j); r.face=t<1?1:-1; }
+  if(r.bob) y+=Math.sin(now*(r.bob===3?1.2:2.2)+r.x)*r.size*(r.bob===3?0.04:0.03);
+  return [x,y];
+}
+function drawRes(r){
+  if(r.plant||r.sun||!resVisible(r)) return;
+  const [x,y]=resPos(r), s=Math.max(14,M(r.size)); if(!onScreen(x-r.size,y-r.size,x+r.size,y+r.size)) return;
+  const px=sx(x), py=sy(y);
+  if(r.web){ ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.75)'; ctx.lineWidth=1; const R=Math.max(18,M(0.6)); for(let i=0;i<8;i++){ const a=i*TAU/8; ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(px+Math.cos(a)*R,py+Math.sin(a)*R); ctx.stroke(); } for(let k=1;k<=4;k++){ ctx.beginPath(); for(let i=0;i<=8;i++){ const a=i*TAU/8, rr=R*k/4.4; i?ctx.lineTo(px+Math.cos(a)*rr,py+Math.sin(a)*rr):ctx.moveTo(px+Math.cos(a)*rr,py+Math.sin(a)*rr); } ctx.stroke(); } ctx.restore(); }
+  if(r.id==='ovenbird'){ // her oven-shaped nest beside her
+    const nx=sx(x+0.22), ny=sy(0.03), ns=Math.max(8,M(0.16)); ctx.beginPath(); ctx.arc(nx,ny,ns,Math.PI,0); ctx.closePath(); ctx.fillStyle='#8a6a3a'; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=Math.max(1,ns*0.12); ctx.stroke(); ellipse(nx-ns*0.35,ny-ns*0.35,ns*0.28,ns*0.3,0,'#2a1608',0); }
+  if(r.id==='chipmunk'){ ellipse(sx(16.3),sy(0.0),Math.max(6,M(0.16)),Math.max(3,M(0.07)),0,'#2a1608',Math.max(1,M(0.02))); }
+  ctx.save(); ctx.translate(px,py);
+  const flip=(r.flip?-1:1)*(r.face||1); if(flip<0) ctx.scale(-1,1);
+  if(r.draw){ if(r.trio){ for(let k=-1;k<=1;k++){ ctx.save(); ctx.translate(k*s*1.1,(k?s*0.25:0)); DRAWERS[r.draw](s); ctx.restore(); } } else DRAWERS[r.draw](s); }
+  else emoji(r.emoji,0,0,s);
+  ctx.restore();
+  if(r.id==='mole'&&K>40&&CHAPTERS[current].id==='roots') label('sniff sniff',px,py-s*0.8,{size:11,display:true,dark:false});
+}
+function resHit(wx,wy){        // topmost tappable thing at a world point
+  const minR=22/K;
+  for(let i=RES.length-1;i>=0;i--){ const r=RES[i]; if(r.plant||r.sun||!resVisible(r)) continue; const [x,y]=resPos(r); if(dist(wx,wy,x,y)<Math.max(r.size*0.65,minR)) return r; }
+  for(const r of RES){ if(r.sun&&dist(wx,wy,r.x,r.y)<Math.max(r.size*0.7,minR)) return r; }
+  // plants overlap (a sapling stands inside a redbud's box), so the smallest box wins
+  let best=null,bestA=1e9;
+  for(const r of RES){ if(!r.rect||r.sun) continue; const b=r.rect;
+    if(wx>=b[0]&&wx<=b[2]&&wy>=b[1]&&wy<=b[3]){ if(r.logHit&&logLift>0.5&&wy<0.5) continue; const a=(b[2]-b[0])*(b[3]-b[1]); if(a<bestA){ bestA=a; best=r; } } }
+  return best;
+}
+function resScreenPos(r){ if(r.rect&&!r.sun){ const b=r.rect; return [sx((b[0]+b[2])/2),sy((b[1]+b[3])/2),Math.max(M((b[2]-b[0])/2),M((b[3]-b[1])/2),30)]; } const [x,y]=r.sun?[r.x,r.y]:resPos(r); return [sx(x),sy(y),Math.max(24,M(r.size)*0.75)]; }
+
+/* ---------- the leaf-rot panel (forest floor) ---------- */
+let rot=null;  // {t0}
+function drawRotPanel(){
+  if(!rot) return; const t=clamp((now-rot.t0)/7,0,1);
+  const w=Math.min(300,V.w-28), h=124, x=V.w-14-w, y=V.h-14-h-(els.stat.hidden?0:44);
+  box(x,y,w,h,16,WHITE,3);
+  const stage=t<0.2?0:t<0.45?1:t<0.75?2:t<0.95?3:4;
+  const words=['🍂 A leaf falls…','🐛 Roly-polies and millipedes nibble it','🍄 Fungus threads eat the rest','🪱 Worms mix the crumbs in','🌱 Now it\'s soil — food for new roots!'];
+  ctx.fillStyle=INK; ctx.font='800 13px '+LABEL_FONT; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(words[stage],x+14,y+18);
+  // the leaf, fading into crumbs
+  const lx=x+w*0.28, ly=y+72, ls=34, fade=clamp((t-0.2)/0.6,0,1);
+  ctx.save(); ctx.globalAlpha=1-fade*0.85; ctx.translate(lx,ly); ctx.rotate(0.3); ellipse(0,0,ls,ls*0.55,0,mix('#c9703a','#5a3a1c',fade),2.5); line(-ls,0,ls,0,'#5a3a1c',2); ctx.restore();
+  if(fade>0.15){ const rr=seeded(3); ctx.fillStyle='#4a2f18'; for(let i=0;i<30*fade;i++){ ctx.beginPath(); ctx.arc(lx+(rr()-.5)*90,ly+10+(rr()-.5)*36,2+rr()*2,0,TAU); ctx.fill(); } }
+  if(stage===1){ ctx.save(); ctx.translate(lx+ls*0.6,ly-6); DRAWERS.rolypoly(20); ctx.restore(); ctx.save(); ctx.translate(lx-ls*0.5,ly+10); DRAWERS.millipede(30); ctx.restore(); }
+  if(stage===2){ ctx.strokeStyle='#f3ead6'; ctx.lineWidth=1.5; const rr=seeded(9); for(let i=0;i<12;i++){ ctx.beginPath(); ctx.moveTo(lx+(rr()-.5)*60,ly+(rr()-.5)*20); ctx.bezierCurveTo(lx+(rr()-.5)*90,ly+(rr()-.5)*40,lx+(rr()-.5)*90,ly+(rr()-.5)*50,lx+(rr()-.5)*110,ly+(rr()-.5)*50); ctx.stroke(); } }
+  if(stage===3) emoji('🪱',lx+20,ly+8,26);
+  if(stage===4) emoji('🌱',lx,ly-8,30);
+  // a timeline bar
+  const bx=x+w*0.56, bw=w*0.38; box(bx,y+58,bw,14,7,'#ffefc2',2); box(bx,y+58,bw*t,14,7,GRASS,0);
+  ctx.fillStyle=INK; ctx.font='700 11px '+LABEL_FONT; ctx.textAlign='center'; ctx.fillText('about one year',bx+bw/2,y+84);
+  ctx.textAlign='right'; ctx.fillText(t>=1?'Press again to replay':'',x+w-12,y+h-14);
+}
+
+/* ---------- put the forest together ---------- */
+function drawWorld(){
+  drawSky(0);
+  const sunR=RES.find(r=>r.sun); drawSun(sunR.x,sunR.y,sunR.size*0.5);
+  drawHaze();
+  drawBackTrees();
+  drawBeams();
+  drawSoil(); drawUnderground();
+  drawElevatorRope();
+  TREES.forEach(t=>drawTree(t));
+  UNDER.forEach(drawSmallTree);
+  drawVine();
+  SHRUBS.forEach(drawShrub);
+  const vb=viewBox();
+  if(vb.y0<1.2){ drawGroundLine(Math.max(0,vb.x0-1),Math.min(40,vb.x1+1)); drawLitter(Math.max(0,vb.x0-1),Math.min(40,vb.x1+1)); drawMayapple(16.9); drawSpringFlowers(); FLOOR.mush.forEach(m=>drawMushroom(m[0],m[1],0.12)); drawLog(); }
+  drawShade();
+  RES.forEach(drawRes);
+  drawLeaves();
+  // a few signs that only make sense up close
+  if(current===2&&K>40){ ctx.save(); ctx.setLineDash([10,8]); line(0,sy(1.75),V.w,sy(1.75),'rgba(255,253,247,0.8)',2.5); ctx.restore(); sign('🦌 browse line',sx(24.6),sy(1.75)-17,{size:12}); }
+  if(logLift>0.6&&current===3) sign('🔦 Who lives under the log?',sx((FLOOR.log.x0+FLOOR.log.x1)/2+0.5),sy(1.05),{size:13,fill:GOLD});
+  if(current===4&&fungusOn) sign('🍄 water & minerals ⇄ sugar',sx(19.5),sy(-3.5),{size:12,fill:GOLD});
+  drawElevatorCar();
+  drawRotPanel();
+}
+
+/* =====================================================================
+   CHAPTERS — one per floor, plus the clearing where you grow a forest
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'canopy', icon:'🌳', name:'Canopy', title:'🌳 Top floor: the Canopy',
+   caption:'The tallest trees make a leafy roof called the <b>canopy</b> (KAN-uh-pee). It catches almost all the sunlight!',
+   cam:{cx:20,cy:23,hm:15,minW:22}, ctls:['season']},
+  {id:'under', icon:'🌸', name:'Understory', title:'🌸 Middle floor: the Understory',
+   caption:'Small trees live in the shade under the roof. Some bloom early in spring, before the roof closes. <b>Try Spring!</b>',
+   cam:{cx:19.5,cy:9,hm:13,minW:17}, ctls:['season']},
+  {id:'shrub', icon:'🌿', name:'Shrubs', title:'🌿 Low floor: Shrubs & Ferns',
+   caption:'Bushes and ferns grow about as high as a grown-up. Deer nibble here, and birds hide their nests.',
+   cam:{cx:18.6,hm:5.6,minW:8.5,anchor:[0,0.88]}, ctls:['season']},
+  {id:'floor', icon:'🐢', name:'Forest floor', title:'🐢 Ground floor: the Forest Floor',
+   caption:'It\'s dim and damp down here. Dead leaves pile up, and tiny helpers turn them back into soil. <b>Lift the log!</b>',
+   cam:{cx:15.75,hm:2.6,minW:4.0,anchor:[0,0.64]}, ctls:['season','floor']},
+  {id:'roots', icon:'🪱', name:'Underground', title:'🪱 Basement: Underground',
+   caption:'Roots hold the trees up and drink for them. Fungus threads connect the trees. Moles, worms, and sleepy bugs live here.',
+   cam:{cx:17.5,hm:6,minW:9,anchor:[0,0.13]}, ctls:['roots']},
+  {id:'grow', icon:'🌱', name:'Grow a forest', title:'🌱 Grow a Forest!',
+   caption:'One oak drops thousands of acorns. Hungry animals eat almost all of them. Can a seedling ever reach the top? <b>Try it!</b>',
+   cam:{cx:18.6,hm:25,minW:31,anchor:[0,0.86]}, ctls:['grow'], grow:true},
+];
+// hm is the visible height in meters; `anchor:[y,frac]` pins a world height to a
+// fraction down the screen, so every floor frames the same way on a phone
+function camFor(c){
+  const a=V.w/V.h, hm=Math.max(c.cam.hm,c.cam.minW/a);
+  const cy=c.cam.anchor?c.cam.anchor[0]-hm*(0.5-c.cam.anchor[1]):c.cam.cy;
+  return {cx:c.cam.cx,cy,hm};
+}
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};
+let selected=null;
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'), cardClose:$('cardClose'), thumb:$('thumb'),
+  toast:$('toast'), levels:$('levels'), btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'), questClose:$('questClose'),
+  badges:$('badges'), meter:$('meter'), minimap:$('minimap') };
+
+/* ---------- header: badges + the tall little map ---------- */
+CHAPTERS.forEach(c=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge'; els.badges.appendChild(b); c.badgeEl=b; });
+const mctx=els.minimap.getContext('2d');
+function drawMinimap(){
+  const real=ctx; ctx=mctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,44,64);
+  const gy=48; ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,44,gy); ctx.fillStyle=SOIL; ctx.fillRect(0,gy,44,16); ctx.fillStyle=GRASS; ctx.fillRect(0,gy-2,44,3);
+  const save={...cam}; cam.cx=19.5; cam.cy=12; cam.hm=36; const kSave=K; K=64/36; const Vs={w:V.w,h:V.h}; V.w=44; V.h=64;
+  ctx.lineCap='round'; ROOTS.filter(R=>R.t.big).forEach(R=>path(R.P.map(p=>[sx(p[0]),sy(p[1])]),'#b8874f',1.2));
+  const t=TREES[2]; ctx.fillStyle=BARK; ctx.fillRect(sx(t.x)-1.6,sy(crownY(t)),3.2,sy(-0.2)-sy(crownY(t)));
+  CROWN_OFF.forEach(c=>circle(sx(t.x+c[0]*t.r),sy(crownY(t)+c[1]*t.r),c[2]*t.r*K,crownColor('oak')));
+  circle(sx(13.8),sy(4.5),3.2,'#5aab4e'); circle(sx(25),sy(4.8),3.4,'#5aab4e');
+  const ch=CHAPTERS[current];
+  if(ch.grow){ ctx.fillStyle='rgba(255,210,63,0.35)'; ctx.fillRect(0,0,44,64); label('🌱',22,32,{size:16}); }
+  else{ const yy=sy(camFor(ch).cy); ctx.fillStyle='rgba(255,210,63,0.45)'; ctx.fillRect(0,yy-6,44,12); ring(sx(ELEV.x)+3,yy,4.5,GOLD,2.5); ring(sx(ELEV.x)+3,yy,4.5,INK,1); }
+  V.w=Vs.w; V.h=Vs.h; K=kSave; Object.assign(cam,save); ctx=real;
+}
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+function statFor(i){
+  const c=CHAPTERS[i];
+  if(c.grow) return GROW.stat();
+  if(c.id==='roots') return '<span>🌑 Sunlight here: <b>none</b> — it\'s dark!</span>';
+  const n=light(c.id); return '<span>☀️ Sunlight here: <b>'+n+'</b> of 100 sunbeams</span>';
+}
+function refreshStat(){ setStat(statFor(current)); }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||(item.floor==='roots'||item.underLog?SOIL:'#e8f4ff'); ctx.fillRect(0,0,84,84);
+  if(item.thumb) item.thumb(84);
+  else if(item.draw){ ctx.save(); ctx.translate(42,42); DRAWERS[item.draw](item.trio?26:58); ctx.restore(); }
+  else if(item.emoji) emoji(item.emoji,42,42,50);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const c=CHAPTERS.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🌲 All 6 badges — you are a FOREST RANGER!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const Q=QUESTS[id]; if(!Q) return;
+  closeCard(); quest.active=Q(); quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true; document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing'); }
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML=''; Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){ els.qOpts.hidden=false; S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); }); }
+  else els.qOpts.hidden=true;
+  if(S.onShow) S.onShow();
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
+  else setTimeout(renderStep,1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true); if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+const tapIs=(id,hint)=>it=>it&&it.id===id?true:hint;
+const QUESTS={
+  canopy:()=>({id:'canopy',title:'🌳 The roof of the forest',steps:[
+    {prompt:'Which floor gets the <b>most</b> sunlight?',options:[{text:'🌳 The canopy, at the top',ok:true,say:'Yes! The roof catches the sun first.'},{text:'🐢 The forest floor',say:'Nope — the floor is the dimmest floor.'},{text:'🪱 Underground',say:'No sun at all down there!'}]},
+    {prompt:'Tap the bird that flies to <b>South America</b> every winter.',tap:tapIs('tanager','Look for the bright red bird near the top.'),yes:'Yes! The scarlet tanager — a world traveler.'},
+  ]}),
+  under:()=>({id:'under',title:'🌸 Blooming early',steps:[
+    {prompt:'Why does the dogwood bloom in <b>spring</b>, before the big trees have leaves?',options:[{text:'☀️ To catch sunlight before the roof closes',ok:true,say:'Yes! Bloom early, while the sun still reaches down.'},{text:'❄️ Because it likes snow',say:'Snow isn\'t food. Think about the sun.'},{text:'🦌 To look pretty for the deer',say:'Deer don\'t care about flowers. Think about the sun!'}]},
+    {prompt:'Tap the little tree that is <b>waiting</b> for a big tree to fall.',tap:tapIs('sapling','Look for a small, skinny oak in the shade.'),yes:'Yes! A sapling, waiting for its patch of sun.'},
+  ]}),
+  shrub:()=>({id:'shrub',title:'🌿 Down among the bushes',steps:[
+    {prompt:'Leaves of three… what should you do?',options:[{text:'🙅 Let it be — don\'t touch!',ok:true,say:'Yes! Poison ivy gives an itchy rash.'},{text:'✋ Pick a bunch',say:'Ouch — itchy! Leave it alone.'},{text:'😋 Taste one',say:'No way! Never eat wild leaves.'}]},
+    {prompt:'Tap the animal that eats leaves as <b>high as it can reach</b>.',tap:tapIs('deer','It has four legs and a white tail.'),yes:'Yes! The deer makes the browse line.'},
+  ]}),
+  floor:()=>({id:'floor',title:'🐢 Under the log',steps:[
+    {prompt:'Lift the log! Who is hiding under it? Tap the one with <b>yellow spots</b>.',onShow(){ setLog(true); },tap:it=>it&&it.id==='salamander'?true:(it&&it.id==='log'&&logLift<0.5)?'Press 🪵 Lift the log first!':'Look under the log for black skin with yellow spots.',yes:'Yes! The spotted salamander.'},
+    {prompt:'What happens to a dead leaf on the forest floor?',options:[{text:'🐛 Bugs and fungus turn it into soil',ok:true,say:'Yes! That\'s decomposing.'},{text:'🪨 It turns into a rock',say:'Nope. Rocks come from deep underground.'},{text:'🌳 It flies back up to the tree',say:'Leaves only go one way — down!'}]},
+  ]}),
+  roots:()=>({id:'roots',title:'🪱 In the basement',steps:[
+    {prompt:'Tap the digger with big hands that <b>swim</b> through the soil.',tap:tapIs('mole','Look in the tunnel. He\'s gray with pink hands.'),yes:'Yes! The mole.'},
+    {prompt:'What connects the roots of different trees?',options:[{text:'🍄 Fungus threads',ok:true,say:'Yes! The forest\'s underground web.'},{text:'🔌 Wires',say:'No wires in a forest!'},{text:'🚫 Nothing',say:'Look again — press 🍄 to see the threads glow.'}]},
+  ]}),
+  grow:()=>({id:'grow',title:'🌱 From acorn to giant',steps:[
+    {prompt:'An oak drops 100 acorns. About how many will grow into a <b>big tree</b>?',options:[{text:'🌰 None — or maybe one',ok:true,say:'Yes! Almost all get eaten. Only about 1 acorn in 10,000 becomes a tree.'},{text:'🌳 About 50',say:'Way too many! Think about all the hungry animals.'},{text:'🌲 All 100',say:'The forest would be jam-packed! Most get eaten.'}]},
+    {prompt:'Press <b>🌰 Drop 100 acorns!</b> and watch. Then tap a seedling that sprouted.',tap:it=>it&&it.id==='seedling'?true:(GROW.plants.some(p=>p.stage==='seedling')?'Look for a tiny 🌱 on the ground.':'Press 🌰 Drop 100 acorns! first.'),yes:'Yes! A lucky one. Now — can it get any sun?'},
+    {prompt:'Seedlings in the shade can\'t grow up. What makes a <b>sunny spot</b> in a forest?',options:[{text:'🌩️ An old tree falls down',ok:true,say:'Yes! A gap lets the sun pour in.'},{text:'💪 The seedlings push the big trees away',say:'They\'re far too small for that!'},{text:'🐿️ Squirrels pull down the leaves',say:'Squirrels aren\'t that strong. Think bigger!'}]},
+    {prompt:'Press <b>🌩️ Storm!</b> to make a gap. Then press <b>⏩ Next year</b> until a seedling grows all the way up. Tap the <b>new</b> big tree.',tap:it=>it&&it.id==='tree'?(it.mine?true:'That giant was already here. Keep pressing ⏩ Next year and watch a sapling shoot up!'):(it&&(it.id==='seedling'||it.id==='sapling'||it.id==='young'))?'Not yet — keep pressing ⏩ Next year!':'Tap a tree.',yes:'It made it! From acorn to canopy. You grew a forest!'},
+  ]}),
+};
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt; if(p.y>V.h+20){ confetti.splice(i,1); continue; } ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+}
+
+/* ---------- floor controls ---------- */
+function setSeason(s){ season=s; makeBeams(); ['sSpring','sSummer','sFall'].forEach(id=>$(id).classList.toggle('on',id==='s'+s[0].toUpperCase()+s.slice(1))); refreshStat(); }
+$('sSpring').addEventListener('click',()=>{ setSeason('spring'); toast('🌱 Spring! The roof is open — sun pours down. Dogwoods bloom!',3500); });
+$('sSummer').addEventListener('click',()=>{ setSeason('summer'); toast('☀️ Summer! The roof is closed. It\'s dim below.',3000); });
+$('sFall').addEventListener('click',()=>{ setSeason('fall'); toast('🍂 Fall! Leaves drop and pile up on the floor.',3000); });
+function setLog(v){ wantLog=v; $('btnLog').classList.toggle('on',v); $('btnLog').textContent=v?'🪵 Put the log back':'🪵 Lift the log'; document.body.classList.toggle('peeking',v); }
+$('btnLog').addEventListener('click',()=>setLog(!wantLog));
+$('btnRot').addEventListener('click',()=>{ rot={t0:now}; });
+$('togFungus').addEventListener('click',()=>{ fungusOn=!fungusOn; $('togFungus').classList.toggle('on',fungusOn); $('togFungus').textContent=fungusOn?'🍄 Hide the fungus web':'🍄 Show the fungus web'; if(fungusOn) toast('🍄 Water and minerals go to the trees; sugar comes back!',4000); });
+
+/* =====================================================================
+   GROW A FOREST — a clearing with slots for trees. Acorns fall, animals
+   eat most, a few sprout. Seedlings in the shade wait; a storm makes a
+   gap; the lucky ones race up to the canopy.
+   ===================================================================== */
+const GROW=(()=>{
+  const SLOTS=[]; for(let i=0;i<9;i++) SLOTS.push(6.6+3.4*i);
+  const S={year:0,plants:[],acorns:[],eaters:[],phase:null,stats:{dropped:0,eaten:0,sprouted:0},storm:null,flash:0};
+  const STAGE={seedling:{h:0.5,r:0.3},sapling:{h:3,r:1.1},young:{h:10,r:2.4},canopy:{h:16.5,r:3.8}};
+  function mk(slot,stage,age,kind,born,extra){ const st=STAGE[stage]; return Object.assign({slot,x:SLOTS[slot],stage,age:age||0,h:st.h,hT:st.h,r:st.r,kind:kind||(rnd()<0.75?'oak':'hickory'),born:born==null?S.year:born,seed:Math.floor(rnd()*900)+1,dead:0},extra||{}); }
+  function reset(){
+    S.year=0; S.plants=[]; S.acorns=[]; S.eaters=[]; S.phase=null; S.storm=null; S.stats={dropped:0,eaten:0,sprouted:0};
+    S.plants.push(mk(1,'canopy',140,'oak',-140,{h:17.5,hT:17.5,r:4.1}), mk(4,'canopy',260,'oak',-260,{h:20,hT:20,r:4.8}), mk(7,'canopy',110,'hickory',-110,{h:16.5,hT:16.5,r:3.8}));
+    S.plants.push(mk(3,'seedling',0,'oak',0), mk(5,'seedling',0,'oak',0), mk(6,'sapling',1,'oak',-2,{h:2.6,hT:2.6}));
+    refreshStat();
+  }
+  function lightAt(slot){ const x=SLOTS[slot]; let L=1; S.plants.forEach(p=>{ if(p.stage==='canopy'&&Math.abs(p.x-x)<=p.r+0.4) L*=0.12; else if(p.stage==='young'&&Math.abs(p.x-x)<=2.4) L*=0.5; }); return L; }
+  const at=slot=>S.plants.find(p=>p.slot===slot&&p.stage!=='log'&&p.stage!=='dead');
+  function dropAcorns(){
+    if(S.phase) return; const trees=S.plants.filter(p=>p.stage==='canopy'&&p.kind==='oak'); if(!trees.length){ toast('No oaks left to drop acorns! Press ↺ Start over.',3500); return; }
+    closeCard(); S.phase={name:'fall',t:0}; S.acorns=[]; S.stats.dropped=100; S.stats.eaten=0; S.stats.sprouted=0;
+    const keep=4+Math.floor(rnd()*4); const empty=SLOTS.map((_,i)=>i).filter(i=>!at(i));
+    for(let i=0;i<100;i++){ const t=trees[i%trees.length]; const lucky=i<keep; let lx=t.x+(rnd()-.5)*t.r*2.4; let far=false;
+      if(lucky&&empty.length){ const slot=empty[Math.floor(rnd()*empty.length)]; lx=SLOTS[slot]+(rnd()-.5)*0.5; far=Math.abs(lx-t.x)>t.r*1.3; }
+      S.acorns.push({x:t.x+(rnd()-.5)*t.r*1.6,y:crownY(t)+(rnd()-.5)*t.r,lx,vy:0,t:rnd()*0.5,lucky,far,landed:false,eaten:false}); }
+    toast('🌰 100 acorns! Here come the hungry animals…',3500);
+  }
+  function eatersIn(){
+    S.eaters=[ {emoji:'🐿️',x:-2,y:0.45,s:1.0,v:3.2,name:'Gray squirrel',fact:'Eats acorns — and buries extras. Some forgotten ones sprout!'},{emoji:'🦃',x:43,y:0.65,s:1.3,v:2.4,name:'Wild turkey',fact:'Scratches through the leaves and gobbles acorns by the hundred.'},{emoji:'🦌',x:-4,y:0.9,s:1.8,v:2.8,name:'White-tailed deer',fact:'Crunches acorns — and nibbles seedlings, too!'},{draw:'jay',x:45,y:1.1,s:0.8,v:4,name:'Blue jay',fact:'Carries acorns far away and buries them. Jays plant forests!'},{draw:'mouse',x:-1,y:0.3,s:0.5,v:2.6,name:'Deer mouse',fact:'Nibbles acorns all winter long.'} ];
+    S.eaters.forEach((e,i)=>{ e.dir=e.x<0?1:-1; e.id='eater'; e.card='eater'; e.sub='Acorn eater'; e.leaving=false; });
+  }
+  function update(dt){
+    S.plants.forEach(p=>{ p.h+=(p.hT-p.h)*Math.min(1,dt*2.2); if(p.fall){ p.fall.t=Math.min(1,p.fall.t+dt/1.3); if(p.fall.t>=1&&p.stage!=='log'){ p.stage='log'; p.logDir=p.fall.dir; p.logLen=p.h*0.62; } } });
+    if(S.storm){ S.storm.t+=dt; if(S.storm.t>2.6) S.storm=null; }
+    S.flash=Math.max(0,S.flash-dt*3);
+    if(!S.phase) return;
+    const ph=S.phase; ph.t+=dt;
+    if(ph.name==='fall'){
+      let all=true; S.acorns.forEach(a=>{ if(a.t>0){ a.t-=dt; all=false; return; } if(a.landed) return; all=false; a.vy+=18*dt; a.y-=a.vy*dt; a.x+=(a.lx-a.x)*Math.min(1,dt*2.5); if(a.y<=0.12){ a.y=0.12; a.landed=true; a.x=a.lx; } });
+      if(all){ eatersIn(); S.phase={name:'eat',t:0}; }
+    }else if(ph.name==='eat'){
+      let left=S.acorns.filter(a=>!a.eaten&&!a.lucky);
+      S.eaters.forEach(e=>{ if(e.leaving){ e.x+=e.v*dt*-e.dir*2.2; return; }
+        let target=null,best=1e9; left.forEach(a=>{ const d=Math.abs(a.x-e.x); if(d<best){best=d;target=a;} });
+        if(!target){ e.leaving=true; return; }
+        if(best<0.6){ e.eat=(e.eat||0)+dt; if(e.eat>0.045){ e.eat=0; target.eaten=true; S.stats.eaten++; left=left.filter(a=>a!==target); } }
+        else{ e.x+=Math.sign(target.x-e.x)*e.v*dt; e.dir=Math.sign(target.x-e.x)||e.dir; }
+      });
+      // once every plain acorn is gone, give the animals a moment to trot off, then sprout
+      if(!left.length){ ph.done=(ph.done||0)+dt; if(ph.done>0.9){ S.eaters=[]; sprout(); } }
+      if(ph.t>9){ S.acorns.forEach(a=>{ if(!a.lucky&&!a.eaten){ a.eaten=true; S.stats.eaten++; } }); S.eaters=[]; sprout(); }
+    }
+  }
+  function sprout(){
+    let n=0; S.acorns.filter(a=>a.lucky).forEach(a=>{ let slot=0; SLOTS.forEach((x,i)=>{ if(Math.abs(x-a.x)<Math.abs(SLOTS[slot]-a.x)) slot=i; }); if(!at(slot)&&Math.abs(SLOTS[slot]-a.x)<1.8){ S.plants.push(mk(slot,'seedling',0)); n++; } else { S.stats.eaten++; } });
+    S.stats.sprouted=n; S.acorns=[]; S.phase=null; refreshStat();
+    toast('🍽️ '+S.stats.eaten+' eaten or rotted. 🌱 '+n+' sprouted!',5000);
+  }
+  function nextYear(){
+    if(S.phase){ toast('Wait for the animals to finish!',2000); return; }
+    closeCard(); S.year++; let grew=0, died=0, fell=null;
+    S.plants.forEach(p=>{
+      if(p.stage==='dead'){ p.dead++; return; }
+      const L=lightAt(p.slot);
+      if(p.stage==='seedling'){ if(L>=0.5){ p.age++; if(rnd()<0.12){ p.stage='dead'; died++; p.why='deer'; } else if(p.age>=2){ p.stage='sapling'; p.age=0; p.hT=STAGE.sapling.h; p.r=STAGE.sapling.r; grew++; } } else if(rnd()<0.4){ p.stage='dead'; died++; p.why='shade'; } }
+      else if(p.stage==='sapling'){ if(L>=0.4){ p.age++; p.hT=Math.min(STAGE.young.h,p.hT+2.8); if(p.age>=3){ p.stage='young'; p.age=0; p.hT=STAGE.young.h; p.r=STAGE.young.r; grew++; } } else if(rnd()<0.15){ p.stage='dead'; died++; p.why='shade'; } }
+      else if(p.stage==='young'){ p.age++; p.hT=Math.min(STAGE.canopy.h,p.hT+2.6); if(p.age>=3){ p.stage='canopy'; p.hT=STAGE.canopy.h; p.r=STAGE.canopy.r; grew++; } }
+      else if(p.stage==='canopy'){ p.age++; if(p.age>300&&rnd()<0.2&&!fell&&!p.fall) fell=p; }
+    });
+    S.plants=S.plants.filter(p=>!(p.stage==='dead'&&p.dead>1));
+    if(fell) fall(fell,'The old giant fell down on its own — big trees don\'t live forever.');
+    refreshStat();
+    const young=S.plants.filter(p=>p.stage==='seedling'||p.stage==='sapling'||p.stage==='young').length;
+    if(!young) toast('🌰 No young trees left — press Drop 100 acorns to try again!',5000);
+    else if(died&&!grew) toast(died===1?'😔 A seedling didn\'t make it. Too dark down there.':'😔 '+died+' seedlings didn\'t make it. Too dark down there.',3000);
+    else if(grew) toast('📈 Growing! The sunny ones are shooting up.',2500);
+  }
+  function fall(p,msg){ const dir=p.x<20?1:-1; p.fall={t:0,dir}; if(msg) toast(msg,4500); }
+  function storm(){
+    if(S.phase){ toast('Wait for the animals to finish!',2000); return; }
+    const big=S.plants.filter(p=>p.stage==='canopy'&&!p.fall).sort((a,b)=>b.age-a.age)[0];
+    S.storm={t:0}; S.flash=1; closeCard();
+    if(!big){ toast('🌩️ Whoosh! No big trees left to knock down.',3000); return; }
+    fall(big,'🌩️ CRASH! The old '+big.kind+' fell. Sun pours into the gap!');
+  }
+  function stat(){ const c=s=>S.plants.filter(p=>p.stage===s).length; return '<span>📅 Year <b>'+S.year+'</b></span><span>🌱 <b>'+c('seedling')+'</b></span><span>🌿 <b>'+c('sapling')+'</b></span><span>🌲 <b>'+c('young')+'</b></span><span>🌳 <b>'+c('canopy')+'</b></span>'; }
+  function drawPlant(p){
+    if(p.stage==='log'){ const x0=Math.min(p.x,p.x+p.logDir*p.logLen), w=p.logLen; box(sx(x0),sy(0.75),M(w),M(0.7),M(0.3),'#6e4a2c',LW(0.06,1.5)); ellipse(sx(p.logDir>0?p.x+p.logLen:p.x),sy(0.4),M(0.16),M(0.35),0,'#e8c58f',LW(0.05,1.2)); if(S.year-p.born>1) drawMushroom(x0+w*0.4,0.75,0.25,'#d9b06a'); return; }
+    if(p.stage==='dead'){ line(sx(p.x),sy(0.05),sx(p.x+0.15),sy(0.6),'#7a5a3a',LW(0.06,2)); label(p.why==='deer'?'🦌':'💤',sx(p.x),sy(0.9),{size:14}); return; }
+    ctx.save();
+    if(p.fall){ const a=smooth(p.fall.t)*Math.PI/2*p.fall.dir; ctx.translate(sx(p.x),sy(0)); ctx.rotate(a); ctx.translate(-sx(p.x),-sy(0)); }
+    if(p.stage==='seedling'){ emoji('🌱',sx(p.x),sy(0.35),clamp(M(0.9),18,40)); }
+    else{ drawTree({x:p.x,h:p.h,r:p.stage==='sapling'?Math.min(p.r,p.h*0.36):p.r,kind:p.kind,seed:p.seed,w:Math.max(0.12,0.05*p.h)},{noAcorns:p.stage!=='canopy'}); }
+    ctx.restore();
+  }
+  function draw(){
+    drawSky(S.storm?clamp(S.storm.t<2?S.storm.t*1.5:(2.6-S.storm.t)*1.6,0,1):0);
+    if(!S.storm) drawSun(36.5,24,1.4);
+    ctx.save(); ctx.globalAlpha=0.22; BACK.forEach((t,i)=>{ const tt={x:t.x-1,h:t.h*0.62,r:t.r*0.7}; drawTrunk(tt.x,0.03*tt.h,-0.3,crownY(tt)+tt.r*0.1,'#a89a8a',i+20); drawCrownAt(tt.x,crownY(tt),tt.r,'oak',i+40,0.9); }); ctx.restore();
+    // ground
+    ctx.fillStyle=SOIL; ctx.fillRect(0,sy(0),V.w,V.h); drawGroundLine(-1,41); drawLitter(-1,41);
+    // sunny or shady spot markers
+    SLOTS.forEach((x,i)=>{ const L=lightAt(i), sunny=L>=0.5; disc(sx(x),sy(-0.62),Math.max(7,M(0.42)),sunny?GOLD:'#2b2a6e',2); if(sunny) emoji('☀️',sx(x),sy(-0.62),Math.max(11,M(0.6))); });
+    const sorted=S.plants.slice().sort((a,b)=>(a.stage==='log'?-1:0)-(b.stage==='log'?-1:0));
+    sorted.forEach(drawPlant);
+    S.acorns.forEach(a=>{ if(a.eaten) return; const px=sx(a.x),py=sy(a.y),r=Math.max(3,M(0.2)); disc(px,py,r,'#c9975a',1); circle(px,py-r*0.5,r,'#6e4426'); if(a.far&&!a.landed) label('🐦',px+r*2,py-r*2,{size:14}); });
+    S.eaters.forEach(e=>{ ctx.save(); ctx.translate(sx(e.x),sy(e.y)); if(e.dir<0) ctx.scale(-1,1); if(e.draw) DRAWERS[e.draw](M(e.s)); else emoji(e.emoji,0,0,M(e.s)); ctx.restore(); });
+    if(S.phase&&S.phase.name==='eat') sign('🍽️ eaten: '+S.stats.eaten,V.w/2,sy(4),{size:15,fill:GOLD});
+    if(S.storm){ const rr=seeded(3+Math.floor(now*20)); ctx.strokeStyle='rgba(200,220,255,0.7)'; ctx.lineWidth=2; for(let i=0;i<60;i++){ const x=rr()*V.w, y=rr()*V.h; ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x-6,y+22); ctx.stroke(); } }
+    if(S.flash>0){ ctx.fillStyle='rgba(255,255,255,'+(S.flash*0.7)+')'; ctx.fillRect(0,0,V.w,V.h); }
+    sign('☀️ sunny spot   🌑 shady spot',V.w*0.24,sy(-1.5),{size:12});
+  }
+  function hit(wx,wy){
+    for(const e of S.eaters){ if(dist(wx,wy,e.x,e.y)<Math.max(e.s*0.7,22/K)) return e; }
+    for(const p of S.plants.slice().reverse()){
+      if(p.stage==='log'){ const x0=Math.min(p.x,p.x+p.logDir*p.logLen); if(wx>=x0-0.3&&wx<=x0+p.logLen+0.3&&wy>=-0.2&&wy<=1.2) return Object.assign({id:'log',card:'log',name:'Fallen giant',sub:'A gap in the roof — and a new home',fact:'When a big tree falls it opens a sunny gap. The log becomes a home for salamanders and beetles, and slowly turns back into soil.',emoji:'🪵',p},{}); continue; }
+      if(p.stage==='dead'){ if(dist(wx,wy,p.x,0.4)<Math.max(0.8,22/K)) return {id:'dead',name:'A seedling that didn\'t make it',sub:p.why==='deer'?'A deer ate it':'Too dark to grow',fact:'Most seedlings never grow up. Too little sun, or a hungry deer. That\'s normal in a forest — that\'s why an oak drops so many acorns.',emoji:'💤',p}; continue; }
+      const hw=p.stage==='seedling'?Math.max(0.9,22/K):p.stage==='sapling'?1.2:p.r; if(wx>=p.x-hw&&wx<=p.x+hw&&wy>=-0.1&&wy<=Math.max(p.h+0.5,1.2)){ const L=lightAt(p.slot); const sunny=L>=0.5;
+        if(p.stage==='seedling') return {id:'seedling',name:'Seedling',sub:'SEED-ling · a baby tree',fact:sunny?'This one is in a sunny spot — press ⏩ Next year and watch it grow!':'It\'s stuck in the shade under the big trees. It can\'t grow up until some sun gets in.',emoji:'🌱',p};
+        if(p.stage==='sapling') return {id:'sapling',name:'Sapling',sub:'A young tree, taller than you',fact:sunny?'It\'s on its way up! A few more sunny years and it will be a big tree.':'It\'s waiting in the shade. Saplings can wait a long time for a gap.',emoji:'🌿',p};
+        if(p.stage==='young') return {id:'young',name:'Young tree',sub:'Almost to the roof',fact:'Its top is nearly in the canopy. Soon it will be catching the sun — and shading everything below it.',emoji:'🌲',p};
+        return {id:'tree',mine:p.born>=0,name:'Big '+p.kind,sub:'About '+(S.year-p.born)+' years old'+(p.born>=0?' · YOU grew this one!':''),fact:'Its leafy top is part of the canopy now. It shades everything below — so its own seedlings can\'t grow under it!',emoji:'🌳',p}; }
+    }
+    if(S.acorns.some(a=>!a.eaten&&a.landed&&dist(wx,wy,a.x,a.y)<Math.max(0.6,22/K))) return {id:'acorn',name:'Acorns',sub:'An oak\'s seeds',fact:'Each acorn could be a tree. But squirrels, jays, turkeys, deer, and mice think they\'re delicious.',emoji:'🌰'};
+    return null;
+  }
+  function itemPos(it){ if(it.p){ const p=it.p; return [sx(p.x),sy(p.stage==='seedling'?0.4:p.stage==='log'?0.4:p.h*0.6),Math.max(24,M(p.stage==='seedling'?0.8:p.stage==='log'?p.logLen*0.5:p.r))]; } if(it.card==='eater') return [sx(it.x),sy(it.y),Math.max(24,M(it.s)*0.7)]; return null; }
+  $('btnAcorns').addEventListener('click',dropAcorns); $('btnYear').addEventListener('click',nextYear); $('btnStorm').addEventListener('click',storm); $('btnReset').addEventListener('click',()=>{ reset(); toast('↺ A fresh clearing.',2000); });
+  reset();
+  return {S,get plants(){return S.plants;},update,draw,hit,stat,reset,itemPos};
+})();
+
+/* =====================================================================
+   NAVIGATION: chips, buttons, the elevator ride between floors
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b;
+});
+function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1), grow=(current===CHAPTERS.length-2);
+  els.btnNext.textContent=last?(narrowMQ.matches?'🔁 Top':'🔁 Back to the top'):grow?'STEP OUT ▶':'GO DOWN ▼';
+  els.btnNext.classList.toggle('home',last);
+  els.btnBack.textContent=last?'◀ Back':'▲ Up';
+  const c=CHAPTERS[current], won=!!badges[c.id];
+  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  ['season','floor','roots','grow'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
+}
+let trans=null;   // {from,to,t0,dur,c0,c1,curtain}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true; rot=null;
+  const from=current, curtain=CHAPTERS[i].grow||CHAPTERS[from].grow;
+  if(REDUCED){ switchTo(i); return; }
+  trans={from,to:i,t0:performance.now(),dur:curtain?1100:1500,c0:{...cam},c1:camFor(CHAPTERS[i]),curtain};
+}
+function switchTo(i){
+  current=i; Object.assign(cam,camFor(CHAPTERS[i]));
+  setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
+  if(CHAPTERS[i].id==='floor') els.hint.hidden=false;
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), [wx,wy]=toWorld(e.clientX-r.left,e.clientY-r.top);
+  const item=CHAPTERS[current].grow?GROW.hit(wx,wy):resHit(wx,wy);
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item) showCard(item); else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowDown'||e.key==='ArrowRight'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowUp'||e.key==='ArrowLeft'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='6') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(320,Math.round(r.width)); V.h=Math.max(240,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  if(!trans) Object.assign(cam,camFor(CHAPTERS[current]));
+}
+let lastT=performance.now();
+function frame(nowMs){
+  const dt=Math.min(0.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  logLift+=((wantLog?1:0)-logLift)*Math.min(1,dt*3);
+  updateLeaves(dt); GROW.update(dt);
+  let curtainA=0;
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    if(trans.curtain){ curtainA=1-Math.abs(k*2-1); if(k>=0.5&&current!==trans.to) switchTo(trans.to); }
+    else{ const u=easeInOut(k); cam.cx=lerp(trans.c0.cx,trans.c1.cx,u); cam.cy=lerp(trans.c0.cy,trans.c1.cy,u); cam.hm=Math.exp(lerp(Math.log(trans.c0.hm),Math.log(trans.c1.hm),u)); if(k>=1&&current!==trans.to) switchTo(trans.to); }
+    if(k>=1) trans=null;
+  }
+  K=V.h/cam.hm;
+  const showGrow=CHAPTERS[current].grow;
+  if(showGrow) GROW.draw(); else drawWorld();
+  if(selected){ const p=showGrow?GROW.itemPos(selected):resScreenPos(selected); if(p){ ctx.save(); ctx.setLineDash([8,6]); ctx.lineDashOffset=-now*30; ring(p[0],p[1],p[2],GOLD,4); ctx.restore(); } }
+  if(curtainA>0){ ctx.fillStyle='rgba(255,248,231,'+curtainA+')'; ctx.fillRect(0,0,V.w,V.h); if(curtainA>0.6){ ctx.globalAlpha=(curtainA-0.6)/0.4; label(CHAPTERS[trans?trans.to:current].grow?'🚪 Stepping out into the clearing…':'🛗 Back into the elevator…',V.w/2,V.h/2,{size:22,display:true,dark:true}); ctx.globalAlpha=1; } }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.forestElevator={CHAPTERS,RES,GROW,goTo,award,startQuest,quest,badges,setSeason,cam,resPos,resHit,setLog};   // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+makeBeams();
+resize();
+setCaption(0); updateChips(); updateButtons(); drawMinimap(); refreshStat();
+requestAnimationFrame(frame);
+
+</script>
+</body>
+</html>
