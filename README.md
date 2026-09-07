@@ -5,7 +5,7 @@ Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 
 | Tool | Audience | Link |
 |---|---|---|
-| **Zoom Out!** — orders of magnitude, from bugs to galaxies. Zoom out level by level and watch the "big" things from before shrink into one tiny dot. | Grades 1–3 | [zoom-out/](https://zacharyklein.github.io/learning-tools/zoom-out/) |
+| **Zoom Out!** — orders of magnitude, from bugs to galaxies. Build your own character at the *Me & You* level, then zoom out level by level and watch the "big" things from before shrink into one tiny dot. | Grades 1–3 | [zoom-out/](https://zacharyklein.github.io/learning-tools/zoom-out/) |
 | **Inside a Tree** — how a tree works: photosynthesis inside a leaf, water climbing up from the roots, growth rings, kinds of wood, and the Missouri animals that live in an oak. A small challenge in every part earns a badge. | Grades 3–4 | [inside-a-tree/](https://zacharyklein.github.io/learning-tools/inside-a-tree/) |
 
 ## How it's organized

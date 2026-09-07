@@ -142,10 +142,10 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 
 /* ---------- dock ---------- */
 .dock{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
-.levels{display:flex;gap:5px}
+.levels{display:flex;gap:5px;flex-wrap:wrap}
 .lvl{
-  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);
-  background:var(--white);font-size:22px;font-family:var(--emoji);line-height:1;padding:0;
+  width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-size:20px;font-family:var(--emoji);line-height:1;padding:0;
   box-shadow:3px 3px 0 var(--ink);transition:transform .15s;
 }
 .lvl:hover{transform:translateY(-2px)}
@@ -155,7 +155,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .buttons{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-width:0}
 .btn{
   font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
-  background:var(--white);padding:10px 18px;font-size:17px;line-height:1;
+  background:var(--white);padding:9px 15px;font-size:16px;line-height:1;
   box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;
   white-space:nowrap;
 }
@@ -184,6 +184,43 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 }
 .slider input::-moz-range-thumb{
   width:24px;height:24px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);cursor:grab;
+}
+
+/* ---------- make-yourself panel ---------- */
+.maker{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:10px;background:rgba(43,35,80,.5)}
+.maker[hidden]{display:none}
+.maker-box{
+  position:relative;width:100%;max-width:540px;max-height:100%;overflow:auto;
+  background:var(--white);border:4px solid var(--ink);border-radius:24px;
+  box-shadow:6px 6px 0 var(--ink);padding:14px 16px 16px;
+  display:flex;flex-direction:column;gap:10px;
+  animation:bump .35s cubic-bezier(.34,1.56,.64,1);
+}
+.maker-title{font-family:var(--display);font-weight:700;font-size:26px;line-height:1;margin:0}
+.maker-grid{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:start}
+#mePreview{width:170px;height:250px;border:3px solid var(--ink);border-radius:16px;display:block}
+.maker-controls{display:flex;flex-direction:column;gap:10px;min-width:0}
+.row{display:flex;flex-direction:column;gap:5px}
+.lbl{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;opacity:.7}
+.opts{display:flex;flex-wrap:wrap;gap:7px}
+.sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--ink);padding:0;box-shadow:2px 2px 0 rgba(43,35,80,.3)}
+.sw.on{box-shadow:0 0 0 4px var(--gold),2px 2px 0 rgba(43,35,80,.3)}
+.seg{font-family:var(--display);font-weight:700;font-size:16px;line-height:1;border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:8px 14px;box-shadow:0 4px 0 var(--ink)}
+.seg.on{background:var(--gold)}
+.tall{display:flex;align-items:center;gap:10px}
+.tall>span{font-family:var(--display);font-weight:700;font-size:22px;min-width:84px;font-variant-numeric:tabular-nums}
+.tall input{
+  -webkit-appearance:none;appearance:none;flex:1;min-width:0;height:14px;border-radius:999px;margin:0;
+  background:linear-gradient(90deg,var(--sky),var(--grass));border:3px solid var(--ink);outline-offset:4px;
+}
+.tall input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);cursor:grab}
+.tall input::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);cursor:grab}
+.agehint{font-weight:800;font-size:14px;opacity:.8;min-height:19px}
+.btn.done{align-self:flex-start;background:var(--gold);font-size:20px;padding:10px 22px}
+@media (max-width:600px){
+  .maker-grid{grid-template-columns:1fr}
+  #mePreview{width:118px;height:174px}
+  .maker-title{font-size:22px}
 }
 
 /* ---------- small screens ---------- */
@@ -239,6 +276,26 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
           <div class="card-meters" id="cardMeters"></div>
         </div>
       </div>
+      <div class="maker" id="maker" hidden>
+        <div class="maker-box" role="dialog" aria-label="Make yourself">
+          <button class="card-x" id="makerClose" aria-label="Close">&times;</button>
+          <h2 class="maker-title">Make yourself!</h2>
+          <div class="maker-grid">
+            <canvas id="mePreview" width="340" height="500" aria-label="Your character next to a height ruler"></canvas>
+            <div class="maker-controls">
+              <div class="row"><span class="lbl">Who are you?</span><div class="opts" id="optSex"></div></div>
+              <div class="row"><span class="lbl">Skin</span><div class="opts" id="optSkin"></div></div>
+              <div class="row"><span class="lbl">Hair</span><div class="opts" id="optHair"></div></div>
+              <div class="row"><span class="lbl">Clothes</span><div class="opts" id="optOutfit"></div></div>
+              <div class="row"><span class="lbl">How tall are you?</span>
+                <div class="tall"><span id="meCm">125 cm</span><input type="range" id="meH" min="85" max="170" step="1" value="125" aria-label="Your height in centimeters"></div>
+                <span class="agehint" id="meAge"></span>
+              </div>
+              <button class="btn done" id="makerDone">👍 That's me!</button>
+            </div>
+          </div>
+        </div>
+      </div>
       <div class="toast" id="toast" hidden></div>
     </div>
   </main>
@@ -249,6 +306,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <button class="btn" id="btnIn">🔍 Zoom in</button>
       <button class="btn big" id="btnOut">🚀 ZOOM OUT!</button>
       <button class="btn" id="btnPlay">▶ Play</button>
+      <button class="btn" id="btnMe">✨ Make me!</button>
     </div>
     <label class="slider"><span>Slide to zoom</span><input type="range" id="zoom" min="0" max="1000" value="0" aria-label="Zoom"></label>
   </footer>
@@ -262,6 +320,23 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
    "×10" means z goes up by exactly 1. All sizes below are real.
    ===================================================================== */
 const LY = 9.461e15;            // one light-year, in meters
+// --- your character. Kids build this; it is the "you" in the People and Trees lineups. ---
+const SKINS   = ['#fbdcc0','#f0c49a','#d79a68','#a86f46','#6d472c'];
+const HAIRS   = ['#2a2119','#6b4423','#b9793a','#efd07a','#a8391c','#9aa0ad'];
+const OUTFITS = ['#ff6b35','#4fb3f6','#63c64d','#ffd23f','#a45fd6','#ff4fa3','#2b2350','#fffdf7'];
+const ME = { sex:'girl', skin:1, hair:1, outfit:1, h:1.25 };   // h is your height in meters
+const ME_MIN=0.85, ME_MAX=1.70;
+function saveMe(){ try{ localStorage.setItem('zoomout.me',JSON.stringify(ME)); }catch(e){} }
+(function loadMe(){
+  try{
+    const raw=localStorage.getItem('zoomout.me'); if(!raw) return;
+    const v=JSON.parse(raw); if(!v||typeof v!=='object') return;
+    if(v.sex==='boy'||v.sex==='girl') ME.sex=v.sex;
+    for(const [k,arr] of [['skin',SKINS],['hair',HAIRS],['outfit',OUTFITS]])
+      if(Number.isInteger(v[k])&&v[k]>=0&&v[k]<arr.length) ME[k]=v[k];
+    if(typeof v.h==='number'&&v.h>=ME_MIN&&v.h<=ME_MAX) ME.h=v.h;
+  }catch(e){}
+})();
 const R_EARTH = 6.371e6;        // Earth's radius, in meters
 const TAU = Math.PI*2;
 const EMOJI_FONT = '"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
@@ -280,10 +355,19 @@ const LEVELS = [
       {name:'Goliath beetle', emoji:'🪲', size:0.10,  fact:'As long as your hand!'},
       {name:'Atlas moth',     emoji:'🦋', size:0.25,  fact:'Wings as wide as a dinner plate!'},
     ]},
+  { id:'people', name:'Me & You', icon:'🧒', ground:true,
+    caption:'A baby is tiny. A grown-up is <b>BIG!</b> You grow taller every year.',
+    objects:[
+      {name:'Newborn baby', draw:'person', size:0.5,  w:.42, cm:true, look:{sex:'girl',skin:0,hair:1,outfit:5}, fact:'You were this tiny once!'},
+      {name:'Age 5',        draw:'person', size:1.1,  w:.42, cm:true, look:{sex:'boy', skin:3,hair:0,outfit:2}, fact:'Big enough for kindergarten.'},
+      {name:'You!',         draw:'person', size:ME.h, w:.42, cm:true, me:true,                                  fact:'Tap me to change my hair, clothes and size!'},
+      {name:'A grown-up',   draw:'person', size:1.75, w:.42, cm:true, look:{sex:'girl',skin:2,hair:3,outfit:1}, fact:'About as tall as a door.'},
+      {name:'Tallest ever', draw:'person', size:2.72, w:.42, cm:true, look:{sex:'boy', skin:1,hair:2,outfit:4}, fact:'Robert Wadlow, the tallest person ever measured.'},
+    ]},
   { id:'trees', name:'Trees', icon:'🌳', ground:true,
     caption:'Some trees are small. Some trees are <b>BIG!</b>',
     objects:[
-      {name:'A kid (you!)',  emoji:'🧒',      size:1.2, fact:'Hi! Can you find yourself?'},
+      {name:'You!',          draw:'person',   size:ME.h, w:.42, cm:true, me:true, fact:'Even a small tree is way taller than you.'},
       {name:'Apple tree',    draw:'apple',    size:5,   w:.7,  fact:'As tall as a giraffe!'},
       {name:'Palm tree',     draw:'palm',     size:15,  w:.6,  fact:'As tall as a 4-story building!'},
       {name:'Pine tree',     draw:'pine',     size:25,  w:.45, fact:'20 kids stacked up!'},
@@ -330,6 +414,9 @@ LEVELS.forEach((L,li)=>{
   L.maxSize = Math.max(...L.objects.map(o=>o.size*Math.max(o.w,o.h)));
 });
 const LAST = LEVELS.length-1;
+const PEOPLE = LEVELS.findIndex(L=>L.id==='people');
+const MY_OBJECTS = LEVELS.flatMap(L=>L.objects.filter(o=>o.me));
+function remeasureLevels(){ LEVELS.forEach(L=>{ L.maxSize=Math.max(...L.objects.map(o=>o.size*Math.max(o.w,o.h))); }); }
 
 /* ---------- helpers ---------- */
 const clamp = (v,a,b)=> v<a?a:v>b?b:v;
@@ -364,7 +451,8 @@ function resize(){
 function layout(){
   const W=V.w, H=V.h, availW=W-40, gapPx=78, spacePx=24;
   LEVELS.forEach(L=>{
-    const objs=L.objects, n=objs.length, planets=(L.id==='planets');
+    const objs=L.objects.slice().sort((a,b)=>a.size-b.size), n=objs.length, planets=(L.id==='planets');
+    objs.forEach((o,k)=>{ o.row=k%2; });          // stagger the name tags so they never collide
     const sumW = objs.reduce((s,o)=>s+o.size*o.w*o.lay,0);
     const maxH = Math.max(...objs.map(o=>o.size*o.h));
     const budgetW = availW - (planets?0:gapPx) - (n-1)*spacePx;
@@ -436,6 +524,7 @@ function bigRound(x){                       // 2 significant digits, any magnitu
 }
 function friendlySize(o){
   const m=o.size, L=o.level;
+  if(o.cm) return Math.round(m*100)+' cm';        // people grow in centimeters, not rounded meters
   if(L.id==='galaxies') return group(String(Math.round(m/LY)))+' light-years';
   if(m>=1e6) return group(String(Math.round(m/1000)))+' km';
   if(m>=1)  return group(String(Math.round(m)))+' m';
@@ -535,6 +624,62 @@ function drawGrass(groundY){
   for(let i=i0;i<=i1;i++){
     const h=((i*7919)%13)/13, bx=sx(i*step), bh=hpx*(0.6+0.8*h), lean=(h-0.5)*bh*0.7;
     ctx.beginPath(); ctx.moveTo(bx,groundY); ctx.quadraticCurveTo(bx+lean*0.2,groundY-bh*0.6,bx+lean,groundY-bh); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/* --- people --- */
+// A thick round-capped line with an ink outline behind it: arms, legs, pigtails.
+function limb(x1,y1,x2,y2,w,fill,ol){
+  ctx.lineCap='round';
+  if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=w+ol*2; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+  ctx.strokeStyle=fill; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke();
+}
+function drawPerson(o,x,base,h){
+  const look = o.me ? ME : o.look;
+  const skin=SKINS[look.skin], hairC=HAIRS[look.hair], cloth=OUTFITS[look.outfit];
+  const girl = look.sex==='girl', ol=outlineW(h);
+  // little kids really are head-heavy: the head shrinks from ~1/3 to ~1/5 of height as you grow
+  const hr = lerp(0.31,0.185,clamp((o.size-0.5)/2.2,0,1));
+  const headH=h*hr, headR=headH/2, rest=h-headH;
+  const legH=rest*0.54, bodyH=rest*0.46;
+  const headCy=base-h+headR, bodyTop=base-h+headH, bodyBot=base-legH;
+  const shoulder=h*(girl?0.100:0.110), hem=girl?h*0.20:h*0.105;
+  const limbW=Math.max(1,h*0.052), footY=base-h*0.012;
+  const hemY = girl ? bodyBot+legH*0.32 : bodyBot;
+
+  ctx.save();
+  if(girl){                                   // hair behind the head
+    circle(x,headCy+headR*0.30,headR*1.18,hairC);
+    if(ol) ring(x,headCy+headR*0.30,headR*1.18,INK,ol);
+  }
+  [-1,1].forEach(sd=>limb(x+sd*h*0.042,bodyBot,x+sd*h*0.052,footY,limbW,skin,ol));      // legs
+  [-1,1].forEach(sd=>{                                                                   // shoes
+    ctx.beginPath(); ctx.ellipse(x+sd*h*0.055,footY,h*0.046,h*0.023,0,0,TAU);
+    ctx.fillStyle=darker(cloth,0.5); ctx.fill();
+    if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); }
+  });
+  poly([[x-shoulder,bodyTop],[x+shoulder,bodyTop],[x+hem,hemY],[x-hem,hemY]],cloth,ol&&INK,ol); // shirt or dress
+  if(!girl){                                                                             // shorts
+    const sy2=bodyBot+legH*0.30;
+    poly([[x-hem,bodyBot-h*0.005],[x+hem,bodyBot-h*0.005],[x+hem*1.12,sy2],[x+h*0.012,sy2],
+          [x,bodyBot+legH*0.14],[x-h*0.012,sy2],[x-hem*1.12,sy2]],darker(cloth,0.34),ol&&INK,ol);
+  }
+  [-1,1].forEach(sd=>limb(x+sd*shoulder*0.72,bodyTop+bodyH*0.14,x+sd*(shoulder+h*0.045),bodyBot-h*0.015,limbW*0.92,skin,ol)); // arms
+  circle(x,headCy,headR,skin); if(ol) ring(x,headCy,headR,INK,ol);                       // head
+  ctx.save();                                                                            // hair on top
+  ctx.beginPath(); ctx.arc(x,headCy,headR,0,TAU); ctx.clip();
+  circle(x,headCy-headR*(girl?0.26:0.34),headR,hairC);
+  ctx.restore();
+  if(girl){ [-1,1].forEach(sd=>{                                                         // pigtails
+    circle(x+sd*headR*1.02,headCy+headR*0.16,headR*0.40,hairC);
+    if(ol) ring(x+sd*headR*1.02,headCy+headR*0.16,headR*0.40,INK,ol);
+  }); }
+  if(headR>7){                                                                           // face, once it can be seen
+    circle(x-headR*0.33,headCy+headR*0.08,headR*0.10,INK);
+    circle(x+headR*0.33,headCy+headR*0.08,headR*0.10,INK);
+    ctx.strokeStyle=INK; ctx.lineWidth=Math.max(1,headR*0.09); ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(x,headCy+headR*0.18,headR*0.36,0.35,Math.PI-0.35); ctx.stroke();
   }
   ctx.restore();
 }
@@ -668,7 +813,8 @@ function drawObject(o,x,y,hPx,wPx,alpha){
   if(o.emoji){
     ctx.font=hPx+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillText(o.emoji,x,y-hPx*0.5);
-  }else if(o.level.id==='trees') drawTree(o,x,y,hPx,wPx);
+  }else if(o.draw==='person') drawPerson(o,x,y,hPx);
+  else if(o.level.id==='trees') drawTree(o,x,y,hPx,wPx);
   else if(o.level.id==='mountains') drawMountain(o,x,y,hPx,wPx);
   else if(o.level.id==='planets') drawPlanet(o,x,y,hPx/2);
   else if(o.level.id==='stars') drawStar(o,x,y,hPx/2);
@@ -754,10 +900,10 @@ function render(t,dt,speed){
     visible.push({o,x,y,hPx,wPx,alpha,big});
   }
   for(const v of visible){
-    const minTag = v.o.level.index===current ? 2.5 : 8;   // "you" gets a tag even at 3px; stragglers from other levels do not
+    const minTag = v.o.level.index===current ? 2.5 : 70;  // "you" gets a tag even at 3px; other levels' leftovers stay quiet
     if(v.big>=minTag&&v.big<=2.2*V.h){
       const bottom=v.o.level.ground?v.y:v.y+v.hPx/2;
-      drawLabel(v.o,v.x,bottom,v.o.i%2,C.g>0.5,v.alpha*clamp((v.big-3)/5,0.35,1));
+      drawLabel(v.o,v.x,bottom,v.o.row||0,C.g>0.5,v.alpha*clamp((v.big-3)/5,0.35,1));
     }
   }
   drawMarker(t);
@@ -843,6 +989,8 @@ function goTo(i,opts){
 function arrive(i,fromLevel){
   tween=null; cam.z=LEVELS[i].z; current=i;
   setCaption(i); updateChips(i); updateButtons(); syncSlider(); updateMeter();
+  if(pendingMaker&&i===PEOPLE){ pendingMaker=false; openMaker(); }
+  else if(i===PEOPLE&&!metMe&&!playing) openMaker();
   if(i===LAST){ burstConfetti(); toast('WOW! You zoomed out ×'+bigRound(zoomFactor(cam.z))+'!'); }
   else if(i===0&&fromLevel===LAST) toast('Back home! The bugs look BIG again.');
   if(playing) schedulePlay();
@@ -877,7 +1025,8 @@ view.addEventListener('pointerup',e=>{
   const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
   if(moved>12) return;
   const r=view.getBoundingClientRect(), hit=hitTest(e.clientX-r.left,e.clientY-r.top);
-  if(hit) showCard(hit.o); else closeCard();
+  if(hit&&hit.o.me) openMaker();          // tapping yourself opens the character maker
+  else if(hit) showCard(hit.o); else closeCard();
 });
 function hitTest(x,y){
   let best=null, bestArea=Infinity;
@@ -901,12 +1050,96 @@ els.cardClose.addEventListener('click',closeCard);
 /* --- keyboard --- */
 window.addEventListener('keydown',e=>{
   const tag=e.target.tagName;
+  if(makerOpen()){ if(e.key==='Escape') closeMaker(); return; }
   if(tag==='INPUT') return;
   if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
   if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){ e.preventDefault(); els.btnOut.click(); }
   else if(e.key==='ArrowLeft'){ e.preventDefault(); els.btnIn.click(); }
   else if(e.key==='Escape') closeCard();
   else if(e.key==='p'||e.key==='P') els.btnPlay.click();
+});
+
+/* --- make yourself --- */
+const mk={ box:$('maker'), close:$('makerClose'), done:$('makerDone'), btn:$('btnMe'),
+  sex:$('optSex'), skin:$('optSkin'), hair:$('optHair'), outfit:$('optOutfit'),
+  h:$('meH'), cm:$('meCm'), age:$('meAge'), canvas:$('mePreview') };
+const mctx=mk.canvas.getContext('2d');
+const AGES=[[95,'most 2-year-olds'],[105,'most 4-year-olds'],[113,'most 5-year-olds'],[120,'most 6-year-olds'],
+            [127,'most 7-year-olds'],[133,'most 8-year-olds'],[140,'most 9-year-olds'],[147,'most 10-year-olds'],
+            [155,'most 12-year-olds'],[999,'a lot of grown-ups']];
+function ageHint(cm){ for(const [max,txt] of AGES) if(cm<=max) return 'About as tall as '+txt+'.'; }
+
+function swatches(host,colors,key){
+  colors.forEach((c,k)=>{
+    const b=document.createElement('button'); b.type='button'; b.className='sw'; b.style.background=c;
+    b.setAttribute('aria-label',key+' '+(k+1));
+    b.addEventListener('click',()=>{ ME[key]=k; markOptions(); remakeMe(); });
+    host.appendChild(b);
+  });
+}
+[['boy','👦 Boy'],['girl','👧 Girl']].forEach(([val,label])=>{
+  const b=document.createElement('button'); b.type='button'; b.className='seg'; b.textContent=label; b.dataset.sex=val;
+  b.addEventListener('click',()=>{ ME.sex=val; markOptions(); remakeMe(); });
+  mk.sex.appendChild(b);
+});
+swatches(mk.skin,SKINS,'skin'); swatches(mk.hair,HAIRS,'hair'); swatches(mk.outfit,OUTFITS,'outfit');
+
+function markOptions(){
+  [...mk.sex.children].forEach(b=>b.classList.toggle('on',b.dataset.sex===ME.sex));
+  [[mk.skin,'skin'],[mk.hair,'hair'],[mk.outfit,'outfit']].forEach(([host,key])=>
+    [...host.children].forEach((b,k)=>b.classList.toggle('on',k===ME[key])));
+  const cm=Math.round(ME.h*100);
+  mk.h.value=cm; mk.cm.textContent=cm+' cm'; mk.age.textContent=ageHint(cm);
+}
+
+// your character, drawn against a real centimeter ruler
+function drawMePreview(){
+  const real=ctx; ctx=mctx;
+  const W=170,H=250,baseY=H-20;
+  ctx.setTransform(2,0,0,2,0,0);
+  const sky=ctx.createLinearGradient(0,0,0,H); sky.addColorStop(0,'#bfe6ff'); sky.addColorStop(1,'#eefaff');
+  ctx.fillStyle=sky; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#7ed957'; ctx.fillRect(0,baseY,W,H-baseY);
+  ctx.fillStyle='#4e7d2b'; ctx.fillRect(0,baseY,W,2);
+  const pxm=(baseY-14)/1.8, rx=30;
+  ctx.strokeStyle=INK; ctx.lineCap='butt';
+  ctx.lineWidth=2; ctx.beginPath(); ctx.moveTo(rx,baseY); ctx.lineTo(rx,baseY-1.8*pxm); ctx.stroke();
+  ctx.font='700 9px '+LABEL_FONT; ctx.fillStyle=INK; ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let cm=0;cm<=180;cm+=25){
+    const y=baseY-cm/100*pxm, big=cm%50===0;
+    ctx.beginPath(); ctx.moveTo(rx,y); ctx.lineTo(rx+(big?9:5),y); ctx.stroke();
+    if(big&&cm>0) ctx.fillText(cm,rx-3,y);
+  }
+  const me={me:true,size:ME.h,w:.42,h:1,level:{ground:true,id:'people'}}, px=rx+56, top=baseY-ME.h*pxm;
+  ctx.save(); ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(43,35,80,.5)'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(rx,top); ctx.lineTo(W-8,top); ctx.stroke(); ctx.restore();
+  drawPerson(me,px,baseY,ME.h*pxm);
+  ctx=real;
+}
+
+// your height feeds the layout, so the whole world re-measures around you
+function remakeMe(){
+  ME.h=clamp(ME.h,ME_MIN,ME_MAX);
+  MY_OBJECTS.forEach(o=>{ o.size=ME.h; });
+  remeasureLevels();
+  const parked = !tween && Math.abs(cam.z-LEVELS[current].z)<1e-9;
+  layout();
+  if(parked) cam.z=LEVELS[current].z;
+  syncSlider(); updateMeter(); markOptions(); drawMePreview(); saveMe();
+}
+mk.h.addEventListener('input',()=>{ ME.h=(+mk.h.value)/100; remakeMe(); });
+
+let metMe=false, pendingMaker=false;
+function openMaker(){ stopPlay(); closeCard(); els.hint.hidden=true; metMe=true; markOptions(); drawMePreview(); mk.box.hidden=false; mk.done.focus(); }
+function closeMaker(){ mk.box.hidden=true; }
+const makerOpen=()=>!mk.box.hidden;
+mk.close.addEventListener('click',closeMaker);
+mk.done.addEventListener('click',closeMaker);
+mk.box.addEventListener('click',e=>{ if(e.target===mk.box) closeMaker(); });
+mk.btn.addEventListener('click',()=>{
+  stopPlay();
+  if(current===PEOPLE&&!tween) openMaker();
+  else { pendingMaker=true; goTo(PEOPLE); }
 });
 
 /* --- go --- */
@@ -927,6 +1160,7 @@ if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito');
 new ResizeObserver(resize).observe(stage);
 resize(); cam.z=LEVELS[0].z; lastZ=cam.z;
 setCaption(0); updateChips(0); updateButtons(); updateMeter(); syncSlider();
+markOptions(); drawMePreview();
 requestAnimationFrame(frame);
 </script>
 </body>
