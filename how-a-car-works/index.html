@@ -1,0 +1,1903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>How a Car Works</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus a car's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: NEXT PART */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --steel:#9aa6bf;       /* machined metal */
+  --steel-dk:#5d6880;
+  --road:#5b5f6e;
+  --fire:#ff9f1c;        /* the bang */
+  --fuel:#c98b3a;
+  --volt:#3ddc97;        /* electric green */
+  --brake:#e63946;
+  --water:#3b8beb;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:16px;
+  line-height:1.3;
+  -webkit-text-size-adjust:100%;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  padding:10px 14px 12px;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold);
+}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;
+  transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.map{
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:4px 10px 5px;box-shadow:4px 4px 0 var(--ink);
+}
+.map canvas{width:64px;height:60px;display:block}
+.map span{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:300px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(60%,470px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.stat{
+  position:absolute;right:14px;bottom:12px;display:flex;gap:8px;pointer-events:none;
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(340px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:21px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:14.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;
+  animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(400px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px 12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.quest.tr{left:auto;right:14px;top:12px;bottom:auto}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:15.5px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:7px 13px;line-height:1;box-shadow:0 3px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14px;margin-top:8px;min-height:18px}
+.q-fb.good{color:var(--leaf-dk)}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ---------- */
+.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+.levels{display:flex;gap:5px}
+.lvl{
+  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-size:22px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+
+/* chapter controls: one group shown at a time */
+.ctl{display:flex;justify-content:flex-end;min-width:0}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.off{opacity:.6;text-decoration:line-through}
+.tog.night.on{background:var(--space);color:var(--white)}
+.tog.grow{background:var(--grass);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog.rain{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+.tog.press{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .map{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;gap:4px}
+  .lvl{width:34px;height:34px;font-size:18px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
+  #btnBack{display:none}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 11px;font-size:14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .ctl-label{font-size:11px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{display:none}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .quest.tr{top:12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+
+/* ---------- a few car-shop extras ---------- */
+.tog.gas{background:var(--fire);text-shadow:1px 1px 0 #b26a00}
+.tog.brake{background:var(--brake);color:var(--white);text-shadow:1px 1px 0 #8d1f28}
+.tog.volt{background:var(--volt);text-shadow:1px 1px 0 #1c8a5c}
+.tog.wet{background:var(--water);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>How a Car Works</h1>
+      <p class="tagline">Six parts, one machine — from the bang in the engine to the rubber on the road.</p>
+    </div>
+    <div class="right">
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Shop<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each part of the car"></div>
+      </div>
+      <div class="map" aria-hidden="true">
+        <canvas id="minimap" width="140" height="112"></canvas>
+        <span>You are here</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <div class="cap-level" id="capLevel"></div>
+        <div class="cap-text" id="capText"></div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap the parts to learn what they do</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack">◀ Back</button>
+      <button class="btn big" id="btnNext">NEXT PART ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-engine" hidden>
+        <span class="ctl-label">Gas pedal:</span>
+        <button class="tog on" id="pIdle">🐌 Idle</button>
+        <button class="tog" id="pDrive">🚗 Driving</button>
+        <button class="tog gas" id="pFloor">🔥 Floor it!</button>
+        <button class="tog" id="togSlow">🐢 Slow-mo</button>
+      </div>
+      <div class="ctl-group" id="ctl-gears" hidden>
+        <span class="ctl-label">Gear:</span>
+        <button class="tog on" id="g1">1</button>
+        <button class="tog" id="g2">2</button>
+        <button class="tog" id="g3">3</button>
+        <button class="tog" id="g4">4</button>
+        <button class="tog" id="g5">5</button>
+        <button class="tog" id="togHill">⛰️ Hill</button>
+        <button class="tog gas" id="btnGo">🚗 Go!</button>
+      </div>
+      <div class="ctl-group" id="ctl-axles" hidden>
+        <span class="ctl-label">Drive:</span>
+        <button class="tog" id="tLeft">↰ Left</button>
+        <button class="tog on" id="tStraight">↑ Straight</button>
+        <button class="tog" id="tRight">↱ Right</button>
+        <button class="tog" id="togLock">🔒 Lock the axle</button>
+      </div>
+      <div class="ctl-group" id="ctl-brakes" hidden>
+        <span class="ctl-label">Speed:</span>
+        <button class="tog on" id="s20">20</button>
+        <button class="tog" id="s40">40</button>
+        <button class="tog" id="s60">60 mph</button>
+        <button class="tog wet" id="togWet">🌧️ Wet</button>
+        <button class="tog brake" id="btnBrake">🛑 BRAKE!</button>
+      </div>
+      <div class="ctl-group" id="ctl-steering" hidden>
+        <span class="ctl-label">Steering wheel:</span>
+        <button class="tog" id="wLeft">↰ Left</button>
+        <button class="tog on" id="wCenter">↑ Center</button>
+        <button class="tog" id="wRight">↱ Right</button>
+        <button class="tog gas" id="togRoll">🚗 Drive</button>
+      </div>
+      <div class="ctl-group" id="ctl-power" hidden>
+        <button class="tog gas" id="btnRace">🏁 Send 100!</button>
+        <button class="tog brake" id="btnSlow">🛑 Brake</button>
+        <button class="tog volt" id="btnFill">⛽ vs 🔌 refill</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const rnd=Math.random;
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7';
+const STEEL='#9aa6bf', STEEL_DK='#5d6880', STEEL_LT='#cfd7e6', ROAD='#5b5f6e', ROAD_DK='#3d4150';
+const FIRE='#ff9f1c', FUEL='#c98b3a', VOLT='#3ddc97', VOLT_DK='#1c8a5c', BRAKE_R='#e63946', WATER='#3b8beb', SMOKE='#9aa3b5';
+const CAR_RED='#e8503a', CAR_RED_DK='#b23423', GLASS='#bfe4ff';
+
+/* ---------- canvas + timing ---------- */
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:520,dpr:1};
+let now=0;                    // seconds since load
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,rx,ry,rot||0,0,TAU); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol){ rrect(x,y,w,h,r); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round'; ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1); ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000'; ctx.fillText(ch,0,px*0.06); ctx.restore(); }
+// a name tag with a soft halo so it reads on any background
+function label(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13, dark=opts.dark, align=opts.align||'center', weight=opts.weight||800, font=opts.display?DISPLAY_FONT:LABEL_FONT;
+  ctx.save(); ctx.textAlign=align; ctx.textBaseline=opts.baseline||'middle'; ctx.lineJoin='round';
+  ctx.font=weight+' '+size+'px '+font;
+  ctx.strokeStyle=dark?'rgba(255,248,231,0.85)':'rgba(43,35,80,0.85)'; ctx.lineWidth=Math.max(3,size*0.32);
+  ctx.strokeText(txt,x,y);
+  ctx.fillStyle=opts.color||(dark?INK:PAPER); ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+// a little sign: rounded box with text, optional pointer line to (px,py)
+function sign(txt,x,y,opts){
+  opts=opts||{};
+  const size=opts.size||13; ctx.save(); ctx.font='800 '+size+'px '+LABEL_FONT;
+  const w=ctx.measureText(txt).width+18, h=size+14;
+  let bx=opts.align==='left'?x:opts.align==='right'?x-w:x-w/2, by=y-h/2;
+  bx=clamp(bx,4,V.w-w-4); by=clamp(by,4,V.h-h-4);
+  if(opts.to){ line(bx+w/2,by+h/2,opts.to[0],opts.to[1],INK,2.5); }
+  box(bx,by,w,h,10,opts.fill||WHITE,2.5);
+  ctx.fillStyle=opts.color||INK; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+w/2,by+h/2+1);
+  ctx.restore();
+  return {x:bx,y:by,w,h};
+}
+function cloudPath(x,y,r,n,seed){          // a leafy blob: a circle with a scalloped edge
+  const rr=seeded(seed||1); ctx.beginPath();
+  for(let i=0;i<n;i++){
+    const a0=i/n*TAU, a1=(i+1)/n*TAU, am=(a0+a1)/2, bump=r*(0.12+rr()*0.1);
+    const x0=x+Math.cos(a0)*r, y0=y+Math.sin(a0)*r, x1=x+Math.cos(a1)*r, y1=y+Math.sin(a1)*r;
+    const cx=x+Math.cos(am)*(r+bump*2.2), cy=y+Math.sin(am)*(r+bump*2.2);
+    if(i===0) ctx.moveTo(x0,y0);
+    ctx.quadraticCurveTo(cx,cy,x1,y1);
+  }
+  ctx.closePath();
+}
+function blob(x,y,r,fill,ol,seed,n){ cloudPath(x,y,r,n||Math.max(7,Math.round(r/9)),seed); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b); return `rgb(${Math.round(lerp(A[0],B[0],t))},${Math.round(lerp(A[1],B[1],t))},${Math.round(lerp(A[2],B[2],t))})`; }
+function darker(h,k){ const c=hexRgb(h).map(v=>Math.round(v*(1-k))); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function lighter(h,k){ const c=hexRgb(h).map(v=>Math.round(v+(255-v)*k)); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+// walk a polyline: returns the point at fraction t (0..1) of its length
+function polyLen(P){ let L=0; for(let i=1;i<P.length;i++) L+=dist(P[i-1][0],P[i-1][1],P[i][0],P[i][1]); return L; }
+function polyAt(P,t){
+  const L=polyLen(P); let d=clamp(t,0,1)*L;
+  for(let i=1;i<P.length;i++){ const s=dist(P[i-1][0],P[i-1][1],P[i][0],P[i][1]); if(d<=s||i===P.length-1){ const k=s?d/s:0; return [lerp(P[i-1][0],P[i][0],k),lerp(P[i-1][1],P[i][1],k)]; } d-=s; }
+  return P[P.length-1];
+}
+function bezPts(p0,p1,p2,n){ const out=[]; for(let i=0;i<=n;i++){ const t=i/n, u=1-t; out.push([u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]); } return out; }
+
+
+/* =====================================================================
+   THE CAR  —  one car, drawn in "car units": the rear bumper is x = 0,
+   the front bumper is x = 1, the road is y = 0 and the roof is near
+   y = 0.44. A frame {x0, gy, s} says where the rear bumper sits on
+   screen and how many pixels one car length is. This same side view is
+   the chapter map and the "you are here" picture in the header — every
+   chapter is a zoom into one spot on it.
+   ===================================================================== */
+const WHEEL={r:0.088, rear:0.215, front:0.775};
+function carPt(F,x,y){ return [F.x0+x*F.s, F.gy-y*F.s]; }
+function drawWheel(F,x,spin,opts){
+  const o=opts||{}, P=carPt(F,x,WHEEL.r), R=WHEEL.r*F.s;
+  disc(P[0],P[1],R,'#2f2c3a',Math.max(2,R*0.09));
+  disc(P[0],P[1],R*0.55,o.rim||STEEL,Math.max(1.5,R*0.07));
+  ctx.save(); ctx.translate(P[0],P[1]); ctx.rotate(spin||0);
+  for(let i=0;i<5;i++){ ctx.rotate(TAU/5); line(0,0,0,-R*0.45,STEEL_DK,Math.max(1.5,R*0.11)); }
+  ctx.restore();
+  disc(P[0],P[1],R*0.13,STEEL_DK,1.5);
+  if(o.glow) { ctx.save(); ctx.globalAlpha=o.glow; disc(P[0],P[1],R*0.42,BRAKE_R,0); ctx.restore(); }
+  return P;
+}
+function drawCar(F,opts){
+  const o=opts||{}, s=F.s, X=x=>F.x0+x*s, Y=y=>F.gy-y*s;
+  // body: a chunky hatchback drawn as one outline
+  const body=[[0.02,0.13],[0.02,0.26],[0.09,0.30],[0.22,0.44],[0.42,0.47],[0.62,0.45],[0.74,0.30],[0.95,0.26],[0.99,0.20],[0.99,0.13],[0.90,0.11],[0.10,0.11]];
+  poly(body.map(p=>[X(p[0]),Y(p[1])]),o.color||CAR_RED,Math.max(2,s*0.008));
+  // greenhouse
+  poly([[0.13,0.29],[0.24,0.41],[0.40,0.43],[0.40,0.29]].map(p=>[X(p[0]),Y(p[1])]),GLASS,Math.max(1.5,s*0.006));
+  poly([[0.44,0.29],[0.44,0.43],[0.60,0.41],[0.70,0.29]].map(p=>[X(p[0]),Y(p[1])]),GLASS,Math.max(1.5,s*0.006));
+  line(X(0.42),Y(0.29),X(0.42),Y(0.44),darker(o.color||CAR_RED,0.25),Math.max(1.5,s*0.008));
+  // lights + trim
+  box(X(0.955),Y(0.235),s*0.035,s*0.05,s*0.012,GOLD,Math.max(1.2,s*0.005));
+  box(X(0.012),Y(0.235),s*0.03,s*0.045,s*0.01,BRAKE_R,Math.max(1.2,s*0.005));
+  line(X(0.10),Y(0.115),X(0.90),Y(0.115),darker(o.color||CAR_RED,0.35),Math.max(1.5,s*0.007));
+  const sp=o.spin||0;
+  drawWheel(F,WHEEL.rear,sp,o); drawWheel(F,WHEEL.front,sp,o);
+}
+
+/* ---------- where each chapter lives on that car ---------- */
+const ANCHORS={engine:[0.855,0.24], gears:[0.63,0.15], axles:[0.215,0.115], brakes:[0.775,0.088], steering:[0.545,0.34], power:[0.44,0.10]};
+function anchorPx(id,F){ const a=ANCHORS[id]; return carPt(F,a[0],a[1]); }
+function mapFrame(){            // the whole car, centred, used by the map + the transition
+  const s=Math.min(V.w*0.74,V.h*1.45), x0=V.w/2-s/2, gy=V.h*0.66+s*0.12;
+  return {x0,gy,s};
+}
+
+/* =====================================================================
+   CHAPTERS
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'engine', icon:'🔥', name:'Engine', title:'🔥 Engine: a thousand tiny explosions',
+   caption:'Air and gasoline get <b>squeezed</b>, a spark makes them <b>BANG</b>, and the bang shoves a piston down. Four bangs a second — even at idle.'},
+  {id:'gears', icon:'⚙️', name:'Transmission', title:'⚙️ Transmission: trading speed for muscle',
+   caption:'The engine only likes to spin fast. <b>Gears</b> let it be strong and slow at a stop light, then fast and easy on the highway.'},
+  {id:'axles', icon:'🔩', name:'Axles', title:'🔩 Driveshaft &amp; axles: getting the spin back there',
+   caption:'A spinning bar carries the power to the back wheels. The <b>differential</b> is the clever box that lets the two wheels spin at <b>different speeds</b> in a turn.'},
+  {id:'brakes', icon:'🛞', name:'Wheels', title:'🛞 Wheels, tires &amp; brakes',
+   caption:'Four patches of rubber, each about the size of your hand, are all that hold the car to the road. <b>Brakes</b> turn the car’s motion into heat.'},
+  {id:'steering', icon:'🎡', name:'Steering', title:'🎡 Steering: pointing the front wheels',
+   caption:'The steering wheel turns a little gear that slides a <b>toothed bar</b> left and right. The bar pushes the front wheels — and the car curves.'},
+  {id:'power', icon:'⚡', name:'Gas or electric', title:'⚡ Gas or electric?',
+   caption:'Same wheels, same brakes, same steering — a different way of <b>making the spin</b>. Watch where the energy actually goes.'},
+];
+const SCENES={};             // id -> scene object (filled in below)
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};             // id -> true once the challenge is done
+let selected=null;           // the tapped thing (for a highlight ring)
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'), cardClose:$('cardClose'), thumb:$('thumb'),
+  toast:$('toast'), levels:$('levels'), btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'), questClose:$('questClose'),
+  badges:$('badges'), meter:$('meter'), minimap:$('minimap') };
+
+/* ---------- header: badges + you-are-here ---------- */
+CHAPTERS.forEach(c=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge'; els.badges.appendChild(b); c.badgeEl=b; });
+const mctx=els.minimap.getContext('2d');
+function drawMinimap(){
+  const W=70,H=56, real=ctx; ctx=mctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,W,H-11);
+  ctx.fillStyle=ROAD; ctx.fillRect(0,H-11,W,11);
+  const F={x0:3,gy:H-8,s:W-6};
+  drawCar(F,{});
+  const a=anchorPx(CHAPTERS[current].id,F);
+  ring(a[0],a[1],7,GOLD,3); ring(a[0],a[1],7,INK,1);
+  ctx=real;
+}
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.innerHTML=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  const c=item;
+  els.cardName.textContent=c.name; els.cardSub.textContent=c.sub||''; els.cardSub.hidden=!c.sub;
+  els.cardFact.textContent=c.fact; els.cardExtra.textContent=c.extra||''; els.cardExtra.hidden=!c.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=c.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(c.thumb) c.thumb(84); else if(c.emoji) emoji(c.emoji,42,42,50);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const c=CHAPTERS.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🔧 All 6 badges — you are a CAR MECHANIC!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+// A challenge is a list of steps. Each step has a prompt; either `options`
+// (buttons; `ok` says which are right) or `tap` (a function of what was
+// tapped on the canvas that returns true/false/'almost').
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const scene=SCENES[id]; if(!scene.quest) return;
+  closeCard(); quest.active=scene.quest(); quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true;
+  els.quest.classList.toggle('tr',scene.questPos==='tr'); document.body.classList.add('questing');
+  if(quest.active.onStart) quest.active.onStart();
+  renderStep();
+}
+function endQuest(){ if(quest.active&&quest.active.onEnd) quest.active.onEnd(); quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing'); }
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML=''; Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){
+    els.qOpts.hidden=false;
+    S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); });
+  }else{ els.qOpts.hidden=true; }
+  if(S.onShow) S.onShow();
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
+  else setTimeout(renderStep,1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true); if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){          // the canvas was tapped while a tap-step is open
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,VOLT];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){
+    const p=confetti[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=140*dt; p.r+=p.vr*dt;
+    if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore();
+  }
+}
+
+/* ---------- shared shop drawings, used by more than one chapter ---------- */
+// a spur gear seen face-on: n teeth, radius r
+function drawGear(x,y,r,n,ang,fill,ol,hub){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang||0);
+  ctx.beginPath();
+  const rt=r, rb=r*0.82, step=TAU/n;
+  for(let i=0;i<n;i++){
+    const a=i*step;
+    ctx.lineTo(Math.cos(a-step*0.20)*rb, Math.sin(a-step*0.20)*rb);
+    ctx.lineTo(Math.cos(a-step*0.11)*rt, Math.sin(a-step*0.11)*rt);
+    ctx.lineTo(Math.cos(a+step*0.11)*rt, Math.sin(a+step*0.11)*rt);
+    ctx.lineTo(Math.cos(a+step*0.20)*rb, Math.sin(a+step*0.20)*rb);
+  }
+  ctx.closePath(); ctx.fillStyle=fill||STEEL; ctx.fill();
+  if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); }
+  disc(0,0,r*(hub||0.22),STEEL_DK,ol?ol*0.7:0);
+  line(0,-r*0.62,0,-r*0.82,INK,Math.max(2,r*0.09));    // one painted tooth-mark, so the spin is visible
+  ctx.restore();
+}
+// a road strip across the bottom of the stage
+function drawRoad(y,h,offset,opts){
+  const o=opts||{};
+  ctx.fillStyle=o.wet?'#4a5566':ROAD; ctx.fillRect(0,y,V.w,h);
+  ctx.fillStyle=ROAD_DK; ctx.fillRect(0,y,V.w,Math.max(3,h*0.06));
+  const dash=V.w*0.09, gap=V.w*0.07, ym=y+h*0.55;
+  ctx.fillStyle=o.wet?'#c9d6e6':'#f6e7b0';
+  for(let x=-((offset||0)%(dash+gap))-dash;x<V.w;x+=dash+gap) ctx.fillRect(x,ym,dash,Math.max(3,h*0.09));
+  if(o.wet){ ctx.save(); ctx.globalAlpha=.35; ctx.fillStyle='#bfe4ff';
+    const rr=seeded(4); for(let i=0;i<26;i++){ const px=(rr()*V.w+ (offset||0)*0.4)%V.w; ellipse(px,y+h*(0.2+rr()*0.7),h*0.09,h*0.03,0,'#bfe4ff',0); } ctx.restore(); }
+}
+
+/* ---------- the same car seen from above (chapters 3 and 5) ----------
+   T = {x0, cy, s}: the rear bumper is at x0, the middle of the car is
+   the line y = cy, and one car length is s pixels. Nose points right. */
+const TOPW=0.42;                                  // car width, in car lengths
+function topPt(T,x,off){ return [T.x0+x*T.s, T.cy+off*T.s]; }
+function drawCarTop(T,opts){
+  const o=opts||{}, s=T.s, X=x=>T.x0+x*s, Y=w=>T.cy+w*s, hw=TOPW/2;
+  ctx.save(); ctx.globalAlpha=o.ghost?0.55:1;
+  // shadow of the body
+  box(X(0.02),Y(-hw),s*0.96,s*TOPW,s*0.075,o.color||CAR_RED,Math.max(2,s*0.008));
+  poly([[0.86,-hw],[0.99,-hw*0.55],[0.99,hw*0.55],[0.86,hw]].map(p=>[X(p[0]),Y(p[1])]),o.color||CAR_RED,Math.max(2,s*0.008));
+  // glass + roof
+  box(X(0.30),Y(-hw*0.86),s*0.30,s*TOPW*0.86,s*0.05,GLASS,Math.max(1.5,s*0.006));
+  box(X(0.35),Y(-hw*0.7),s*0.19,s*TOPW*0.7,s*0.04,darker(o.color||CAR_RED,0.15),Math.max(1.5,s*0.006));
+  box(X(0.62),Y(-hw*0.74),s*0.10,s*TOPW*0.74,s*0.03,GLASS,Math.max(1.5,s*0.006));
+  ctx.restore();
+}
+function drawTopWheel(T,x,off,steer,opts){
+  const o=opts||{}, s=T.s, P=topPt(T,x,off), L=s*0.15, W=s*0.062;
+  ctx.save(); ctx.translate(P[0],P[1]); ctx.rotate(steer||0);
+  box(-L/2,-W/2,L,W,W*0.35,o.skid?'#4a4652':'#2f2c3a',Math.max(2,s*0.006));
+  ctx.fillStyle='rgba(255,255,255,.28)';
+  for(let i=-2;i<=2;i++) ctx.fillRect(i*L*0.17-L*0.02,-W/2+2,L*0.05,W-4);
+  if(o.mark!==undefined){ ctx.save(); ctx.rotate(0); const a=o.mark; line(Math.cos(a)*L*0.3,Math.sin(a)*W*0.3,Math.cos(a)*L*0.42,Math.sin(a)*W*0.42,GOLD,3); ctx.restore(); }
+  ctx.restore();
+  return P;
+}
+
+/* =====================================================================
+   CHAPTER 1 · THE ENGINE — a cutaway of a four-cylinder engine.
+   Every cylinder runs the same four strokes (suck, squeeze, bang, blow)
+   but they take turns, so one of them is always pushing. The crankshaft
+   turns those four pushes into spin.
+   ===================================================================== */
+const STROKES=[
+  {key:'intake',   name:'Suck in',  sub:'intake',      icon:'💨', col:'#bfe4ff', bar:SKY},
+  {key:'compress', name:'Squeeze',  sub:'compression', icon:'🤏', col:'#9ad0f5', bar:'#3f8fd0'},
+  {key:'power',    name:'BANG!',    sub:'power',       icon:'💥', col:'#ffcf6b', bar:FIRE},
+  {key:'exhaust',  name:'Push out', sub:'exhaust',     icon:'🌫️', col:'#c8ccd6', bar:SMOKE},
+];
+const FIRING=[0,3,1,2];      // cylinders 1-3-4-2: how many half-turns each one lags
+
+SCENES.engine=(()=>{
+  const E={}; let items=[], puffs=[], sparks=[];
+  let ang=0, rpm=800, target=800, slow=false, bangs=0;
+  const SPEEDS={idle:800, drive:2200, floor:6000};
+  const SHOWN=0.055;          // we run the animation this fraction of real speed
+
+  function layout(){
+    const W=V.w,H=V.h, narrow=W<640;
+    // the caption sits over the top-left of the stage, so the engine starts
+    // below it and the stroke labels finish above the stat pills
+    E.left=W*(narrow?0.07:0.10); E.right=W*(narrow?0.84:0.90); E.top=H*(narrow?0.31:0.30); E.bot=H*(narrow?0.82:0.80);
+    E.r=(E.bot-E.top)/5.1; E.rod=E.r*1.9; E.clear=E.r*0.6;
+    E.yc=E.top+E.r+E.rod+E.clear;                   // crankshaft centre line
+    E.head=E.top+E.clear*0.5;                       // top of the combustion chamber
+    E.bore=Math.min((E.right-E.left)/4.6, E.r*2.3);
+    E.cyl=[]; const gapw=(E.right-E.left)/4;
+    for(let i=0;i<4;i++) E.cyl.push({x:E.left+gapw*(i+0.5), phase:FIRING[i]*Math.PI});
+    E.manifoldY=E.head-E.r*0.62;
+    E.pipeY=E.yc+E.r*1.0;
+    E.narrow=narrow;
+    items=[
+      {key:'piston', name:'Piston',sub:'the pusher',fact:'A metal plug that slides up and down inside the cylinder. The bang shoves it down — that push is where ALL the car\'s power starts.',extra:'A car piston is about as wide as a soda can.',
+        hit:(x,y)=>x>E.cyl[0].x-E.bore&&x<E.cyl[3].x+E.bore&&y>E.head&&y<E.yc-E.r*0.8, pos:()=>[E.cyl[1].x,pistonY(1),E.bore*0.75],
+        thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); box(S*0.24,S*0.22,S*0.52,S*0.34,6,STEEL,3); line(S*0.5,S*0.56,S*0.5,S*0.86,STEEL_DK,7); }},
+      {key:'spark', name:'Spark plug',sub:'the lighter',fact:'It makes a tiny lightning bolt at exactly the right moment — right when the fuel is squeezed the tightest. That spark is what starts the bang.',extra:'At 2,000 rpm each plug sparks about 17 times every second.',
+        hit:(x,y)=>y<E.head+6&&y>E.head-E.r*1.5&&x>E.left&&x<E.right, pos:()=>[E.cyl[1].x,E.head-E.r*0.5,E.r*0.7],
+        thumb:S=>{ ctx.fillStyle='#2b2350'; ctx.fillRect(0,0,S,S); box(S*0.42,S*0.12,S*0.16,S*0.5,3,STEEL,2.5); line(S*0.5,S*0.62,S*0.5,S*0.78,GOLD,4); for(let i=0;i<5;i++){ const a=i*TAU/5; line(S*0.5,S*0.8,S*0.5+Math.cos(a)*12,S*0.8+Math.sin(a)*12,GOLD,2); } }},
+      {key:'valves', name:'Valves',sub:'the doors',fact:'Two little doors on top of every cylinder. The blue one opens to let air and fuel IN. The orange one opens to let the burnt smoke OUT. The rest of the time both are shut tight.',
+        hit:(x,y)=>y<E.head-2&&y>E.manifoldY-E.r*0.3&&x>E.left&&x<E.right, pos:()=>[E.cyl[1].x-E.bore*0.26,E.head-E.r*0.6,E.r*0.6],
+        thumb:S=>{ ctx.fillStyle='#e8f4ff'; ctx.fillRect(0,0,S,S); poly([[S*0.16,S*0.6],[S*0.44,S*0.6],[S*0.3,S*0.74]],SKY,3); line(S*0.3,S*0.6,S*0.3,S*0.2,STEEL_DK,5); poly([[S*0.56,S*0.6],[S*0.84,S*0.6],[S*0.7,S*0.74]],FIRE,3); line(S*0.7,S*0.6,S*0.7,S*0.2,STEEL_DK,5); }},
+      {key:'crank', name:'Crankshaft',sub:'the spin maker',fact:'A bent bar under the pistons. Each piston pushes down on a bend, and the bar has to turn — like your legs pushing bike pedals round and round.',extra:'Four pushes, one spin. The crankshaft is what the whole rest of the car connects to.',
+        hit:(x,y)=>y>E.yc-E.r*1.3&&y<E.yc+E.r*1.6&&x>E.left&&x<E.right, pos:()=>[E.cyl[1].x,E.yc,E.r*1.3],
+        thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); line(S*0.1,S*0.5,S*0.9,S*0.5,STEEL_DK,9); disc(S*0.32,S*0.34,S*0.12,STEEL,3); disc(S*0.66,S*0.66,S*0.12,STEEL,3); }},
+      {key:'cylinder', name:'Cylinder',sub:'the room where it happens',fact:'A smooth metal tube with the piston inside. Most cars have four of them. Big trucks have eight. A motorcycle might have one!',extra:'Four cylinders = four bangs every two turns of the crankshaft.',
+        hit:(x,y)=>x>E.left-E.bore*0.6&&x<E.right+E.bore*0.6&&y>E.head&&y<E.yc+E.r*2, pos:()=>[E.cyl[3].x,(E.head+E.yc)/2,E.bore*0.8]},
+      {key:'fuel', name:'Fuel + air',sub:'what gets burned',fact:'Gasoline only burns when it is mixed with lots of air — about 14 breaths of air for every drop of fuel. The mist you see coming in is the mix.',extra:'A gasoline car carries its fuel in a tank under the back seat.',
+        hit:(x,y)=>y>E.manifoldY-E.r*0.7&&y<E.manifoldY+E.r*0.35&&x>E.left, pos:()=>[E.right-E.r*0.5,E.manifoldY,E.r*0.8],
+        thumb:S=>{ ctx.fillStyle='#e8f4ff'; ctx.fillRect(0,0,S,S); for(let i=0;i<9;i++){ const rr=seeded(i+3); disc(10+rr()*64,12+rr()*60,4,i%3?SKY:FUEL,1.5); } }},
+      {key:'exhaust', name:'Exhaust',sub:'the leftovers',fact:'After the bang, what is left is hot smoke. It gets pushed out, runs through the muffler to quiet it down, and leaves out the tailpipe at the back.',
+        hit:(x,y)=>x<E.left&&y>E.pipeY-E.r*0.7&&y<E.pipeY+E.r*0.7, pos:()=>[E.left-E.bore*0.9,E.pipeY,E.r*0.7],
+        thumb:S=>{ ctx.fillStyle='#dbe0ea'; ctx.fillRect(0,0,S,S); box(S*0.1,S*0.42,S*0.6,S*0.18,8,STEEL_DK,3); for(let i=0;i<4;i++) disc(S*0.72+i*4,S*0.5-i*6,6+i*3,'rgba(154,163,181,.75)',0); }},
+      {key:'flywheel', name:'Flywheel',sub:'to the transmission',fact:'A heavy metal disc on the end of the crankshaft. It is so heavy that it keeps spinning smoothly between the bangs — and it hands the spin on to the transmission.',
+        hit:(x,y)=>x>E.right-E.r*0.4&&y>E.yc-E.r*2&&y<E.yc+E.r*2, pos:()=>[E.right+E.r*0.3,E.yc,E.r*1.5]},
+    ];
+  }
+  function phaseOf(i){ let p=(ang+E.cyl[i].phase)%(2*TAU); if(p<0)p+=2*TAU; return p; }
+  function strokeOf(i){ return Math.floor(phaseOf(i)/Math.PI)%4; }
+  function pistonY(i){ const p=phaseOf(i); return E.yc-(E.r*Math.cos(p)+Math.sqrt(Math.max(0,E.rod*E.rod-Math.pow(E.r*Math.sin(p),2)))); }
+
+  function update(dt){
+    rpm=lerp(rpm,target,1-Math.pow(0.02,dt));
+    const prev=ang;
+    ang=(ang+rpm/60*TAU*SHOWN*(slow?0.22:1)*dt)%(2*TAU);
+    // spark + smoke when a cylinder crosses into its power stroke
+    for(let i=0;i<4;i++){
+      const a=(prev+E.cyl[i].phase)%(2*TAU), b=phaseOf(i);
+      if(a<2*Math.PI && b>=2*Math.PI){ sparks.push({i,t:0}); bangs++; }
+    }
+    sparks=sparks.filter(s=>(s.t+=dt)<0.28);
+    if(!REDUCED && rnd()<dt*(4+rpm/900)) puffs.push({x:E.left-E.bore*0.7,y:E.pipeY,r:E.r*0.22,t:0});
+    puffs.forEach(p=>{ p.t+=dt; p.x-=dt*E.r*1.6; p.y-=dt*E.r*0.35; p.r+=dt*E.r*0.5; });
+    puffs=puffs.filter(p=>p.t<2.2);
+  }
+
+  function drawCylinder(i){
+    const c=E.cyl[i], s=strokeOf(i), frac=(phaseOf(i)%Math.PI)/Math.PI, py=pistonY(i);
+    const half=E.bore/2, wallW=Math.max(3,E.bore*0.07);
+    // the gas inside, from the head down to the piston crown
+    const gasTop=E.head+wallW*0.5, gasH=Math.max(0,py-E.r*0.34-gasTop);
+    let col=STROKES[s].col;
+    if(s===2) col=mix(FIRE,'#fff3c4',clamp(frac*1.6,0,1));
+    if(s===1) col=mix(STROKES[0].col,STROKES[1].col,frac);
+    ctx.fillStyle=col; ctx.fillRect(c.x-half+wallW*0.4,gasTop,E.bore-wallW*0.8,gasH);
+    if(s===2&&frac<0.34){ ctx.save(); ctx.globalAlpha=1-frac/0.34;
+      for(let k=0;k<7;k++){ const rr=seeded(i*9+k+1); disc(c.x+(rr()-.5)*E.bore*0.7, gasTop+rr()*Math.max(4,gasH*0.8), E.bore*(0.07+rr()*0.09), k%2?'#fff3c4':FIRE,0); } ctx.restore(); }
+    // little dots of mixture / smoke moving with the stroke
+    ctx.save(); ctx.globalAlpha=.85;
+    for(let k=0;k<5;k++){ const rr=seeded(i*7+k+2);
+      const dx=(rr()-.5)*E.bore*0.62, dy=gasTop+((rr()+frac*(s===0?1:s===3?-1:0.2))%1)*Math.max(6,gasH);
+      if(s===0) disc(c.x+dx,dy,E.bore*0.045,rr()<0.3?FUEL:'#7fc4f5',0);
+      else if(s===3) disc(c.x+dx,dy,E.bore*0.05,SMOKE,0);
+      else if(s===1) disc(c.x+dx,gasTop+((rr())%1)*Math.max(4,gasH),E.bore*0.042,'#5aa7dd',0);
+    }
+    ctx.restore();
+    // cylinder walls
+    line(c.x-half,E.head,c.x-half,E.yc-E.r*0.4,STEEL_DK,wallW);
+    line(c.x+half,E.head,c.x+half,E.yc-E.r*0.4,STEEL_DK,wallW);
+    // the piston + connecting rod
+    const p=phaseOf(i), pinX=c.x+E.r*Math.sin(p), pinY=E.yc-E.r*Math.cos(p);
+    line(c.x,py,pinX,pinY,STEEL_LT,Math.max(4,E.bore*0.16));
+    line(c.x,py,pinX,pinY,STEEL_DK,Math.max(2,E.bore*0.07));
+    box(c.x-half+wallW*0.4,py-E.r*0.34,E.bore-wallW*0.8,E.r*0.68,E.bore*0.1,STEEL,Math.max(2,E.bore*0.05));
+    line(c.x-half+wallW*0.9,py-E.r*0.16,c.x+half-wallW*0.9,py-E.r*0.16,STEEL_DK,Math.max(1.5,E.bore*0.035));
+    line(c.x-half+wallW*0.9,py-E.r*0.05,c.x+half-wallW*0.9,py-E.r*0.05,STEEL_DK,Math.max(1.5,E.bore*0.035));
+    disc(c.x,py+E.r*0.06,E.bore*0.075,STEEL_DK,1.5);
+    // valves: intake (left, blue) and exhaust (right, orange)
+    const inOpen=s===0?Math.sin(frac*Math.PI):0, exOpen=s===3?Math.sin(frac*Math.PI):0;
+    [[-1,inOpen,SKY],[1,exOpen,FIRE]].forEach(([sgn,open,col2])=>{
+      const vx=c.x+sgn*E.bore*0.26, lift=open*E.r*0.32;
+      line(vx,E.manifoldY-E.r*0.1,vx,E.head+lift-E.r*0.02,STEEL_DK,Math.max(3,E.bore*0.08));
+      poly([[vx-E.bore*0.15,E.head+lift],[vx+E.bore*0.15,E.head+lift],[vx,E.head+lift+E.r*0.2]],col2,Math.max(1.5,E.bore*0.045));
+    });
+    // spark
+    const sp=sparks.find(s2=>s2.i===i);
+    if(sp){ const k=1-sp.t/0.28; ctx.save(); ctx.globalAlpha=k;
+      for(let z=0;z<6;z++){ const a=z*TAU/6+now*8; line(c.x,E.head+E.r*0.1,c.x+Math.cos(a)*E.r*0.42*k,E.head+E.r*0.1+Math.sin(a)*E.r*0.42*k,GOLD,3); }
+      disc(c.x,E.head+E.r*0.1,E.r*0.12*k,'#fffbe6',0); ctx.restore(); }
+    // the label under each cylinder
+    const st=STROKES[s], ly=E.yc+E.r*1.66, lw=Math.min(E.bore*1.34,(E.right-E.left)/4*0.96);
+    box(c.x-lw/2,ly,lw,E.narrow?26:34,10,st.bar,2.5);
+    ctx.fillStyle=s===0||s===3?INK:WHITE; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='700 '+(E.narrow?11:15)+'px '+DISPLAY_FONT; ctx.fillText(E.narrow?st.name:st.icon+' '+st.name,c.x,ly+(E.narrow?9:13));
+    if(!E.narrow){ ctx.font='800 11px '+LABEL_FONT; ctx.fillStyle=s===0||s===3?INK:WHITE; ctx.fillText(st.sub,c.x,ly+26); }
+    if(!E.narrow){ ctx.font='700 12px '+DISPLAY_FONT; ctx.fillStyle=INK; ctx.textBaseline='alphabetic';
+      ctx.fillText('cylinder '+(i+1),c.x,ly-7); }
+  }
+
+  function draw(){
+    // shop background
+    ctx.fillStyle='#e9eef7'; ctx.fillRect(0,0,V.w,V.h);
+    ctx.strokeStyle='rgba(93,104,128,.16)'; ctx.lineWidth=2;
+    for(let x=0;x<V.w;x+=34){ ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,V.h); ctx.stroke(); }
+    // engine block
+    box(E.left-E.bore*0.62,E.head-E.r*0.15,(E.right-E.left)+E.bore*1.24,(E.yc+E.r*1.55)-(E.head-E.r*0.15),18,'#dbe2ee',4);
+    // intake manifold across the top, exhaust pipe out the left
+    box(E.left-E.bore*0.5,E.manifoldY-E.r*0.34,(E.right-E.left)+E.bore,E.r*0.42,E.r*0.18,'#cfe6fb',3);
+    label('◀ air + fuel in',E.right+E.bore*0.42,E.manifoldY-E.r*0.55,{size:E.narrow?11:13,dark:true,align:'right'});
+    // the tailpipe leaves at the bottom left
+    box(E.left-E.bore*0.95,E.pipeY-E.r*0.2,E.bore*1.0,E.r*0.4,E.r*0.18,'#c3cbd9',3);
+    puffs.forEach(p=>{ ctx.save(); ctx.globalAlpha=clamp(0.5*(1-p.t/2.2),0,1); disc(p.x,p.y,p.r+p.t*E.r*0.3,SMOKE,0); ctx.restore(); });
+    label(E.narrow?'smoke':'smoke out ◀',E.left-E.bore*(E.narrow?0.15:0.42),E.pipeY+E.r*0.62,{size:E.narrow?10:12,dark:true,align:'center'});
+    // crankshaft line + counterweights
+    line(E.left-E.bore*0.6,E.yc,E.right+E.bore*0.7,E.yc,STEEL_DK,Math.max(4,E.r*0.22));
+    for(let i=0;i<4;i++) drawCylinder(i);
+    for(let i=0;i<4;i++){ const p=phaseOf(i), c=E.cyl[i];
+      disc(c.x+E.r*Math.sin(p),E.yc-E.r*Math.cos(p),E.r*0.2,STEEL,2.5);
+      ctx.save(); ctx.translate(c.x,E.yc); ctx.rotate(p+Math.PI);
+      poly([[-E.r*0.34,0],[E.r*0.34,0],[E.r*0.26,E.r*0.9],[-E.r*0.26,E.r*0.9]],'#aab6cc',2.5); ctx.restore();
+    }
+    disc(E.cyl[0].x,E.yc,E.r*0.16,STEEL_DK,0);
+    // flywheel on the right end, spinning
+    const fx=E.right+E.bore*0.42, fr=E.r*1.35;
+    disc(fx,E.yc,fr,'#b9c3d6',3.5);
+    ctx.save(); ctx.translate(fx,E.yc); ctx.rotate(ang);
+    for(let i=0;i<8;i++){ ctx.rotate(TAU/8); line(0,-fr*0.35,0,-fr*0.85,STEEL_DK,3); } ctx.restore();
+    disc(fx,E.yc,fr*0.22,STEEL_DK,2);
+    if(!E.narrow) label('to the transmission ▶',fx,E.yc+fr+14,{size:13,dark:true,align:'center'});
+  }
+
+  function hit(x,y){ for(const it of items) if(it.hit(x,y)) return it; return null; }
+  function stat(){
+    const bang=Math.round(rpm/30);
+    return '<span>⚙️ '+Math.round(rpm/50)*50+' rpm</span><span>💥 '+bang+' bangs a second</span>'+(E.narrow?'':'<span>🐢 slowed '+Math.round(1/(SHOWN*(slow?0.22:1)))+'×</span>');
+  }
+  function setPedal(k){
+    target=SPEEDS[k];
+    ['pIdle','pDrive','pFloor'].forEach((id,i)=>$(id).classList.toggle('on',['idle','drive','floor'][i]===k));
+    setStat(stat());
+  }
+  $('pIdle').addEventListener('click',()=>setPedal('idle'));
+  $('pDrive').addEventListener('click',()=>setPedal('drive'));
+  $('pFloor').addEventListener('click',()=>setPedal('floor'));
+  $('togSlow').addEventListener('click',()=>{ slow=!slow; $('togSlow').classList.toggle('on',slow); setStat(stat()); });
+
+  function quest(){
+    return {id:'engine',title:'🔥 The four strokes',steps:[
+      {prompt:'Every cylinder does the same four jobs, over and over. Which one comes <b>first</b>?',
+       options:[{text:'💨 Suck in air and fuel',ok:true,say:'Right — the piston slides down and pulls the mix in.'},
+                {text:'💥 Bang',say:'Not yet — there is nothing in the cylinder to burn!'},
+                {text:'🤏 Squeeze',say:'Squeeze what? The cylinder is still empty.'},
+                {text:'🌫️ Push out the smoke',say:'That is last, after the bang.'}]},
+      {prompt:'The cylinder is full of air and fuel. Now the piston comes back <b>up</b>. What is it doing?',
+       options:[{text:'🤏 Squeezing the mix tight',ok:true,say:'Yes! Squeezed fuel burns much harder.'},
+                {text:'💨 Sucking in more',say:'Both doors are shut now — nothing can get in.'},
+                {text:'🌫️ Pushing smoke out',say:'Nothing has burned yet, so there is no smoke.'}]},
+      {prompt:'Squeezed and ready. What makes the <b>BANG</b>?',
+       options:[{text:'⚡ The spark plug lights it',ok:true,say:'A tiny lightning bolt, right on time.'},
+                {text:'🔥 A match',say:'No matches in there! Something makes its own spark.'},
+                {text:'🛞 The wheels turning',say:'Backwards — the bang is what turns the wheels.'}]},
+      {prompt:'Now find it on the engine: <b>tap the part the bang shoves down</b>.',
+       tap:it=>it&&it.key==='piston'?true:(it&&it.key==='crank'?'Close! That is what the piston pushes ON. Tap the sliding plug itself.':false),
+       yes:'That is the piston. Every push starts right there.', no:'Tap one of the sliding metal plugs inside a cylinder.'},
+      {prompt:'Four pistons are shoving <b>down</b>. What turns all that shoving into <b>spinning</b>?',
+       options:[{text:'⚙️ The crankshaft',ok:true,say:'Like your legs on bike pedals — push, push, and the bar turns.'},
+                {text:'🔌 The spark plug',say:'That only lights the fuel.'},
+                {text:'🛢️ The oil',say:'Oil keeps things slippery, but it does not make the spin.'}]},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ setStat(stat()); }, leave(){}};
+})();
+
+/* =====================================================================
+   CHAPTER 2 · THE TRANSMISSION — one pair of gears between the engine
+   and the wheels. A small gear turning a big one = lots of twist, not
+   much speed (first gear). A big gear turning a small one = the other
+   way round (fifth). The car on the road strip below actually obeys the
+   gear you pick, and stalls if you ask for the impossible.
+   ===================================================================== */
+const RATIOS=[3.5,2.1,1.4,1.0,0.8], FINAL=3.5;
+const TEETH=[[14,49],[20,42],[25,35],[30,30],[34,27]];
+const MPH_PER_OUT=0.0751;                       // one turn of the output shaft ≈ 6.6 ft of road
+
+SCENES.gears=(()=>{
+  const G={}; let items=[];
+  let statT=0, gear=0, hill=false, going=false, mph=0, rpm=750, angIn=0, angOut=0, dist=0, stallT=0, redT=0, r1=30, r2=60;
+  const NAMES=['1st','2nd','3rd','4th','5th'];
+
+  function torqueAt(r){                          // how hard the engine pulls at this rpm
+    if(r>6200) return 0.05;
+    if(r<650) return 0.12;
+    return clamp(1-0.6*Math.pow((r-3100)/2900,2),0.25,1);
+  }
+  function layout(){
+    const W=V.w,H=V.h; G.narrow=W<640;
+    G.roadY=H*0.70; G.roadH=H-G.roadY;
+    if(G.narrow){
+      // on a phone the two gears sit side by side, below the caption
+      G.roadY=H*0.74; G.roadH=H-G.roadY;
+      G.boxL=W*0.15; G.boxR=W*0.85; G.boxT=H*0.28; G.boxB=G.roadY-H*0.03;
+      G.k=(G.boxR-G.boxL)*0.84/(2*63);
+      G.engX=W*0.08; G.wheelX=W*0.90;
+      G.barX=W*0.04; G.barY=H*0.755;
+    }else{
+      G.boxL=W*0.34; G.boxR=W*0.68; G.boxT=H*0.07; G.boxB=G.roadY-H*0.03;
+      G.k=(G.boxB-G.boxT)*0.88/(2*63);   // stacked: the pair stands 2×(t1+t2) tall
+      G.engX=W*0.13; G.engY=H*0.58;      // tucked under the caption, shaft angled up
+      G.wheelX=W*0.88;
+      G.barX=W*0.03; G.barY=H*0.31;
+    }
+    G.cx=(G.boxL+G.boxR)/2;
+    items=[
+      {key:'input',name:'Input shaft',sub:'from the engine',fact:'The bar that brings the engine’s spin into the gearbox. It always turns at engine speed — fast!',
+       hit:(x,y)=>x<G.inX-r1&&Math.abs(y-G.inY)<Math.max(14,r1*0.5), pos:()=>[(G.engX+G.inX)/2,G.inY,26]},
+      {key:'gearpair',name:'The gears',sub:'teeth that push teeth',fact:'The little gear’s teeth push the big gear’s teeth. The little one has to spin around several times to turn the big one once — and every extra spin is extra twisting force.',extra:'In 1st gear the engine spins about 12 times for one turn of the wheels.',
+       hit:(x,y)=>dist2(x,y,G.inX,G.inY)<r1+10||dist2(x,y,G.outX,G.outY)<r2+10, pos:()=>[(G.inX+G.outX)/2,(G.inY+G.outY)/2,Math.max(r1,r2)+8],
+       thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); drawGear(S*0.34,S*0.34,S*0.24,10,0,STEEL,3); drawGear(S*0.68,S*0.68,S*0.3,13,0.2,'#b9c3d6',3); }},
+      {key:'output',name:'Output shaft',sub:'to the driveshaft',fact:'The bar that leaves the gearbox and heads for the back wheels. In 1st gear it turns slowly but with huge force; in 5th it spins almost as fast as the engine.',
+       hit:(x,y)=>x>G.outX+r2&&x<G.wheelX&&Math.abs(y-G.outY)<Math.max(14,r2*0.25), pos:()=>[(G.outX+G.wheelX)/2,G.outY,26]},
+      {key:'clutch',name:'Clutch',sub:'the “let go” button',fact:'Two plates that can squeeze together or let go. Letting go unhooks the engine from the gears — that is how you can sit still at a red light without the engine stopping.',extra:'An automatic car does this for you, and picks the gears too.',
+       hit:(x,y)=>x>G.engX+G.eR*0.7&&x<G.inX-r1&&Math.abs(y-(G.engY+G.inY)/2)<40, pos:()=>[(G.engX+G.inX)/2,(G.engY+G.inY)/2,26]},
+      {key:'engine',name:'The engine',sub:'chapter 1, spinning',fact:'The engine only makes good power in a narrow range of speeds — roughly 1,500 to 5,000 spins a minute. Gears keep it in that happy range no matter how fast the car is going.',
+       hit:(x,y)=>dist2(x,y,G.engX,G.engY)<G.eR+14, pos:()=>[G.engX,G.engY,G.eR+10]},
+      {key:'wheel',name:'The wheel',sub:'where it all ends up',fact:'One turn of the wheel carries the car about six and a half feet. At 60 mph a wheel is spinning about 800 times a minute.',
+       hit:(x,y)=>dist2(x,y,G.wheelX,G.wheelY)<G.wR+12, pos:()=>[G.wheelX,G.wheelY,G.wR+8]},
+    ];
+  }
+  function dist2(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+
+  function setGear(g){
+    gear=g; NAMES.forEach((_,i)=>$('g'+(i+1)).classList.toggle('on',i===g));
+    setStat(stat());
+  }
+  function update(dt){
+    const t=TEETH[gear];
+    r1=lerp(r1,t[0]*G.k,1-Math.pow(0.001,dt)); r2=lerp(r2,t[1]*G.k,1-Math.pow(0.001,dt));
+    G.eR=Math.min(V.w*(G.narrow?0.075:0.055),V.h*0.085); G.wR=G.eR*1.15;
+    if(G.narrow){
+      G.inY=G.outY=(G.boxT+G.boxB)/2;
+      G.inX=G.boxL+Math.max(6,(G.boxR-G.boxL-2*(r1+r2))/2)+r1;
+      G.outX=G.inX+r1+r2;
+      G.engY=G.inY; G.wheelY=G.outY;
+      G.cyIn=G.inY; G.cyOut=G.outY;
+    }else{
+      G.inX=G.outX=G.cx;
+      G.cyIn=G.inY=G.boxT+Math.max(6,(G.boxB-G.boxT-2*(r1+r2))/2)+r1;
+      G.cyOut=G.outY=G.inY+r1+r2;
+      G.wheelY=clamp(G.outY,G.boxT+G.wR,G.roadY-G.wR-4);
+    }
+    const ratio=RATIOS[gear];
+    if(going){
+      const A=2.9, drag=0.35+0.00055*mph*mph, up=hill?3.0:0;
+      const acc=A*ratio*torqueAt(rpm)-drag-up;
+      mph=Math.max(0,mph+acc*dt);
+      if(acc<0&&mph<2.5){ going=false; mph=0; stallT=2.6; $('btnGo').classList.remove('on'); }
+      if(rpm>6150) redT=1.2;
+    }else{
+      mph=Math.max(0,mph-6*dt);
+    }
+    const wantRpm=going||mph>1 ? Math.max(750,mph/MPH_PER_OUT*ratio*FINAL) : 750;
+    rpm=lerp(rpm,Math.min(wantRpm,6600),1-Math.pow(0.02,dt));
+    const outRev=mph/MPH_PER_OUT/60;                     // output-shaft turns per second
+    angOut+=outRev*TAU*0.22*dt; angIn-=outRev*ratio*TAU*0.22*dt;
+    if(!going&&mph<=0){ angIn-=rpm/60*TAU*0.02*dt; }
+    dist+=mph*1.4667*dt;
+    if(stallT>0) stallT-=dt;
+    if(redT>0) redT-=dt;
+    if(dist>1e6) dist=0;
+    statT+=dt; if(statT>0.15){ statT=0; setStat(stat()); }
+  }
+
+  function tach(x,y,r){
+    disc(x,y,r,'#20203a',3);
+    ctx.save(); ctx.translate(x,y);
+    for(let i=0;i<=7;i++){ const a=Math.PI*0.75+i*Math.PI*1.5/7;
+      line(Math.cos(a)*r*0.72,Math.sin(a)*r*0.72,Math.cos(a)*r*0.88,Math.sin(a)*r*0.88,i>=6?BRAKE_R:WHITE,i%1===0?2.5:1.5);
+      if(!G.narrow) label(''+i,Math.cos(a)*r*0.58,Math.sin(a)*r*0.58,{size:r*0.2,color:i>=6?BRAKE_R:WHITE}); }
+    const a=Math.PI*0.75+clamp(rpm/7000,0,1)*Math.PI*1.5;
+    line(0,0,Math.cos(a)*r*0.8,Math.sin(a)*r*0.8,GOLD,Math.max(2.5,r*0.09));
+    disc(0,0,r*0.12,GOLD,2);
+    label('rpm ×1000',0,r*0.42,{size:Math.max(9,r*0.17),color:WHITE});
+    ctx.restore();
+  }
+  function bar(x,y,w,h,frac,col,txt){
+    box(x,y,w,h,h/2,'#e2e7f0',2.5);
+    if(frac>0.02){ ctx.save(); rrect(x,y,w,h,h/2); ctx.clip(); box(x,y,Math.max(h,w*frac),h,h/2,col,0); ctx.restore(); }
+    box(x,y,w,h,h/2,'rgba(0,0,0,0)',2.5);
+    label(txt,x+8,y+h/2,{size:Math.max(10,h*0.62),dark:true,align:'left'});
+  }
+
+  function draw(){
+    ctx.fillStyle='#eef1f8'; ctx.fillRect(0,0,V.w,V.h);
+    // ---- the road strip with the car ----
+    drawRoad(G.roadY,G.roadH,dist*3);
+    if(hill){ ctx.save(); ctx.fillStyle='#7d8496'; ctx.beginPath();
+      ctx.moveTo(V.w*0.55,G.roadY+G.roadH); ctx.lineTo(V.w,G.roadY-G.roadH*0.55); ctx.lineTo(V.w,G.roadY+G.roadH); ctx.closePath(); ctx.fill();
+      ctx.strokeStyle=INK; ctx.lineWidth=3; ctx.stroke(); ctx.restore();
+      label('⛰️ steep hill',V.w*0.83,G.roadY+G.roadH*0.28,{size:G.narrow?12:15,dark:true}); }
+    const carS=Math.min(V.w*0.19,G.roadH*(G.narrow?0.9:1.5)), cF={x0:V.w*0.06+((dist*2.2)%(V.w*0.42)),gy:G.roadY+G.roadH*(G.narrow?0.92:0.62),s:carS};
+    drawCar(cF,{spin:dist*0.6});
+    if(stallT>0) sign('Chug… chug… STALL! 😵',cF.x0+carS*0.5,G.roadY-14,{size:G.narrow?13:16,fill:BRAKE_R,color:WHITE});
+    else if(redT>0) sign('Engine screaming! Shift up ▶',cF.x0+carS*0.5,G.roadY-14,{size:G.narrow?12:15,fill:GOLD});
+    // ---- the mechanism ----
+    box(G.boxL,G.boxT,G.boxR-G.boxL,G.boxB-G.boxT,18,'#dbe2ee',4);
+    label('GEARBOX',(G.boxL+G.boxR)/2,G.boxT+16,{size:G.narrow?12:15,dark:true,display:true});
+    // engine + clutch
+    disc(G.engX,G.engY,G.eR,'#b9c3d6',3.5);
+    ctx.save(); ctx.translate(G.engX,G.engY); ctx.rotate(angIn);
+    for(let i=0;i<8;i++){ ctx.rotate(TAU/8); line(0,-G.eR*0.3,0,-G.eR*0.8,STEEL_DK,3); } ctx.restore();
+    disc(G.engX,G.engY,G.eR*0.2,STEEL_DK,2);
+    label('🔥 engine',G.engX,G.engY-G.eR-14,{size:G.narrow?11:14,dark:true});
+    line(G.engX,G.engY,G.inX,G.inY,STEEL_DK,Math.max(5,G.eR*0.18));
+    disc((G.engX+G.inX)/2,(G.engY+G.inY)/2,G.eR*0.26,STEEL_LT,2.5);
+    // shafts out
+    line(G.inX,G.inY,Math.min(G.engX,G.boxL),G.inY,STEEL_DK,Math.max(4,r1*0.16));
+    line(G.outX,G.outY,G.wheelX,G.outY,STEEL_DK,Math.max(4,r2*0.12));
+    // the gear pair
+    drawGear(G.inX,G.inY,r1,TEETH[gear][0],angIn,'#cfd7e6',3);
+    drawGear(G.outX,G.outY,r2,TEETH[gear][1],angOut,'#a9b6cf',3);
+    label(TEETH[gear][0]+' teeth',G.inX,G.inY-r1-(G.narrow?9:12),{size:G.narrow?10:13,dark:true});
+    label(TEETH[gear][1]+' teeth',G.outX,G.outY+r2+(G.narrow?11:14),{size:G.narrow?10:13,dark:true});
+    // the wheel it drives
+    ctx.save(); ctx.translate(G.wheelX,G.wheelY); ctx.rotate(angOut);
+    disc(0,0,G.wR,'#2f2c3a',3); disc(0,0,G.wR*0.55,STEEL,2.5);
+    for(let i=0;i<5;i++){ ctx.rotate(TAU/5); line(0,0,0,-G.wR*0.45,STEEL_DK,3); } ctx.restore();
+    label('🛞 wheel',G.wheelX,G.wheelY-G.wR-14,{size:G.narrow?11:14,dark:true});
+    // the trade-off bars
+    const bw=Math.min(V.w*(G.narrow?0.5:0.25),220), bx=G.barX, by=G.barY, bh=G.narrow?15:19;
+    if(G.narrow) box(bx-7,by-7,bw+14,bh*2+46,12,'rgba(255,253,247,.92)',2.5);
+    bar(bx,by,bw,bh,clamp(RATIOS[gear]/3.5,0,1),FIRE,'💪 twisting force');
+    bar(bx,by+bh+8,bw,bh,clamp((1/RATIOS[gear])/1.25,0,1),SKY,'🏃 top speed');
+    label(NAMES[gear]+' gear · '+RATIOS[gear].toFixed(1)+' turns of the engine = 1 turn out',bx,by+bh*2+26,{size:G.narrow?10:12,dark:true,align:'left'});
+    // tachometer
+    if(!G.narrow) tach(V.w*0.91,G.boxT+(G.narrow?38:52),Math.min(V.w*0.07,V.h*0.115));
+  }
+  function hit(x,y){ for(const it of items) if(it.hit(x,y)) return it; return null; }
+  function stat(){ return '<span>🚗 '+Math.round(mph)+' mph</span><span>⚙️ '+Math.round(rpm/50)*50+' rpm</span><span>🔢 '+NAMES[gear]+'</span>'; }
+
+  NAMES.forEach((_,i)=>$('g'+(i+1)).addEventListener('click',()=>setGear(i)));
+  $('togHill').addEventListener('click',()=>{ hill=!hill; $('togHill').classList.toggle('on',hill); });
+  $('btnGo').addEventListener('click',()=>{ going=!going; $('btnGo').classList.toggle('on',going); if(going){ stallT=0; } });
+
+  function quest(){
+    const start=()=>{ going=false; mph=0; $('btnGo').classList.remove('on'); };
+    return {id:'gears',title:'⚙️ Pick the right gear',questPos:'tr',steps:[
+      {prompt:'The light turns green and you are stopped. Which gear gets the car <b>moving</b>?',
+       onShow(){ start(); hill=false; $('togHill').classList.remove('on'); },
+       options:[{text:'1st — small gear turns big gear',ok:true,say:'Yes! Slow, but LOTS of twist. Try pressing Go!'},
+                {text:'5th — big gear turns small gear',say:'Try it: press 5, then Go. The engine chugs and stalls.'},
+                {text:'It does not matter',say:'It really does — try 5th and press Go!'}]},
+      {prompt:'Now you are cruising on the highway at 60. Which gear keeps the engine <b>calm and quiet</b>?',
+       options:[{text:'5th',ok:true,say:'Right — the engine spins slower than the wheels. Quiet and thirsty-free.'},
+                {text:'1st',say:'The engine would be screaming at 6,000 rpm!'},
+                {text:'3rd',say:'Closer — but there is a taller gear than that.'}]},
+      {prompt:'You are at the bottom of a <b>steep hill</b> in 5th gear and you press the gas. What happens?',
+       onShow(){ start(); hill=true; $('togHill').classList.add('on'); setGear(4); },
+       options:[{text:'The engine chugs and stalls',ok:true,say:'Exactly — try it! Not enough twist to climb.'},
+                {text:'The car zooms up',say:'Give it a try: 5th gear, hill on, press Go.'},
+                {text:'The car goes backwards',say:'No — but it will not climb either. Try it!'}]},
+      {prompt:'Last one: <b>why</b> does 1st gear feel so strong?',
+       options:[{text:'A little gear spins a big gear — more twist, less speed',ok:true,say:'That is the whole trick of gears. Badge earned!'},
+                {text:'The engine makes more bangs in 1st',say:'The engine has no idea which gear you picked.'},
+                {text:'The wheels get bigger',say:'The wheels never change size!'}]},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ setStat(stat()); }, leave(){ going=false; $('btnGo').classList.remove('on'); }};
+})();
+
+/* =====================================================================
+   CHAPTER 3 · DRIVESHAFT, AXLES & THE DIFFERENTIAL — the car seen from
+   above. The spin travels down the middle of the car, then splits to
+   the two back wheels. In a turn the outside wheel has farther to go,
+   so it MUST spin faster — the differential is what allows that.
+   Locking it (the toggle) makes the inside wheel skid, which is exactly
+   what would happen with one solid bar.
+   ===================================================================== */
+SCENES.axles=(()=>{
+  const A={}; let items=[], skids=[], puffs=[];
+  let turn=0, lock=false, spinL=0, spinR=0, spider=0, t=0;
+  const MPH=20, TRACK=5, RAD=40;                 // 20 mph, 5 ft between the back wheels, 40 ft circle
+
+  function wheelRpm(side){                        // side: -1 left, +1 right
+    if(turn===0) return 266;
+    const inner = (turn<0 ? -1 : 1);              // turning left -> the left wheel is the inner one
+    const r = RAD + (side===inner ? -TRACK/2 : TRACK/2);
+    return Math.round(266*r/RAD);
+  }
+  function layout(){
+    const W=V.w,H=V.h; A.narrow=W<640;
+    A.s=A.narrow?Math.min(W*0.88,H*0.62):Math.min(W*0.60,H*1.30);
+    A.T={x0:A.narrow?W*0.06:W*0.05, cy:H*(A.narrow?0.70:0.62), s:A.s};   // low enough to clear the caption
+    A.hw=TOPW/2*A.s;
+    A.diffX=A.T.x0+0.215*A.s; A.diffY=A.T.cy;
+    A.insetR=A.narrow?Math.min(W*0.17,H*0.13):Math.min(W*0.115,H*0.19);
+    A.insetX=W-A.insetR-(A.narrow?18:16); A.insetY=A.narrow?H*0.40:A.insetR+26;
+    items=[
+      {key:'driveshaft',name:'Driveshaft',sub:'the long spinning bar',fact:'A metal tube running down the middle of the car, under the floor. It carries the spin from the gearbox all the way to the back wheels — turning about 20 times a second at highway speed.',
+       hit:(x,y)=>x>A.diffX&&x<A.T.x0+0.72*A.s&&Math.abs(y-A.T.cy)<A.s*0.05, pos:()=>[A.T.x0+0.5*A.s,A.T.cy,A.s*0.06],
+       thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); box(S*0.08,S*0.42,S*0.84,S*0.16,S*0.08,STEEL,3); disc(S*0.3,S*0.5,S*0.08,STEEL_DK,2); disc(S*0.7,S*0.5,S*0.08,STEEL_DK,2); }},
+      {key:'diff',name:'Differential',sub:'the clever box',fact:'The box where the spin turns a corner and splits in two. Little gears inside let one wheel spin faster than the other — otherwise a wheel would have to skid every time you turned.',extra:'It also gears things down one more time: about 3½ more turns of the driveshaft for each turn of the wheels.',
+       hit:(x,y)=>Math.hypot(x-A.diffX,y-A.diffY)<A.s*0.09||Math.hypot(x-A.insetX,y-A.insetY)<A.insetR,
+       pos:()=>[A.diffX,A.diffY,A.s*0.1],
+       thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); disc(S*0.5,S*0.5,S*0.32,'#b9c3d6',3); disc(S*0.5,S*0.5,S*0.12,STEEL_DK,2); disc(S*0.5,S*0.22,S*0.09,STEEL,2); disc(S*0.5,S*0.78,S*0.09,STEEL,2); }},
+      {key:'axle',name:'Axle',sub:'half-shaft',fact:'Two short bars, one to each back wheel. They are what actually turn the wheels. On a bumpy road they bend at their joints while they keep spinning.',
+       hit:(x,y)=>Math.abs(x-A.diffX)<A.s*0.06&&Math.abs(y-A.T.cy)>A.s*0.04&&Math.abs(y-A.T.cy)<A.hw+A.s*0.1,
+       pos:()=>[A.diffX,A.T.cy-A.hw*0.6,A.s*0.06]},
+      {key:'rearL',name:'Back wheel (left)',sub:'a driven wheel',fact:'The back wheels are the ones being pushed round by the engine on this car. On many cars it is the front wheels instead — and on some, all four.',
+       hit:(x,y)=>Math.hypot(x-(A.T.x0+0.215*A.s),y-(A.T.cy-A.hw))<A.s*0.1, pos:()=>[A.T.x0+0.215*A.s,A.T.cy-A.hw,A.s*0.1]},
+      {key:'rearR',name:'Back wheel (right)',sub:'a driven wheel',fact:'In a turn this wheel and its partner spin at different speeds — watch the numbers when you steer. On a straight road they match exactly.',
+       hit:(x,y)=>Math.hypot(x-(A.T.x0+0.215*A.s),y-(A.T.cy+A.hw))<A.s*0.1, pos:()=>[A.T.x0+0.215*A.s,A.T.cy+A.hw,A.s*0.1]},
+      {key:'front',name:'Front wheels',sub:'just along for the ride',fact:'On this car the front wheels are not powered at all. They roll freely and do the steering — that is the next chapter.',
+       hit:(x,y)=>Math.hypot(x-(A.T.x0+0.775*A.s),y-A.T.cy)<A.s*0.3&&x>A.T.x0+0.66*A.s, pos:()=>[A.T.x0+0.775*A.s,A.T.cy-A.hw,A.s*0.1]},
+      {key:'engine',name:'Engine + gearbox',sub:'up front',fact:'In most cars the engine and gearbox sit over the front wheels, and the driveshaft carries the spin backwards. That is why there is a bump down the middle of the floor inside the car!',
+       hit:(x,y)=>x>A.T.x0+0.80*A.s&&Math.abs(y-A.T.cy)<A.hw, pos:()=>[A.T.x0+0.9*A.s,A.T.cy,A.s*0.1]},
+    ];
+  }
+  function setTurn(v){
+    turn=v; skids=[];
+    [['tLeft',-1],['tStraight',0],['tRight',1]].forEach(([id,val])=>$(id).classList.toggle('on',val===turn));
+    setStat(stat());
+  }
+  function update(dt){
+    t+=dt;
+    const rl=lock?266:wheelRpm(-1), rr=lock?266:wheelRpm(1);
+    spinL+=rl/60*TAU*0.25*dt; spinR+=rr/60*TAU*0.25*dt;
+    spider=lock?0:lerp(spider,turn===0?0:turn*1,1-Math.pow(0.05,dt));
+    if(lock&&turn!==0&&!REDUCED){
+      const inner=turn<0?-1:1, py=A.T.cy+inner*A.hw;
+      if(rnd()<dt*14) puffs.push({x:A.T.x0+0.215*A.s+(rnd()-.5)*A.s*0.1,y:py+(rnd()-.5)*A.s*0.05,r:A.s*0.02,t:0});
+    }
+    puffs.forEach(p=>{ p.t+=dt; p.r+=dt*A.s*0.06; }); puffs=puffs.filter(p=>p.t<1);
+  }
+
+  function drawInset(){
+    const x=A.insetX,y=A.insetY,R=A.insetR;
+    disc(x,y,R+4,WHITE,3.5);
+    ctx.save(); ctx.beginPath(); ctx.arc(x,y,R,0,TAU); ctx.clip();
+    ctx.fillStyle='#e4eaf5'; ctx.fillRect(x-R,y-R,R*2,R*2);
+    // ring gear (the case) with the two axle gears and the spider gears between them
+    const spin=spinL*0.5+spinR*0.5;
+    drawGear(x,y,R*0.82,26,spin*0.4,'#c3ccdd',2.5,0.1);
+    drawGear(x,y-R*0.42,R*0.3,11,-spinL,'#9fb0cc',2);
+    drawGear(x,y+R*0.42,R*0.3,11,-spinR,'#9fb0cc',2);
+    const sp=(spinR-spinL)*0.9;
+    drawGear(x-R*0.42,y,R*0.28,10,sp,lock?'#c8ccd6':GOLD,2);
+    drawGear(x+R*0.42,y,R*0.28,10,-sp,lock?'#c8ccd6':GOLD,2);
+    ctx.restore();
+    ring(x,y,R,INK,3.5);
+    label(turn===0||lock?'the little gears sit still':'the little gears spin!',x,y+R+(A.narrow?11:14),{size:A.narrow?10:12,dark:true});
+    label('inside the differential',x,y-R-(A.narrow?11:14),{size:A.narrow?10:12,dark:true});
+  }
+
+  function draw(){
+    // road from above
+    ctx.fillStyle=ROAD; ctx.fillRect(0,0,V.w,V.h);
+    ctx.fillStyle='rgba(255,255,255,.06)';
+    for(let i=0;i<40;i++){ const rr=seeded(i+1); ctx.fillRect(rr()*V.w,rr()*V.h,3,3); }
+    // the path each back wheel traces
+    const T=A.T, rearX=T.x0+0.215*A.s;
+    if(turn!==0){
+      const cx=rearX, cy=T.cy+turn*A.s*1.6;
+      [[-1,'#9fe3ff'],[1,'#ffd6a5']].forEach(([side,col])=>{
+        const inner=turn<0?-1:1, rr=A.s*1.6+(side===inner?-A.hw:A.hw);
+        ctx.save(); ctx.setLineDash([10,9]); ctx.lineDashOffset=-t*30*(side===inner?1:1.13);
+        ring(cx,cy,rr,col,3); ctx.restore();
+      });
+      label(turn<0?'↰ turning left':'↱ turning right',V.w*0.5,V.h*0.965,{size:A.narrow?13:17,display:true});
+    }
+    // skid marks under the locked inner wheel
+    if(lock&&turn!==0){
+      const inner=turn<0?-1:1, py=T.cy+inner*A.hw;
+      ctx.save(); ctx.globalAlpha=.55; ctx.strokeStyle='#1c1a2b'; ctx.lineWidth=A.s*0.05; ctx.lineCap='butt';
+      ctx.beginPath(); ctx.moveTo(rearX-A.s*0.5,py); ctx.lineTo(rearX+A.s*0.06,py); ctx.stroke(); ctx.restore();
+    }
+    puffs.forEach(p=>{ ctx.save(); ctx.globalAlpha=clamp(0.5*(1-p.t),0,1); disc(p.x,p.y,p.r,'#e7e9ee',0); ctx.restore(); });
+    // the car
+    drawCarTop(T,{});
+    // drivetrain drawn on top of the body, like an x-ray
+    ctx.save(); ctx.globalAlpha=.96;
+    box(T.x0+0.80*A.s,T.cy-A.hw*0.8,A.s*0.16,A.hw*1.6,A.s*0.03,'#c3ccdd',3);
+    label('🔥⚙️',T.x0+0.88*A.s,T.cy,{size:A.narrow?14:18});
+    // driveshaft with a spinning stripe
+    const shX0=rearX, shX1=T.x0+0.80*A.s;
+    box(shX0,T.cy-A.s*0.028,shX1-shX0,A.s*0.056,A.s*0.028,STEEL,3);
+    ctx.save(); ctx.beginPath(); rrect(shX0,T.cy-A.s*0.028,shX1-shX0,A.s*0.056,A.s*0.028); ctx.clip();
+    ctx.strokeStyle=STEEL_DK; ctx.lineWidth=3;
+    for(let i=-6;i<26;i++){ const px=shX0+((i*A.s*0.05+((spinL+spinR)*A.s*0.02))%(shX1-shX0+A.s*0.3));
+      ctx.beginPath(); ctx.moveTo(px,T.cy-A.s*0.028); ctx.lineTo(px-A.s*0.03,T.cy+A.s*0.028); ctx.stroke(); }
+    ctx.restore();
+    disc((shX0+shX1)/2,T.cy,A.s*0.032,STEEL_LT,2.5);
+    // the two axles
+    [[-1,spinL],[1,spinR]].forEach(([side,sp])=>{
+      box(rearX-A.s*0.022,side<0?T.cy-A.hw:T.cy+A.s*0.03,A.s*0.044,A.hw-A.s*0.03,A.s*0.02,STEEL,3);
+      const py=T.cy+side*A.hw;
+      // the wheel and its marker so you can see the speed difference
+      drawTopWheel(T,0.215,side*TOPW/2,0,{skid:lock&&turn!==0&&((turn<0?-1:1)===side)});
+      ctx.save(); ctx.translate(rearX,py); line(0,0,Math.cos(sp)*A.s*0.055,Math.sin(sp)*A.s*0.02,GOLD,3.5); ctx.restore();
+      const rpmv=lock?266:wheelRpm(side);
+      sign(rpmv+' rpm',rearX+A.s*0.15,py,{size:A.narrow?11:13,fill:turn===0||lock?WHITE:(rpmv>266?'#ffe1b8':'#cdeeff')});
+    });
+    // differential housing
+    disc(A.diffX,A.diffY,A.s*0.075,'#b9c3d6',3.5);
+    disc(A.diffX,A.diffY,A.s*0.03,STEEL_DK,2);
+    if(lock){ label('🔒',A.diffX,A.diffY,{size:A.narrow?14:18}); }
+    // front wheels
+    drawTopWheel(T,0.775,-TOPW/2,0,{}); drawTopWheel(T,0.775,TOPW/2,0,{});
+    ctx.restore();
+    drawInset();
+    if(lock&&turn!==0) sign('SCREECH! the inside wheel is skidding',V.w*0.42,V.h*0.93,{size:A.narrow?12:15,fill:BRAKE_R,color:WHITE});
+    else if(lock) sign('locked — fine in a straight line',V.w*0.42,V.h*0.93,{size:A.narrow?12:15,fill:GOLD});
+  }
+  function hit(x,y){ for(const it of items) if(it.hit(x,y)) return it; return null; }
+  function stat(){
+    if(turn===0) return '<span>🚗 20 mph</span><span>◀ 266 rpm</span><span>266 rpm ▶</span>';
+    return '<span>🚗 20 mph</span><span>◀ '+wheelRpm(-1)+' rpm</span><span>'+wheelRpm(1)+' rpm ▶</span>';
+  }
+  $('tLeft').addEventListener('click',()=>setTurn(-1));
+  $('tStraight').addEventListener('click',()=>setTurn(0));
+  $('tRight').addEventListener('click',()=>setTurn(1));
+  $('togLock').addEventListener('click',()=>{ lock=!lock; $('togLock').classList.toggle('on',lock); setStat(stat()); });
+
+  function quest(){
+    return {id:'axles',title:'🔩 The turning problem',questPos:'tr',steps:[
+      {prompt:'The car turns <b>left</b>. Which back wheel has farther to travel?',
+       onShow(){ lock=false; $('togLock').classList.remove('on'); setTurn(-1); },
+       options:[{text:'The right one (outside)',ok:true,say:'Yes — the outside wheel swings around the big circle.'},
+                {text:'The left one (inside)',say:'Look at the dashed circles — the inside one is smaller.'},
+                {text:'They go the same distance',say:'Check the two dashed circles. One is bigger!'}]},
+      {prompt:'Farther to go, in the same time, means it has to spin… <b>how</b>?',
+       options:[{text:'Faster',ok:true,say:'Right — look at the rpm numbers on the wheels.'},
+                {text:'Slower',say:'The other way round — more distance in the same time means faster.'},
+                {text:'Backwards',say:'Both wheels still go forwards!'}]},
+      {prompt:'Now <b>tap the part</b> that lets the two back wheels spin at different speeds.',
+       tap:it=>it&&it.key==='diff'?true:(it&&it.key==='axle'?'Close — the axles just carry the spin. Tap the round box where they meet.':false),
+       yes:'The differential. Watch its little gold gears spin when you turn.', no:'Look for the round box in the middle of the back axle.'},
+      {prompt:'What if the two back wheels were bolted to <b>one solid bar</b>? Turn the lock on and steer to find out.',
+       onShow(){ lock=true; $('togLock').classList.add('on'); setTurn(-1); },
+       options:[{text:'One wheel has to skid',ok:true,say:'Screech! That is why every car has a differential.'},
+                {text:'The car turns better',say:'Watch the inside wheel — it is dragging sideways.'},
+                {text:'Nothing changes',say:'Look at the black skid mark under the inside wheel.'}]},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ setStat(stat()); }, leave(){}};
+})();
+
+/* =====================================================================
+   CHAPTER 4 · WHEELS, TIRES, BRAKES — and the belt that holds you.
+   The car really drives the distances: 1.5 seconds of reaction time at
+   full speed, then a slowdown of 22.5 ft/s² on dry road (13 on wet).
+   The big idea is that braking distance grows with the SQUARE of the
+   speed: twice as fast is four times as far.
+   ===================================================================== */
+SCENES.brakes=(()=>{
+  const B={}; let items=[];
+  const WORLD=420;                                  // feet of road we can see
+  let mph=20, wet=false, phase='roll', x=18, v=0, t=0, heat=0, marks=null, wheelSpin=0, dust=[];
+  const DECEL=()=>wet?13:22.5;
+
+  function layout(){
+    const W=V.w,H=V.h; B.narrow=W<640;
+    B.roadY=H*0.62; B.roadH=H*0.24; B.rulerY=B.roadY+B.roadH;
+    B.ft=W/WORLD;                                   // pixels per foot
+    B.carS=Math.min(W*0.16,H*0.30);
+    B.insetR=B.narrow?Math.min(W*0.17,H*0.13):Math.min(W*0.11,H*0.17); B.insetX=W-B.insetR-(B.narrow?16:18); B.insetY=B.narrow?H*0.36:B.insetR+20;
+    items=[
+      {key:'disc',name:'Brake disc + pads',sub:'the squeezer',fact:'A metal disc spins with the wheel. Press the pedal and two pads squeeze it, like your fingers pinching a spinning coin. The rubbing makes heat — a LOT of heat.',extra:'Hard braking can heat a brake disc past 500 °F. That is where the car’s motion goes.',
+       hit:(x2,y2)=>Math.hypot(x2-B.insetX,y2-B.insetY)<B.insetR+6||nearWheel(x2,y2),
+       pos:()=>[B.insetX,B.insetY,B.insetR+6],
+       thumb:S=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S,S); disc(S*0.5,S*0.5,S*0.34,'#b9c3d6',3); box(S*0.14,S*0.36,S*0.16,S*0.28,4,BRAKE_R,2.5); disc(S*0.5,S*0.5,S*0.1,STEEL_DK,2); }},
+      {key:'tread',name:'Tread',sub:'the grooves',fact:'The grooves in a tire are gutters. On a wet road they scoop the water out of the way so the rubber can still touch the road. Worn-smooth tires slide on water.',extra:'Try the Wet button — everything takes much longer to stop.',
+       hit:(x2,y2)=>nearWheel(x2,y2), pos:()=>[carX()+B.carS*WHEEL.front,B.roadY-B.carS*WHEEL.r*0.2,B.carS*0.11],
+       thumb:S=>{ ctx.fillStyle='#2f2c3a'; ctx.fillRect(0,0,S,S); ctx.fillStyle='#5b5f6e'; for(let i=0;i<4;i++) ctx.fillRect(8+i*18,10,9,64); for(let i=0;i<3;i++) ctx.fillRect(6,20+i*20,72,6); }},
+      {key:'patch',name:'Contact patch',sub:'rubber on road',fact:'Only a little patch of each tire actually touches the road — about the size of your hand. Four small patches hold up the whole car, steer it and stop it.',extra:'All four together are roughly one sheet of paper’s worth of rubber.',
+       hit:(x2,y2)=>y2>B.roadY-8&&y2<B.roadY+18&&Math.abs(x2-(carX()+B.carS*0.5))<B.carS*0.6,
+       pos:()=>[carX()+B.carS*WHEEL.rear,B.roadY,B.carS*0.1]},
+      {key:'belt',name:'Seat belt',sub:'what holds YOU',fact:'The brakes stop the car — but you are still flying forward at full speed until something catches you. That is the belt’s job.',extra:'Buckling up in the front seat cuts the risk of being killed in a crash by about half.',
+       hit:(x2,y2)=>{ const P=carPt({x0:carX(),gy:B.roadY,s:B.carS},0.38,0.33); return Math.hypot(x2-P[0],y2-P[1])<B.carS*0.14; },
+       pos:()=>{ const P=carPt({x0:carX(),gy:B.roadY,s:B.carS},0.38,0.33); return [P[0],P[1],B.carS*0.13]; },
+       thumb:S=>{ ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,S,S); disc(S*0.5,S*0.3,S*0.16,'#f6c99a',2.5); box(S*0.34,S*0.46,S*0.32,S*0.36,6,'#5f7fd6',2.5); line(S*0.34,S*0.46,S*0.68,S*0.8,GOLD,7); }},
+      {key:'crumple',name:'Crumple zone',sub:'the squashy front',fact:'The front of a car is built to fold up like an accordion in a crash. Folding takes time — and slowing down over a longer time is much gentler on the people inside.',
+       hit:(x2,y2)=>{ const P=carPt({x0:carX(),gy:B.roadY,s:B.carS},0.93,0.2); return Math.hypot(x2-P[0],y2-P[1])<B.carS*0.13; },
+       pos:()=>{ const P=carPt({x0:carX(),gy:B.roadY,s:B.carS},0.93,0.2); return [P[0],P[1],B.carS*0.12]; }},
+      {key:'abs',name:'ABS',sub:'anti-lock brakes',fact:'If a wheel stops turning it slides, and a sliding tire grips badly. ABS lets go and grabs again many times a second so the wheels keep rolling — that is the buzzing you feel in a hard stop.',
+       hit:(x2,y2)=>y2<B.roadY-B.carS*0.5&&x2<V.w*0.5&&y2>V.h*0.06, pos:()=>[V.w*0.25,V.h*0.2,40]},
+    ];
+  }
+  function carX(){ return clamp(x*B.ft-B.carS*0.5,-B.carS,V.w); }
+  function nearWheel(px,py){
+    const F={x0:carX(),gy:B.roadY,s:B.carS};
+    return [WHEEL.rear,WHEEL.front].some(w=>{ const P=carPt(F,w,WHEEL.r); return Math.hypot(px-P[0],py-P[1])<B.carS*0.13; });
+  }
+  function reset(){ phase='roll'; x=18; v=mph*1.4667; marks=null; heat=0; dust=[]; }
+  function setSpeed(m){ mph=m; ['s20','s40','s60'].forEach((id,i)=>$(id).classList.toggle('on',[20,40,60][i]===m)); reset(); setStat(stat()); }
+
+  function update(dt){
+    t+=dt;
+    if(phase==='roll'){ v=mph*1.4667; x+=v*dt; if(x>WORLD*0.95) x=6; }
+    else if(phase==='react'){ x+=v*dt; if(t>=1.5){ marks.brakeAt=x; phase='brake'; } }
+    else if(phase==='brake'){
+      v=Math.max(0,v-DECEL()*dt); x+=v*dt; heat=Math.min(1,heat+dt*1.5);
+      if(!REDUCED&&rnd()<dt*20) dust.push({x:x*B.ft,y:B.roadY,r:B.carS*0.03,t:0});
+      if(v<=0.01){ phase='stopped'; marks.stopAt=x; }
+    }else{ heat=Math.max(0,heat-dt*0.25); }
+    wheelSpin+=v*dt*0.6;
+    dust.forEach(d=>{ d.t+=dt; d.r+=dt*B.carS*0.1; d.y-=dt*B.carS*0.1; }); dust=dust.filter(d=>d.t<1.1);
+    if(phase!=='roll') setStat(stat());
+  }
+  function brake(){
+    if(phase==='roll'){ marks={seeAt:x}; phase='react'; t=0; }
+    else reset();
+    $('btnBrake').textContent=phase==='roll'?'🛑 BRAKE!':'↺ Again';
+  }
+
+  function flag(ftPos,txt,col){
+    const px=ftPos*B.ft;
+    line(px,B.roadY+B.roadH,px,B.roadY-B.carS*0.55,col,3);
+    box(px,B.roadY-B.carS*0.62,Math.min(V.w*0.2,txt.length*(B.narrow?6.4:7.6)+16),B.narrow?17:21,6,col,2.5);
+    label(txt,px+8,B.roadY-B.carS*0.62+(B.narrow?9:11),{size:B.narrow?10:12,align:'left',color:WHITE});
+  }
+  function drawBrakeInset(){
+    const x2=B.insetX,y2=B.insetY,R=B.insetR, hot=heat;
+    disc(x2,y2,R+4,WHITE,3.5);
+    ctx.save(); ctx.beginPath(); ctx.arc(x2,y2,R,0,TAU); ctx.clip();
+    ctx.fillStyle='#e4eaf5'; ctx.fillRect(x2-R,y2-R,R*2,R*2);
+    const discCol=hot>0.02?mix('#b9c3d6',BRAKE_R,clamp(hot,0,1)):'#b9c3d6';
+    disc(x2,y2,R*0.78,discCol,3);
+    ctx.save(); ctx.translate(x2,y2); ctx.rotate(wheelSpin*0.6);
+    for(let i=0;i<10;i++){ ctx.rotate(TAU/10); line(0,-R*0.3,0,-R*0.66,'rgba(93,104,128,.5)',3); } ctx.restore();
+    disc(x2,y2,R*0.2,STEEL_DK,2.5);
+    const squeeze=(phase==='brake'?1:0)*R*0.08;
+    line(x2-R*0.9,y2-R*0.55,x2-R*0.62,y2-R*0.2,'#8d95a8',R*0.09);   // the hose that carries the squeeze
+    [[-1],[1]].forEach(([s])=>{ box(x2+s*(R*0.62-squeeze)-R*0.07,y2-R*0.34,R*0.14,R*0.68,4,phase==='brake'?BRAKE_R:'#8d95a8',2.5); });
+    box(x2-R*0.85,y2-R*0.5,R*0.24,R,6,'#8d95a8',2.5);
+    if(hot>0.3&&!REDUCED){ ctx.save(); ctx.globalAlpha=(hot-0.3)*0.8;
+      for(let i=0;i<5;i++){ const a=now*2+i; disc(x2+Math.cos(a)*R*0.7,y2-R*0.6-((now*30+i*18)%40),R*0.09,'#ffd6a5',0); } ctx.restore(); }
+    ctx.restore(); ring(x2,y2,R,INK,3.5);
+    label(phase==='brake'?'squeezing — getting HOT 🔥':'inside a wheel',x2,y2+R+(B.narrow?11:15),{size:B.narrow?10:12,dark:true});
+  }
+
+  function draw(){
+    // sky, ground, road
+    ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,V.w,V.h);
+    ctx.fillStyle='#8fd06b'; ctx.fillRect(0,B.roadY-6,V.w,V.h-B.roadY+6);
+    drawRoad(B.roadY,B.roadH,x*B.ft*0.3,{wet});
+    // the foot ruler
+    ctx.fillStyle=PAPER; ctx.fillRect(0,B.rulerY,V.w,V.h-B.rulerY);
+    line(0,B.rulerY,V.w,B.rulerY,INK,3);
+    for(let f=0;f<=WORLD;f+=20){
+      const px=f*B.ft, big=f%100===0;
+      line(px,B.rulerY,px,B.rulerY+(big?14:7),INK,big?3:1.5);
+      if(big&&f) label(f+' ft',px,B.rulerY+(B.narrow?24:26),{size:B.narrow?10:12,dark:true});
+    }
+    // markers from the last stop
+    if(marks){
+      if(marks.seeAt!==undefined) flag(marks.seeAt,'👀 you see it',SKY);
+      if(marks.brakeAt!==undefined) flag(marks.brakeAt,'🦶 brakes on',GOLD);
+      if(marks.stopAt!==undefined){
+        flag(marks.stopAt,'🛑 stopped',BRAKE_R);
+        const react=Math.round(marks.brakeAt-marks.seeAt), brakeD=Math.round(marks.stopAt-marks.brakeAt);
+        sign('thinking '+react+' ft  +  braking '+brakeD+' ft  =  '+(react+brakeD)+' feet to stop',V.w*0.6,V.h*0.30,{size:B.narrow?12:16,fill:GOLD});
+      }
+    }
+    dust.forEach(d=>{ ctx.save(); ctx.globalAlpha=clamp(.5*(1-d.t),0,1); disc(d.x,d.y,d.r,'#efe6d2',0); ctx.restore(); });
+    // the car
+    const F={x0:carX(),gy:B.roadY,s:B.carS};
+    drawCar(F,{spin:wheelSpin,glow:heat*0.5});
+    // driver + belt
+    const H=carPt(F,0.40,0.36), Bt=carPt(F,0.34,0.24);
+    disc(H[0],H[1],B.carS*0.045,'#f6c99a',2.5);
+    line(H[0]-B.carS*0.01,H[1]+B.carS*0.03,Bt[0],Bt[1],'#5f7fd6',Math.max(3,B.carS*0.05));
+    line(H[0]+B.carS*0.02,H[1]+B.carS*0.02,Bt[0]+B.carS*0.04,Bt[1]+B.carS*0.03,GOLD,Math.max(2,B.carS*0.022));
+    if(phase==='react') sign('😲 “Stop!” — 1½ seconds before your foot even moves',carX()+B.carS*0.5,B.roadY-B.carS*0.9,{size:B.narrow?11:14,fill:SKY,color:WHITE});
+    drawBrakeInset();
+    if(wet) label('🌧️ wet road — much less grip',V.w*0.03,B.roadY+B.roadH*0.5,{size:B.narrow?11:14,align:'left'});
+  }
+  function hit(x2,y2){ for(const it of items) if(it.hit(x2,y2)) return it; return null; }
+  function stat(){
+    const spd=Math.round(v/1.4667);
+    return '<span>🚗 '+spd+' mph</span>'+(marks&&marks.stopAt!==undefined?'<span>📏 '+Math.round(marks.stopAt-marks.seeAt)+' ft to stop</span>':'')+(wet?'<span>🌧️ wet</span>':'');
+  }
+  [20,40,60].forEach((m,i)=>$(['s20','s40','s60'][i]).addEventListener('click',()=>setSpeed(m)));
+  $('togWet').addEventListener('click',()=>{ wet=!wet; $('togWet').classList.toggle('on',wet); reset(); });
+  $('btnBrake').addEventListener('click',brake);
+
+  function quest(){
+    return {id:'brakes',title:'🛞 Stopping',questPos:'tr',steps:[
+      {prompt:'At <b>20 mph</b> the brakes need about <b>20 feet</b>. Try 40 mph — twice as fast. How far?',
+       onShow(){ setSpeed(40); },
+       options:[{text:'About 80 feet — four times as far',ok:true,say:'Yes! Double the speed, FOUR times the braking distance.'},
+                {text:'About 40 feet — twice as far',say:'Press BRAKE at 40 and read the ruler. It is worse than double!'},
+                {text:'The same, about 20 feet',say:'Try it — press BRAKE and watch the flags.'}]},
+      {prompt:'Now <b>tap the part</b> that turns all that motion into heat.',
+       tap:it=>it&&it.key==='disc'?true:(it&&(it.key==='tread'||it.key==='patch')?'Close! The tires hold the road — but something inside the wheel is doing the squeezing.':false),
+       yes:'The brake disc and pads. Watch them glow red.', no:'Look inside the wheel — there is a close-up in the corner.'},
+      {prompt:'The brakes squeeze the <b>wheels</b>. So what actually stops the <b>car</b>?',
+       options:[{text:'The tires gripping the road',ok:true,say:'Right — four hand-sized patches of rubber. On ice they can’t grip, so you slide.'},
+                {text:'The engine',say:'The engine makes the car go, not stop.'},
+                {text:'The steering wheel',say:'That points the car, it does not slow it.'}]},
+      {prompt:'The car stops in 80 feet. <b>You</b> are still moving at 40 mph. Tap the thing that catches you.',
+       tap:it=>it&&it.key==='belt'?true:(it&&it.key==='crumple'?'The crumple zone helps the car — but tap what holds YOU in the seat.':false),
+       yes:'Your seat belt. Buckling up cuts the risk of being killed by about half.', no:'Look inside the car, at the driver.'},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ reset(); setStat(stat()); $('btnBrake').textContent='🛑 BRAKE!'; }, leave(){}};
+})();
+
+/* =====================================================================
+   CHAPTER 5 · STEERING — rack and pinion, seen from above with the roof
+   off. The steering wheel turns a little round gear (the pinion); its
+   teeth push a toothed bar (the rack) sideways; the bar pushes both
+   front wheels the same way. The inset drives the car around the circle
+   that steering angle actually gives you.
+   ===================================================================== */
+SCENES.steering=(()=>{
+  const S={}; let items=[];
+  const MAXANG=0.58;                                 // ~33° at full lock
+  const WHEELBASE=9.2;                               // feet
+  let steer=0, want=0, roll=false, hd=0, px=0, py=0, trail=[], tt=0;
+
+  function layout(){
+    const W=V.w,H=V.h; S.narrow=W<640;
+    S.s=S.narrow?Math.min(W*0.90,H*0.62):Math.min(W*0.62,H*1.30);   // same framing as the axles chapter
+    S.T={x0:W*(S.narrow?0.05:0.05), cy:H*(S.narrow?0.52:0.62), s:S.s};
+    S.hw=TOPW/2*S.s;
+    S.insetW=S.narrow?Math.min(W*0.32,H*0.22):Math.min(W*0.26,H*0.42); S.insetX=W-S.insetW-14; S.insetY=H-S.insetW-(S.narrow?44:16);
+    items=[
+      {key:'wheel',name:'Steering wheel',sub:'what you hold',fact:'Turning it does not push the wheels directly — it turns a shaft with a little gear on the end. About three whole turns takes you from full left to full right.',
+       hit:(x,y)=>Math.hypot(x-S.swx,y-S.swy)<S.s*0.075, pos:()=>[S.swx,S.swy,S.s*0.075],
+       thumb:S2=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S2,S2); ring(S2*0.5,S2*0.5,S2*0.3,'#2f2c3a',9); disc(S2*0.5,S2*0.5,S2*0.1,STEEL_DK,2.5); line(S2*0.2,S2*0.5,S2*0.8,S2*0.5,'#2f2c3a',7); }},
+      {key:'pinion',name:'Pinion',sub:'the little round gear',fact:'A small gear on the bottom of the steering shaft. Its teeth sit in the teeth of the rack, so when it turns, the rack has to slide.',
+       hit:(x,y)=>Math.hypot(x-S.pinX,y-S.pinY)<S.s*0.05, pos:()=>[S.pinX,S.pinY,S.s*0.05]},
+      {key:'rack',name:'Rack',sub:'the sliding toothed bar',fact:'A straight bar with teeth cut into it, lying across the car. The pinion turns and the rack slides left or right — that sideways slide is what points the wheels.',extra:'Rack and pinion: two gears, one round and one straight.',
+       hit:(x,y)=>Math.abs(x-S.rackX)<S.s*0.045&&Math.abs(y-S.T.cy)<S.hw*1.1, pos:()=>[S.rackX,S.T.cy+S.rackOff,S.s*0.06],
+       thumb:S2=>{ ctx.fillStyle='#dfe6f2'; ctx.fillRect(0,0,S2,S2); box(S2*0.06,S2*0.42,S2*0.88,S2*0.16,4,STEEL,3); ctx.fillStyle=STEEL_DK; for(let i=0;i<7;i++) ctx.fillRect(S2*0.1+i*S2*0.12,S2*0.34,S2*0.06,S2*0.09); }},
+      {key:'tierod',name:'Tie rod',sub:'the push-bar',fact:'One short bar from each end of the rack out to a wheel. Both wheels get pushed at once, so they always point the same way.',
+       hit:(x,y)=>Math.abs(y-(S.T.cy-S.hw*0.6))<S.hw*0.5&&x>S.rackX&&x<S.frontX||Math.abs(y-(S.T.cy+S.hw*0.6))<S.hw*0.5&&x>S.rackX&&x<S.frontX,
+       pos:()=>[(S.rackX+S.frontX)/2,S.T.cy-S.hw*0.7,S.s*0.05]},
+      {key:'front',name:'Front wheels',sub:'the steered pair',fact:'Only the front wheels turn. The back wheels always point straight ahead and just follow — which is why the back of the car cuts the corner.',extra:'Big trucks and some fancy cars can steer the back wheels a little too.',
+       hit:(x,y)=>Math.hypot(x-S.frontX,y-(S.T.cy-S.hw))<S.s*0.1||Math.hypot(x-S.frontX,y-(S.T.cy+S.hw))<S.s*0.1,
+       pos:()=>[S.frontX,S.T.cy-S.hw,S.s*0.1]},
+      {key:'circle',name:'Turning circle',sub:'how tight you can turn',fact:'At full lock a normal car draws a circle about 35 feet across — a bit wider than a school bus is long. Turn the wheel more and the circle gets smaller.',
+       hit:(x,y)=>x>S.insetX&&y>S.insetY, pos:()=>[S.insetX+S.insetW/2,S.insetY+S.insetW/2,S.insetW*0.5]},
+    ];
+  }
+  function setSteer(v){
+    want=clamp(v,-1,1);
+    $('wLeft').classList.toggle('on',want<0); $('wRight').classList.toggle('on',want>0); $('wCenter').classList.toggle('on',want===0);
+    setStat(stat());
+  }
+  function update(dt){
+    steer=lerp(steer,want,1-Math.pow(0.004,dt));
+    tt+=dt;
+    if(roll){
+      const ang=steer*MAXANG, sp=14;                 // ~10 mph
+      const rate = Math.tan(ang)/WHEELBASE*sp;
+      hd+=rate*dt; px+=Math.cos(hd)*sp*dt; py+=Math.sin(hd)*sp*dt;
+      if(tt>0.06){ trail.push([px,py]); tt=0; if(trail.length>420) trail.shift(); }
+    }
+    setStat(stat());
+  }
+  function radiusFt(){ const a=Math.abs(steer)*MAXANG; return a<0.02?Infinity:WHEELBASE/Math.tan(a); }
+
+  function drawInset(){
+    const x=S.insetX,y=S.insetY,W=S.insetW;
+    box(x,y,W,W,16,'#6d7385',3.5);
+    ctx.save(); rrect(x,y,W,W,16); ctx.clip();
+    const sc=W/95, cx=x+W/2, cy=y+W/2;
+    // the trail the car has left
+    if(trail.length>1){ ctx.strokeStyle='rgba(255,210,63,.85)'; ctx.lineWidth=3; ctx.setLineDash([7,6]); ctx.beginPath();
+      trail.forEach((p,i)=>{ const sx=cx+(p[0]-px)*sc, sy=cy+(p[1]-py)*sc; i?ctx.lineTo(sx,sy):ctx.moveTo(sx,sy); }); ctx.stroke(); ctx.setLineDash([]); }
+    // the car itself, nose along its heading
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(hd);
+    const cs=W*0.20; drawCarTop({x0:-cs*0.5,cy:0,s:cs},{}); ctx.restore();
+    ctx.restore();
+    box(x,y,W,W,16,'rgba(0,0,0,0)',3.5);
+    const R=radiusFt();
+    label(R===Infinity?'straight ahead':'circle about '+Math.round(R*2/5)*5+' feet across',x+W/2,y+W-13,{size:S.narrow?10:12});
+    label(roll?'🚗 driving':'press Drive ▶',x+W/2,y+13,{size:S.narrow?10:12});
+  }
+
+  function draw(){
+    ctx.fillStyle=ROAD; ctx.fillRect(0,0,V.w,V.h);
+    ctx.fillStyle='rgba(255,255,255,.05)';
+    for(let i=0;i<50;i++){ const rr=seeded(i+2); ctx.fillRect(rr()*V.w,rr()*V.h,3,3); }
+    const T=S.T, ang=steer*MAXANG;
+    S.frontX=T.x0+0.775*S.s; S.rackX=T.x0+0.705*S.s;
+    S.swx=T.x0+0.50*S.s; S.swy=T.cy-S.hw*0.55;
+    S.pinX=S.rackX; S.pinY=T.cy-S.hw*0.55;
+    S.rackOff=-Math.sin(ang)*S.s*0.075;
+    // the body, faded, roof off
+    drawCarTop(T,{ghost:true});
+    // the steering shaft
+    line(S.swx,S.swy,S.pinX,S.pinY,STEEL_DK,Math.max(4,S.s*0.014));
+    // the rack: a bar across the car that slides
+    const rackTop=T.cy-S.hw*0.92+S.rackOff, rackBot=T.cy+S.hw*0.92+S.rackOff;
+    box(S.rackX-S.s*0.020,rackTop,S.s*0.040,rackBot-rackTop,S.s*0.020,STEEL_LT,3.5);
+    ctx.fillStyle=STEEL_DK;
+    for(let yy=rackTop+S.s*0.02;yy<rackBot-S.s*0.02;yy+=S.s*0.028) ctx.fillRect(S.rackX-S.s*0.034,yy,S.s*0.016,S.s*0.012);
+    // the pinion, turning
+    drawGear(S.pinX-S.s*0.038,S.pinY,S.s*0.036,10,-S.rackOff/(S.s*0.036),GOLD,2.5);
+    // tie rods out to the wheels
+    [[-1],[1]].forEach(([side])=>{
+      const wc=[S.frontX,T.cy+side*S.hw];
+      const arm=[wc[0]-Math.cos(ang)*S.s*0.085,wc[1]-Math.sin(ang)*S.s*0.085];
+      const rackEnd=[S.rackX,T.cy+side*S.hw*0.86+S.rackOff];
+      line(rackEnd[0],rackEnd[1],arm[0],arm[1],STEEL_LT,Math.max(3.5,S.s*0.013));
+      line(rackEnd[0],rackEnd[1],arm[0],arm[1],STEEL_DK,Math.max(1.5,S.s*0.005));
+      disc(rackEnd[0],rackEnd[1],S.s*0.014,STEEL_DK,2);
+      disc(arm[0],arm[1],S.s*0.014,STEEL_DK,2);
+      drawTopWheel(T,0.775,side*TOPW/2,ang,{});
+    });
+    // the back wheels, always straight
+    drawTopWheel(T,0.215,-TOPW/2,0,{}); drawTopWheel(T,0.215,TOPW/2,0,{});
+    // the steering wheel, turning about 1½ times at full lock
+    const sw=S.s*0.062;
+    ctx.save(); ctx.translate(S.swx,S.swy); ctx.rotate(steer*Math.PI*1.5);
+    ring(0,0,sw,'#2f2c3a',Math.max(5,sw*0.28));
+    line(-sw,0,sw,0,'#2f2c3a',Math.max(4,sw*0.22));
+    line(0,0,0,sw,'#2f2c3a',Math.max(4,sw*0.22));
+    disc(0,0,sw*0.3,STEEL_DK,2.5); ctx.restore();
+    // arrows showing which way things go
+    if(Math.abs(steer)>0.08){
+      const dir=steer>0?1:-1;
+      label(dir>0?'rack slides ▲':'rack slides ▼',S.rackX-S.s*0.075,T.cy+S.hw*1.18,{size:S.narrow?11:14,align:'right'});
+      label(dir>0?'wheels point right ↘':'wheels point left ↗',S.frontX+S.s*0.02,T.cy-S.hw*1.2,{size:S.narrow?11:14,align:'left'});
+    }
+    label('steering wheel',S.swx,S.swy-sw-14,{size:S.narrow?10:13});
+    label('the rack',S.rackX+S.s*0.02,T.cy+S.hw*0.45,{size:S.narrow?10:13,align:'left'});
+    drawInset();
+  }
+  function hit(x,y){ for(const it of items) if(it.hit(x,y)) return it; return null; }
+  function stat(){
+    const R=radiusFt(), deg=Math.round(Math.abs(steer)*MAXANG*180/Math.PI);
+    return '<span>🎡 wheels turned '+deg+'°</span>'+(R===Infinity?'<span>➡️ straight</span>':'<span>⭕ '+Math.round(R*2/5)*5+' ft circle</span>');
+  }
+  $('wLeft').addEventListener('click',()=>setSteer(want>0?0:want-0.5));
+  $('wRight').addEventListener('click',()=>setSteer(want<0?0:want+0.5));
+  $('wCenter').addEventListener('click',()=>setSteer(0));
+  $('togRoll').addEventListener('click',()=>{ roll=!roll; $('togRoll').classList.toggle('on',roll); if(!roll) trail=[]; });
+
+  function quest(){
+    return {id:'steering',title:'🎡 Point the wheels',questPos:'tr',steps:[
+      {prompt:'Turn the steering wheel and watch. <b>Tap the bar</b> that slides sideways across the car.',
+       onShow(){ setSteer(1); roll=true; $('togRoll').classList.add('on'); },
+       tap:it=>it&&it.key==='rack'?true:(it&&it.key==='pinion'?'That is the little round gear that pushes it. Tap the long straight bar with teeth.':false),
+       yes:'The rack. Round gear + straight gear = rack and pinion.', no:'Look for the long bar lying across the front of the car.'},
+      {prompt:'Which wheels actually turn when you steer?',
+       options:[{text:'Just the front two',ok:true,say:'Right — the back wheels only follow.'},
+                {text:'All four',say:'Watch the back wheels — they never move.'},
+                {text:'Just the back two',say:'The other end! Watch the front.'}]},
+      {prompt:'Press <b>Left</b> twice to turn the wheel all the way. What happens to the circle the car drives?',
+       onShow(){ setSteer(-0.5); },
+       options:[{text:'It gets smaller — a tighter turn',ok:true,say:'Yes. Full lock is about a 35-foot circle.'},
+                {text:'It gets bigger',say:'Try it — press Left again and watch the number in the corner.'},
+                {text:'It stays the same',say:'Watch the yellow trail in the little window.'}]},
+      {prompt:'Last one: what does the steering system NOT do?',
+       options:[{text:'Make the car go faster',ok:true,say:'Correct — that is the engine’s job. Badge earned!'},
+                {text:'Point the front wheels',say:'It does do that!'},
+                {text:'Push both front wheels the same way',say:'It does that too — that is what the tie rods are for.'}]},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ setStat(stat()); }, leave(){ roll=false; $('togRoll').classList.remove('on'); }};
+})();
+
+/* =====================================================================
+   CHAPTER 6 · GAS OR ELECTRIC? — two lanes, the same 100 blobs of
+   energy sent down each one. Out of 100, a gasoline car gets about 20
+   to the wheels; nearly all the rest leaves as heat out of the engine
+   and the tailpipe. An electric car gets about 77 there, and on the
+   brakes it can even push some back into the battery.
+   ===================================================================== */
+SCENES.power=(()=>{
+  const P={}; let items=[], bits=[], regen=[], heatPuffs=[];
+  let running=0, arrivedG=0, arrivedE=0, fillT=-1, braking=0;
+  // [fraction along the river, blobs lost there, label, short label, phone fraction]
+  const GAS_LOSS=[[0.30,6,'idling','idle',0.16],[0.45,68,'engine heat','engine',0.48],[0.66,6,'gears + friction','gears',0.80]];
+  const EV_LOSS=[[0.22,10,'charging','charge',0.20],[0.55,13,'motor + gears','motor',0.62]];
+  const lossF=L=>P.narrow?L[4]:L[0];
+
+  function layout(){
+    const W=V.w,H=V.h; P.narrow=W<640;
+    P.laneH=H*0.32; P.gasY=H*0.28; P.evY=H*0.63;   // both lanes clear the caption
+    P.carS=Math.min(W*0.24,P.laneH*0.92);
+    P.x0=W*0.06; P.pathX0=P.x0+P.carS*0.92; P.pathX1=W*(P.narrow?0.80:0.90);
+    items=[
+      {key:'tank',name:'Fuel tank',sub:'a tank of gasoline',fact:'About 13 gallons of gasoline, usually under the back seat. Gasoline holds a huge amount of energy for its weight — that is the one thing it is really good at.',
+       hit:(x,y)=>inLane(y,0)&&x>P.x0+P.carS*0.1&&x<P.x0+P.carS*0.45, pos:()=>[P.x0+P.carS*0.28,laneMid(0)+P.carS*0.1,26],
+       thumb:S=>{ ctx.fillStyle='#f6e2c0'; ctx.fillRect(0,0,S,S); box(S*0.2,S*0.3,S*0.6,S*0.44,8,FUEL,3); box(S*0.44,S*0.16,S*0.12,S*0.16,3,STEEL_DK,2.5); }},
+      {key:'engine',name:'Gasoline engine',sub:'burns to spin',fact:'Burning fuel makes heat, and only some of that heat becomes spin. Most of it escapes out of the radiator and the tailpipe. That is why the hood of a car gets hot.',extra:'Of 100 blobs of fuel energy, only about 20 reach the wheels.',
+       hit:(x,y)=>inLane(y,0)&&x>P.x0+P.carS*0.6&&x<P.x0+P.carS*1.0, pos:()=>[P.x0+P.carS*0.8,laneMid(0),26]},
+      {key:'exhaust',name:'Tailpipe',sub:'what comes out',fact:'Hot gases, water vapour and carbon dioxide. An electric car has no tailpipe at all — though the electricity that charged it had to be made somewhere.',
+       hit:(x,y)=>inLane(y,0)&&x<P.x0+P.carS*0.12, pos:()=>[P.x0,laneMid(0)+P.carS*0.12,24]},
+      {key:'radiator',name:'Radiator',sub:'the heat dumper',fact:'A little cooler at the front of the car with fins and a fan. Water runs around the hot engine, carries the heat here, and the wind blows it away.',
+       hit:(x,y)=>inLane(y,0)&&x>P.x0+P.carS*1.0&&x<P.pathX0+30, pos:()=>[P.x0+P.carS*1.02,laneMid(0),24]},
+      {key:'battery',name:'Battery pack',sub:'a floor full of cells',fact:'Thousands of cells like big flashlight batteries, spread across the floor of the car. A full pack usually carries a car 250 to 300 miles.',extra:'It is heavy — often 1,000 pounds — which is why electric cars feel so planted.',
+       hit:(x,y)=>inLane(y,1)&&x>P.x0+P.carS*0.1&&x<P.x0+P.carS*0.8, pos:()=>[P.x0+P.carS*0.45,laneMid(1)+P.carS*0.13,26],
+       thumb:S=>{ ctx.fillStyle='#d8f6e8'; ctx.fillRect(0,0,S,S); box(S*0.1,S*0.34,S*0.8,S*0.34,7,VOLT,3); for(let i=0;i<4;i++) line(S*(0.22+i*0.19),S*0.36,S*(0.22+i*0.19),S*0.66,VOLT_DK,3); }},
+      {key:'motor',name:'Electric motor',sub:'magnets and coils',fact:'No fire, no bangs — just magnets pushing and pulling. It has one moving part instead of hundreds, and it makes its full twisting force the instant you press the pedal.',extra:'That is why an electric car needs only one gear.',
+       hit:(x,y)=>inLane(y,1)&&x>P.x0+P.carS*0.8&&x<P.pathX0+30, pos:()=>[P.x0+P.carS*0.9,laneMid(1),26]},
+      {key:'regen',name:'Regenerative braking',sub:'brakes that refill',fact:'Slowing down, the motor runs backwards as a generator: the wheels turn it, and it pushes electricity back into the battery. A gas car just turns that energy into hot brakes.',extra:'In stop-and-go city driving this can hand back around a fifth of the energy.',
+       hit:(x,y)=>inLane(y,1)&&x>P.pathX1-40, pos:()=>[P.pathX1,laneMid(1),26]},
+      {key:'plug',name:'Charging',sub:'plug vs pump',fact:'A gas pump fills a tank in about five minutes. A fast charger takes a car from nearly empty to 80% in roughly half an hour — but most charging happens overnight at home, while everyone is asleep.',
+       hit:(x,y)=>fillT>=0&&y>V.h*0.4&&y<V.h*0.6, pos:()=>[V.w*0.5,V.h*0.5,30]},
+      {key:'same',name:'What is the same',sub:'most of the car!',fact:'Wheels, tires, brakes, steering, seats, seat belts, lights — nearly everything you have met so far is identical. Only the part that MAKES the spin is different.',
+       hit:(x,y)=>x>P.pathX1-10&&y>V.h*0.4&&y<V.h*0.62, pos:()=>[P.pathX1+10,V.h*0.5,26]},
+    ];
+  }
+  function laneMid(l){ return (l?P.evY:P.gasY)+P.laneH*0.52; }
+  function inLane(y,l){ const t=l?P.evY:P.gasY; return y>t&&y<t+P.laneH; }
+  function pathAt(l,f){ return [lerp(P.pathX0,P.pathX1,f), laneMid(l)+Math.sin(f*9+(l?1:0))*P.laneH*0.03]; }
+
+  function send(){
+    bits=[]; heatPuffs=[]; arrivedG=0; arrivedE=0; running=1;
+    const build=(lane,losses,col)=>{
+      let left=100; const out=[];
+      losses.forEach(L=>{ for(let i=0;i<L[1];i++) out.push(lossF(L)); left-=L[1]; });
+      for(let i=0;i<left;i++) out.push(1);
+      out.sort(()=>rnd()-0.5);
+      out.forEach((fate,i)=>bits.push({lane,f:-i*0.012,fate,col,gone:false}));
+    };
+    build(0,GAS_LOSS,FUEL); build(1,EV_LOSS,VOLT);
+  }
+  function update(dt){
+    if(running) {
+      let alive=0;
+      bits.forEach(b=>{
+        if(b.gone) return;
+        b.f+=dt*0.34;
+        if(b.f>=b.fate){
+          if(b.fate>=1){ b.gone=true; if(b.lane) arrivedE++; else arrivedG++; }
+          else { b.gone=true; const p=pathAt(b.lane,b.fate); heatPuffs.push({x:p[0],y:p[1],t:0,lane:b.lane}); }
+        } else alive++;
+      });
+      if(alive===0) running=0;
+      setStat(stat());
+    }
+    heatPuffs.forEach(h=>{ h.t+=dt; }); heatPuffs=heatPuffs.filter(h=>h.t<1.4);
+    if(braking>0){
+      braking-=dt;
+      if(rnd()<dt*30) regen.push({f:1,t:0});
+    }
+    regen.forEach(r=>{ r.f-=dt*0.5; }); regen=regen.filter(r=>r.f>0.02);
+    if(fillT>=0){ fillT+=dt; if(fillT>9) fillT=-1; }
+  }
+
+  function lane(l){
+    const top=l?P.evY:P.gasY, mid=laneMid(l);
+    box(P.x0-P.carS*0.12,top,V.w-P.x0-P.carS*0.02,P.laneH,20,l?'#e3f9ef':'#fdf0dc',3.5);
+    label(l?'⚡ ELECTRIC':'⛽ GASOLINE',P.x0-P.carS*0.06,top+(P.narrow?13:17),{size:P.narrow?13:17,dark:true,display:true,align:'left'});
+    // the car, cut open
+    const F={x0:P.x0,gy:mid+P.carS*0.2,s:P.carS};
+    drawCar(F,{color:l?'#3f9d6a':CAR_RED});
+    if(l){
+      const b=carPt(F,0.30,0.135); box(b[0],b[1]-P.carS*0.03,P.carS*0.44,P.carS*0.06,4,VOLT,2.5);
+      const m=carPt(F,0.86,0.20); disc(m[0],m[1],P.carS*0.055,VOLT,2.5); label('M',m[0],m[1],{size:P.narrow?10:13,dark:true});
+      const pl=carPt(F,0.06,0.28); box(pl[0]-P.carS*0.03,pl[1]-P.carS*0.03,P.carS*0.06,P.carS*0.06,3,STEEL,2);
+    }else{
+      const t=carPt(F,0.24,0.17); box(t[0],t[1]-P.carS*0.05,P.carS*0.2,P.carS*0.1,5,FUEL,2.5);
+      const e=carPt(F,0.84,0.21); box(e[0]-P.carS*0.06,e[1]-P.carS*0.055,P.carS*0.12,P.carS*0.11,4,'#b9c3d6',2.5);
+      const pipe=carPt(F,0.02,0.13);
+      box(pipe[0]-P.carS*0.06,pipe[1]-P.carS*0.018,P.carS*0.08,P.carS*0.036,4,STEEL_DK,2);
+      if(running||heatPuffs.length){ for(let i=0;i<3;i++){ const k=((now*0.6+i*0.33)%1); ctx.save(); ctx.globalAlpha=0.5*(1-k);
+        disc(pipe[0]-P.carS*0.08-k*P.carS*0.3,pipe[1]-k*P.carS*0.2,P.carS*0.03+k*P.carS*0.05,SMOKE,0); ctx.restore(); } }
+    }
+    // the energy river
+    const y=mid;
+    ctx.save(); ctx.setLineDash([9,8]); ctx.lineDashOffset=-now*22;
+    path([[P.pathX0,y],[P.pathX1,y]],l?'rgba(61,220,151,.55)':'rgba(201,139,58,.55)',Math.max(6,P.laneH*0.08));
+    ctx.restore();
+    // where the losses happen
+    (l?EV_LOSS:GAS_LOSS).forEach(([f,n])=>{ const p=pathAt(l,f);
+      label('−'+n,p[0],y-P.laneH*0.20,{size:P.narrow?12:15,dark:true,color:BRAKE_R});
+      label(l?(f<0.3?'charging':'motor + gears'):(f<0.35?'idling':f<0.55?'engine heat':'gears + friction'),p[0],y-P.laneH*0.31,{size:P.narrow?9:11,dark:true});
+    });
+    // the bucket at the end
+    const got=l?arrivedE:arrivedG;
+    const bw2=Math.min(V.w*0.13,P.carS*0.62), bcx=P.pathX1-4+bw2/2;
+    box(P.pathX1-4,y-P.laneH*0.19,bw2,P.laneH*0.38,12,WHITE,3);
+    label('🛞 '+got,bcx,y-P.laneH*0.03,{size:P.narrow?15:20,dark:true,display:true});
+    label('of 100',bcx,y+P.laneH*0.11,{size:P.narrow?9:11,dark:true});
+  }
+
+  function draw(){
+    ctx.fillStyle='#eef1f8'; ctx.fillRect(0,0,V.w,V.h);
+    lane(0); lane(1);
+    // the blobs
+    bits.forEach(b=>{ if(b.gone||b.f<0) return; const p=pathAt(b.lane,clamp(b.f,0,1));
+      disc(p[0],p[1]+((b.f*97)%7-3),Math.max(3,P.laneH*0.028),b.col,1.5); });
+    heatPuffs.forEach(h=>{ ctx.save(); ctx.globalAlpha=clamp(1-h.t/1.4,0,1);
+      disc(h.x,h.y-h.t*P.laneH*0.28,Math.max(3,P.laneH*0.03)+h.t*8,h.lane?'#bfd8cf':'#ffb26b',0); ctx.restore(); });
+    // regen dots running backwards into the battery
+    regen.forEach(r=>{ const p=pathAt(1,r.f); disc(p[0],p[1],Math.max(3,P.laneH*0.026),VOLT_DK,1.5); });
+    if(braking>0){ label('⚡ the wheels are charging the battery!',(P.pathX0+P.pathX1)/2,laneMid(1)+P.laneH*0.26,{size:P.narrow?12:15,dark:true});
+      label('🔥 the brakes just make heat',(P.pathX0+P.pathX1)/2,laneMid(0)+P.laneH*0.26,{size:P.narrow?12:15,dark:true}); }
+    // the fill-up race
+    if(fillT>=0){
+      const w=Math.min(V.w*0.62,420), x=V.w/2-w/2, y=V.h*0.40, h=V.h*0.2;
+      box(x,y,w,h,18,WHITE,4);
+      label('⛽ pump: 5 minutes',x+16,y+h*0.30,{size:P.narrow?12:15,dark:true,align:'left'});
+      label('🔌 fast charger: about 30 minutes to 80%',x+16,y+h*0.70,{size:P.narrow?12:15,dark:true,align:'left'});
+      const f1=clamp(fillT/1.4,0,1), f2=clamp(fillT/8.4,0,1);
+      box(x+w*0.52,y+h*0.20,w*0.42,h*0.2,8,'#e2e7f0',2); box(x+w*0.52,y+h*0.20,w*0.42*f1,h*0.2,8,FUEL,0);
+      box(x+w*0.52,y+h*0.60,w*0.42,h*0.2,8,'#e2e7f0',2); box(x+w*0.52,y+h*0.60,w*0.42*f2,h*0.2,8,VOLT,0);
+      label('most charging happens at home, overnight',x+w/2,y+h+16,{size:P.narrow?10:12,dark:true});
+    }
+  }
+  function hit(x,y){ for(const it of items) if(it.hit(x,y)) return it; return null; }
+  function stat(){ return '<span>⛽ '+arrivedG+' of 100</span><span>⚡ '+arrivedE+' of 100</span>'; }
+  $('btnRace').addEventListener('click',send);
+  $('btnSlow').addEventListener('click',()=>{ braking=2.6; });
+  $('btnFill').addEventListener('click',()=>{ fillT=fillT<0?0:-1; });
+
+  function quest(){
+    return {id:'power',title:'⚡ Two ways to spin a wheel',questPos:'tr',steps:[
+      {prompt:'Press <b>Send 100 energy</b> and watch. Out of 100 blobs of gasoline energy, how many reach the wheels?',
+       onShow(){ send(); },
+       options:[{text:'About 20',ok:true,say:'Yes — the other 80 leave as heat. Engines are hot for a reason.'},
+                {text:'About 50',say:'Watch the bucket at the end of the gasoline lane.'},
+                {text:'About 90',say:'That is closer to the electric lane. Look at the gas one!'}]},
+      {prompt:'<b>Tap the part</b> an electric car does not have at all.',
+       tap:it=>it&&(it.key==='exhaust'||it.key==='engine'||it.key==='radiator')?true:false,
+       yes:'Right — no engine, no tailpipe, and no fire anywhere in the car.', no:'Look along the gasoline car: something there has no partner in the electric one.'},
+      {prompt:'An electric car gets by with <b>one gear</b>. Why?',
+       options:[{text:'The motor pulls hard at any speed',ok:true,say:'Exactly — no need to trade speed for muscle.'},
+                {text:'Electric cars are slower',say:'They are often quicker off the line, actually!'},
+                {text:'Gears do not work on electricity',say:'Gears work fine — the motor just does not need them.'}]},
+      {prompt:'When an electric car slows down, where does the energy go?',
+       onShow(){ braking=3.2; },
+       options:[{text:'Back into the battery',ok:true,say:'The motor runs backwards as a generator. Free miles!'},
+                {text:'Out of the tailpipe',say:'There is no tailpipe on this one.'},
+                {text:'It just disappears',say:'Energy never disappears — watch the green dots run backwards.'}]},
+      {prompt:'Last one. Which parts are the <b>same</b> in both cars?',
+       options:[{text:'Wheels, brakes and steering',ok:true,say:'Almost the whole car is the same. Badge earned — that is all six!'},
+                {text:'The engine',say:'Only one of them has an engine.'},
+                {text:'The fuel tank',say:'The electric one carries a battery instead.'}]},
+    ]};
+  }
+  return {layout,update,draw,hit,stat,quest,
+    enter(){ setStat(stat()); if(!bits.length) send(); }, leave(){}};
+})();
+
+/* =====================================================================
+   NAVIGATION: chips, buttons, and the zoom-out-to-the-whole-car
+   transition between chapters.
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b;
+});
+function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?'🔁 Start again':'NEXT PART ▶';
+  els.btnNext.classList.toggle('home',last);
+  const id=CHAPTERS[current].id, won=!!badges[id];
+  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  CHAPTERS.forEach(c=>{ const g=$('ctl-'+c.id); if(g) g.hidden=(c.id!==id); });
+}
+let trans=null;   // {from,to,t0,dur}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current&&!trans) return;
+  if(trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true;
+  const from=current;
+  if(REDUCED){ switchTo(i); return; }
+  trans={from,to:i,t0:performance.now(),dur:1250};
+  SCENES[CHAPTERS[i].id].enter();
+}
+function switchTo(i){
+  SCENES[CHAPTERS[current].id].leave(); current=i; SCENES[CHAPTERS[i].id].enter();
+  setCaption(i); updateChips(); updateButtons(); drawMinimap(); setStat(SCENES[CHAPTERS[i].id].stat&&SCENES[CHAPTERS[i].id].stat());
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), x=e.clientX-r.left, y=e.clientY-r.top;
+  const scene=SCENES[CHAPTERS[current].id];
+  const item=scene.hit?scene.hit(x,y):null;
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item){ if(scene.onTap&&scene.onTap(item)===false) return; showCard(item); } else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='6') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+// on phones the Challenge button moves down next to the chapter controls
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(320,Math.round(r.width)); V.h=Math.max(240,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  Object.values(SCENES).forEach(s=>s.layout&&s.layout());
+}
+function drawMapOverlay(a,r){      // the whole car, everywhere except inside a circle
+  ctx.save(); ctx.beginPath(); ctx.rect(0,0,V.w,V.h); ctx.arc(a[0],a[1],Math.max(0,r),0,TAU,true); ctx.clip();
+  ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,V.w,V.h);
+  const F=mapFrame();
+  ctx.fillStyle=ROAD; ctx.fillRect(0,F.gy,V.w,V.h-F.gy);
+  ctx.fillStyle='#f6e7b0'; for(let x=-40;x<V.w;x+=90) ctx.fillRect(x,F.gy+(V.h-F.gy)*0.45,52,5);
+  drawCar(F,{});
+  ctx.restore();
+}
+let lastT=performance.now();
+function frame(nowMs){
+  const dt=Math.min(0.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  const cur=SCENES[CHAPTERS[current].id];
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    const F=mapFrame(), a0=anchorPx(CHAPTERS[trans.from].id,F), a1=anchorPx(CHAPTERS[trans.to].id,F);
+    const R=Math.hypot(V.w,V.h)*0.75;
+    if(k<0.38){ cur.update(dt); cur.draw(); const u=1-easeOut(k/0.38); drawMapOverlay(a0,R*u*u); }
+    else if(k<0.62){ drawMapOverlay([0,0],0); const u=smooth((k-0.38)/0.24); const a=[lerp(a0[0],a1[0],u),lerp(a0[1],a1[1],u)]; ring(a[0],a[1],14+4*Math.sin(now*12),GOLD,4); ring(a[0],a[1],14+4*Math.sin(now*12),INK,1.5); }
+    else{ if(current!==trans.to) switchTo(trans.to); const nxt=SCENES[CHAPTERS[trans.to].id]; nxt.update(dt); nxt.draw(); const u=easeInOut((k-0.62)/0.38); drawMapOverlay(a1,R*u); }
+    if(k>=1) trans=null;
+  }else{ cur.update(dt); cur.draw(); }
+  if(selected&&selected.pos){ const p=selected.pos(); if(p){ ctx.save(); ctx.setLineDash([8,6]); ctx.lineDashOffset=-now*30; ring(p[0],p[1],p[2]||30,GOLD,4); ctx.restore(); } }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.howACarWorks={SCENES,CHAPTERS,goTo,award,startQuest,quest,badges};   // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+resize();
+SCENES[CHAPTERS[0].id].enter();
+setCaption(0); updateChips(); updateButtons(); drawMinimap(); setStat(SCENES.engine.stat&&SCENES.engine.stat());
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

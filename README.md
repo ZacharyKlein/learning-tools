@@ -8,6 +8,7 @@ Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 | **Zoom Out!** — orders of magnitude, from a drop of pond water to the galaxies. Build your own character at the *Me & You* level, then zoom out level by level and watch the "big" things from before shrink into one tiny dot. | Grades 1–3 | [zoom-out/](https://zacharyklein.github.io/learning-tools/zoom-out/) |
 | **Inside a Tree** — how a tree works: photosynthesis inside a leaf, water climbing up from the roots, growth rings, kinds of wood, and the Missouri animals that live in an oak. A small challenge in every part earns a badge. | Grades 3–4 | [inside-a-tree/](https://zacharyklein.github.io/learning-tools/inside-a-tree/) |
 | **Forest Elevator** — the layers of a Missouri forest, ridden like a building: canopy, understory, shrubs, forest floor, underground, and a clearing where you grow a forest from acorns. A challenge on every floor earns a badge. | Grades 1–3 | [forest-elevator/](https://zacharyklein.github.io/learning-tools/forest-elevator/) |
+| **How a Car Works** — the engine's four strokes, gears trading speed for twisting force, the differential in a turn, stopping distances and what a seat belt is for, rack-and-pinion steering, and where the energy goes in a gas car versus an electric one. | Grades 3–4 | [how-a-car-works/](https://zacharyklein.github.io/learning-tools/how-a-car-works/) |
 
 ## How it's organized
 
