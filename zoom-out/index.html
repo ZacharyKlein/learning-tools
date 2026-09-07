@@ -667,9 +667,14 @@ function drawPerson(o,x,base,h){
   }
   [-1,1].forEach(sd=>limb(x+sd*shoulder*0.72,bodyTop+bodyH*0.14,x+sd*(shoulder+h*0.045),bodyBot-h*0.015,limbW*0.92,skin,ol)); // arms
   circle(x,headCy,headR,skin); if(ol) ring(x,headCy,headR,INK,ol);                       // head
-  ctx.save();                                                                            // hair on top
+  ctx.save();                                                                            // hair, down to a hairline above the eyes
   ctx.beginPath(); ctx.arc(x,headCy,headR,0,TAU); ctx.clip();
-  circle(x,headCy-headR*(girl?0.26:0.34),headR,hairC);
+  const brow=headCy-headR*(girl?0.24:0.32), dip=headR*(girl?0.14:0.16);
+  ctx.beginPath();
+  ctx.moveTo(x-headR*1.2,headCy-headR*1.3); ctx.lineTo(x+headR*1.2,headCy-headR*1.3);
+  ctx.lineTo(x+headR*1.2,brow);
+  ctx.quadraticCurveTo(x,brow+dip*2,x-headR*1.2,brow);                                   // soft fringe
+  ctx.closePath(); ctx.fillStyle=hairC; ctx.fill();
   ctx.restore();
   if(girl){ [-1,1].forEach(sd=>{                                                         // pigtails
     circle(x+sd*headR*1.02,headCy+headR*0.16,headR*0.40,hairC);
