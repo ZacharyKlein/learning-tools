@@ -19,6 +19,7 @@
   --grass:#63c64d;
   --gold:#ffd23f;
   --space:#12103a;
+  --good:#2f7a3f;
   --white:#fffdf7;
   --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
   --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
@@ -79,6 +80,53 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 }
 .pill.hot{background:var(--rocket)}
 @keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- badges ---------- */
+.right{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:100%}
+.meter{transition:background .4s}
+.meter.all{background:var(--gold)}
+.badges{display:flex;gap:5px;flex-wrap:wrap}
+.badge{
+  width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:17px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(400px,calc(100% - 28px));z-index:4;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.quest.tr{left:auto;right:14px;top:12px;bottom:auto}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:15.5px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:7px 13px;line-height:1;box-shadow:0 3px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14px;margin-top:8px;min-height:18px}
+.q-fb.good{color:var(--good)}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
 
 /* ---------- stage ---------- */
 .stage-wrap{min-height:0;display:flex}
@@ -146,8 +194,9 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .lvl{
   width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);
   background:var(--white);font-size:20px;font-family:var(--emoji);line-height:1;padding:0;
-  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
 }
+.lvl.won::after{content:"✓";position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
 .lvl:hover{transform:translateY(-2px)}
 .lvl.on{background:var(--gold);transform:scale(1.12)}
 .lvl.done{background:var(--paper-2)}
@@ -226,6 +275,14 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 /* ---------- small screens ---------- */
 @media (max-width:760px){
   .app{padding:8px 8px 8px;gap:8px}
+  .right{gap:6px}
+  .meter-label{display:none}
+  .badge{width:26px;height:26px;font-size:13px;border-width:2px}
+  .badges{gap:3px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .quest.tr{top:12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  body.questing .caption{display:none}
   .brand h1{font-size:28px}
   .brand .tagline{display:none}
   .meter{padding:4px 10px;min-height:44px;gap:8px}
@@ -251,10 +308,16 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <h1>Zoom Out!</h1>
       <p class="tagline">Small or big? It depends how far you zoom.</p>
     </div>
+    <div class="right">
+    <div class="meter" id="meter" aria-live="polite">
+      <div class="meter-label">Zoom<br>badges</div>
+      <div class="badges" id="badges" aria-label="one badge for each scale"></div>
+    </div>
     <div class="meter" aria-live="polite">
       <div class="meter-label">Zoom<br>power</div>
       <div class="meter-num" id="zoomNum">×1</div>
       <div class="pills" id="pills" aria-label="each pill is ten times bigger"></div>
+    </div>
     </div>
   </header>
 
@@ -275,6 +338,13 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
           <div class="card-fact" id="cardFact"></div>
           <div class="card-meters" id="cardMeters"></div>
         </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">&times;</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
       </div>
       <div class="maker" id="maker" hidden>
         <div class="maker-box" role="dialog" aria-label="Make yourself">
@@ -306,7 +376,8 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <button class="btn" id="btnIn">🔍 Zoom in</button>
       <button class="btn big" id="btnOut">🚀 ZOOM OUT!</button>
       <button class="btn" id="btnPlay">▶ Play</button>
-      <button class="btn" id="btnMe">✨ Make me!</button>
+      <button class="btn" id="btnMe">✨ Make me</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge</button>
     </div>
     <label class="slider"><span>Slide to zoom</span><input type="range" id="zoom" min="0" max="1000" value="0" aria-label="Zoom"></label>
   </footer>
@@ -1133,18 +1204,22 @@ function setCaption(i){
   if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
 }
 let toastTimer=null;
-function toast(msg){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },4000); }
-function updateChips(i){ LEVELS.forEach((L,k)=>{ L.chip.classList.toggle('on',k===i); L.chip.classList.toggle('done',k<i); }); }
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function updateChips(i){ LEVELS.forEach((L,k)=>{ L.chip.classList.toggle('on',k===i); L.chip.classList.toggle('done',k<i); L.chip.classList.toggle('won',!!badges[L.id]); }); }
 function updateButtons(){
   els.btnIn.disabled=(current===0);
   const atEnd=(current===LAST);
-  els.btnOut.textContent=atEnd?'🔁 Back to bugs!':'🚀 ZOOM OUT!';
+  els.btnOut.textContent=atEnd?'🔁 Start over!':'🚀 ZOOM OUT!';
   els.btnOut.classList.toggle('home',atEnd);
+  const won=!!badges[LEVELS[current].id];
+  qEls.btn.textContent=won?'✅ Challenge done!':'🎯 Challenge';
+  qEls.btn.classList.toggle('won',won);
 }
 
 /* --- moving the camera --- */
 function goTo(i,opts){
   i=clamp(i,0,LAST); opts=opts||{};
+  if(quest.active&&quest.active.id!==LEVELS[i].id) endQuest();
   const from=cam.z, to=LEVELS[i].z, dz=Math.abs(to-from), fromLevel=current;
   closeCard(); els.hint.hidden=true;
   current=i; updateChips(i); updateButtons();
@@ -1177,7 +1252,7 @@ els.zoom.addEventListener('input',()=>{
   stopPlay(); tween=null; closeCard(); els.hint.hidden=true;
   cam.z=Z0()+(Z1()-Z0())*els.zoom.value/1000;
   const n=nearestLevel(cam.z);
-  if(n!==current){ current=n; setCaption(n); updateChips(n); updateButtons(); }
+  if(n!==current){ if(quest.active&&quest.active.id!==LEVELS[n].id) endQuest(); current=n; setCaption(n); updateChips(n); updateButtons(); }
   updateMeter();
 });
 els.zoom.addEventListener('change',()=>{ const n=nearestLevel(cam.z); if(Math.abs(cam.z-LEVELS[n].z)<0.35) goTo(n,{dur:500}); });
@@ -1190,16 +1265,20 @@ view.addEventListener('pointerup',e=>{
   const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
   if(moved>12) return;
   const r=view.getBoundingClientRect(), hit=hitTest(e.clientX-r.left,e.clientY-r.top);
+  if(questTap(hit?hit.o:null)) return;    // a challenge step is waiting on this tap
   if(hit&&hit.o.me) openMaker();          // tapping yourself opens the character maker
   else if(hit) showCard(hit.o); else closeCard();
 });
 function hitTest(x,y){
-  let best=null, bestArea=Infinity;
+  let best=null, bestScore=Infinity;
   for(const v of visible){
     if(v.big<0.5) continue;
-    const cy=v.o.level.ground?v.y-v.hPx/2:v.y;
+    const cy=v.o.level.water?v.y:v.o.level.ground?v.y-v.hPx/2:v.y;
     const hw=Math.max(v.wPx/2,16), hh=Math.max(v.hPx/2,16);
-    if(Math.abs(x-v.x)<=hw+4&&Math.abs(y-cy)<=hh+4){ const area=hw*hh; if(area<bestArea){ best=v; bestArea=area; } }
+    if(Math.abs(x-v.x)>hw+4||Math.abs(y-cy)>hh+4) continue;
+    // the row you are on wins, then whatever is nearest the finger, then the smaller thing
+    const score=(v.o.level.index===current?0:1e6)+Math.hypot(x-v.x,y-cy)+hw*hh*0.001;
+    if(score<bestScore){ best=v; bestScore=score; }
   }
   return best;
 }
@@ -1216,6 +1295,7 @@ els.cardClose.addEventListener('click',closeCard);
 window.addEventListener('keydown',e=>{
   const tag=e.target.tagName;
   if(makerOpen()){ if(e.key==='Escape') closeMaker(); return; }
+  if(questing()){ if(e.key==='Escape') endQuest(); return; }
   if(tag==='INPUT') return;
   if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
   if(e.key==='ArrowRight'||e.key===' '||e.key==='Enter'){ e.preventDefault(); els.btnOut.click(); }
@@ -1223,6 +1303,148 @@ window.addEventListener('keydown',e=>{
   else if(e.key==='Escape') closeCard();
   else if(e.key==='p'||e.key==='P') els.btnPlay.click();
 });
+
+/* --- challenges and badges --- */
+// A challenge is a list of steps. Each step has a prompt and either `options`
+// (buttons, `ok` marks the right ones) or `tap` (a function of the object the
+// student tapped on the canvas, returning true / false / a nudge string).
+const QUESTS = {
+  drop:{ title:'🔬 Pond detective', steps:[
+    {prompt:'Tap the <b>water bear</b> — the chubby one with eight legs.',
+     tap:o=>o&&o.name==='Water bear'?true:(o&&o.name==='Water flea')?'That one has a shell and one big eye. Look for eight little legs.':'Look for eight stubby legs and a round back.',
+     yes:'That is a tardigrade. It can even survive in outer space!'},
+    {prompt:'The water flea is <b>1.5 mm</b>. The euglena is <b>0.15 mm</b>. About how many euglenas make one water flea?',options:[
+      {text:'About 10',ok:true,say:'Yes! Ten times bigger — one whole step of zoom.'},
+      {text:'About 2',say:'Look again — the water flea is much longer than that.'},
+      {text:'About 100',say:'Not that many. 0.15 goes into 1.5 about ten times.'} ]},
+  ]},
+  bugs:{ title:'🐜 Bug sizer', steps:[
+    {prompt:'Tap the <b>biggest</b> bug here.',
+     tap:o=>o&&o.name==='Atlas moth'?true:'Bigger! Look for the widest wings.',
+     yes:'The Atlas moth — 25 cm across.'},
+    {prompt:'An ant is <b>1 cm</b>. An Atlas moth is <b>25 cm</b>. About how many ants in a row make one moth?',options:[
+      {text:'About 25',ok:true,say:'Yes! Twenty-five little ants.'},
+      {text:'About 5',say:'More than that — count by 1 cm all the way up to 25.'},
+      {text:'About 250',say:'Too many! That would be 250 cm — taller than a grown-up.'} ]},
+  ]},
+  people:{ title:'🧒 How people grow', pos:'tr', steps:[
+    {prompt:'Tap the <b>newborn baby</b> — the smallest person.',
+     tap:o=>o&&o.name==='Newborn baby'?true:(o&&o.me)?'That one is you! Look for someone even smaller.':'Smaller! Look at the very start of the line.',
+     yes:'50 cm. You were that size once!'},
+    {prompt:'A grown-up is <b>175 cm</b>. A newborn is <b>50 cm</b>. About how many times taller is the grown-up?',options:[
+      {text:'About 3 times',ok:true,say:'Yes — three and a half. People are all pretty close in size!'},
+      {text:'About 10 times',say:'That would make a grown-up 5 metres tall — taller than a house!'},
+      {text:'About 100 times',say:'That is mountain size. People never vary that much.'} ]},
+  ]},
+  trees:{ title:'🌳 Tall, taller, tallest', pos:'tr', steps:[
+    {prompt:'Tap <b>yourself</b>, standing next to the trees.',
+     tap:o=>o&&o.me?true:'Much smaller! You are the tiny one at the start of the line.',
+     yes:'Tiny, right? Even the smallest tree beats you.'},
+    {prompt:'A giant redwood is <b>110 m</b>. A pine is <b>25 m</b>. About how many pines stacked up make one redwood?',options:[
+      {text:'About 4',ok:true,say:'Yes! Four pines, one redwood.'},
+      {text:'About 40',say:'That would be 1,000 m — taller than any tree that ever grew.'},
+      {text:'About 400',say:'Way too many. 25 goes into 110 about four times.'} ]},
+  ]},
+  mountains:{ title:'⛰️ Mountain math', steps:[
+    {prompt:'Tap <b>Mount Everest</b>, the tallest mountain on Earth.',
+     tap:o=>o&&o.name==='Mount Everest'?true:(o&&o.name==='Mount Fuji')?'Close! Fuji is 3,776 m. Everest is more than twice that.':'Taller! Look for the biggest one, with the most snow.',
+     yes:'8,849 m of mountain.'},
+    {prompt:'Everest is <b>8,849 m</b>. A giant redwood is <b>110 m</b>. About how many redwoods to reach the top?',options:[
+      {text:'About 80',ok:true,say:'Yes! Eighty redwoods, one on top of another.'},
+      {text:'About 8',say:'That would be only 880 m. Everest is ten times higher than that.'},
+      {text:'About 8,000',say:'Too many — that would poke right out into space!'} ]},
+  ]},
+  planets:{ title:'🪐 Planet spotter', steps:[
+    {prompt:'Tap <b>Earth</b> — the planet we were standing on the whole time.',
+     tap:o=>o&&o.draw==='earth'?true:(o&&o.name==='The Moon')?'That is our Moon. Earth is bigger, and blue and green.':'Look for the blue and green one.',
+     yes:'Home! 12,742 km across.'},
+    {prompt:'Jupiter is the biggest planet here. About how many <b>Earths</b> would fit across it?',options:[
+      {text:'About 11',ok:true,say:'Yes! Eleven Earths side by side.'},
+      {text:'About 2',say:'Look again — Jupiter is much wider than two Earths.'},
+      {text:'About 1,000',say:'Not that many across. (You could fit 1,300 Earths INSIDE it, though!)'} ]},
+  ]},
+  stars:{ title:'⭐ Star power', steps:[
+    {prompt:'Tap <b>the Sun</b> — our own star.',
+     tap:o=>o&&o.name==='The Sun'?true:'Smaller! Our Sun is the little yellow one at the start of the line.',
+     yes:'That little dot is our Sun — and it is 109 Earths wide.'},
+    {prompt:'The Sun is about <b>10 Jupiters</b> wide. So which is bigger?',options:[
+      {text:'The Sun',ok:true,say:'Yes! Every star here is far bigger than any planet.'},
+      {text:'Jupiter',say:'Jupiter is the biggest planet — but the Sun is ten times wider.'},
+      {text:'They are the same',say:'Not even close. The Sun wins by a lot.'} ]},
+  ]},
+  galaxies:{ title:'🌌 Galaxy guide', steps:[
+    {prompt:'Tap <b>the Milky Way</b> — the galaxy we live in.',
+     tap:o=>o&&o.name==='The Milky Way'?true:(o&&o.name==='Andromeda')?'That is Andromeda, our big neighbour. Ours is a little smaller.':'Look for a spiral. Ours is 100,000 light-years across.',
+     yes:'Every star you have ever seen at night lives in there.'},
+    {prompt:'What is a galaxy made of?',options:[
+      {text:'Billions of stars',ok:true,say:'Yes! Ours alone has about 100 billion.'},
+      {text:'One big star',say:'Just one? A galaxy holds more stars than you could ever count.'},
+      {text:'Nothing at all',say:'It looks like a cloud, but it is made of stars.'} ]},
+  ]},
+};
+LEVELS.forEach(L=>{ L.quest=QUESTS[L.id]; });
+
+const badges={};              // level id -> true once its challenge is done
+LEVELS.forEach(L=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=L.icon; b.title=L.name+' badge'; $('badges').appendChild(b); L.badgeEl=b; });
+
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const L=LEVELS.find(L=>L.id===id); L.badgeEl.classList.add('won'); L.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===LEVELS.length){ $('meter').classList.add('all'); burstConfetti(); toast('🚀 All 8 badges — you are a ZOOM MASTER!',7000); }
+  else toast(L.icon+' Badge earned! '+(LEVELS.length-n)+' to go.');
+}
+
+const qEls={ box:$('quest'), title:$('qTitle'), dots:$('qDots'), text:$('qText'), opts:$('qOpts'), fb:$('qFb'), close:$('questClose'), btn:$('btnQuest') };
+const quest={active:null,step:0,picked:0};
+function startQuest(i){
+  const L=LEVELS[i]; if(!L.quest) return;
+  stopPlay(); closeCard(); closeMaker(); els.hint.hidden=true;
+  if(!tween && Math.abs(cam.z-L.z)>1e-9) goTo(i,{dur:500});     // bring the whole line back on screen
+  quest.active=L.quest; quest.active.id=L.id; quest.step=0; quest.picked=0;
+  qEls.title.textContent=L.quest.title; qEls.box.hidden=false;
+  qEls.box.classList.toggle('tr',L.quest.pos==='tr');           // keep the panel off the answer
+  document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; qEls.box.hidden=true; document.body.classList.remove('questing'); }
+const questing=()=>!!quest.active;
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  qEls.dots.innerHTML='';
+  Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); qEls.dots.appendChild(d); });
+  qEls.text.innerHTML=S.prompt; qEls.fb.textContent=''; qEls.fb.className='q-fb'; quest.picked=0;
+  qEls.opts.innerHTML='';
+  if(S.options){
+    qEls.opts.hidden=false;
+    S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); qEls.opts.appendChild(b); });
+  }else qEls.opts.hidden=true;
+}
+function feedback(msg,good){ qEls.fb.textContent=msg; qEls.fb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
+  else setTimeout(()=>{ if(quest.active) renderStep(); },1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){
+    btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true);
+    if(quest.picked>=(S.need||1)){ qEls.opts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); }
+  }else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(o){             // the canvas was tapped while a tap-step is open
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(o);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that one. Look again!'),false);
+  return true;
+}
+qEls.close.addEventListener('click',endQuest);
+qEls.btn.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(current); });
 
 /* --- make yourself --- */
 const mk={ box:$('maker'), close:$('makerClose'), done:$('makerDone'), btn:$('btnMe'),
@@ -1295,7 +1517,7 @@ function remakeMe(){
 mk.h.addEventListener('input',()=>{ ME.h=(+mk.h.value)/100; remakeMe(); });
 
 let metMe=false, pendingMaker=false;
-function openMaker(){ stopPlay(); closeCard(); els.hint.hidden=true; metMe=true; markOptions(); drawMePreview(); mk.box.hidden=false; mk.done.focus(); }
+function openMaker(){ stopPlay(); endQuest(); closeCard(); els.hint.hidden=true; metMe=true; markOptions(); drawMePreview(); mk.box.hidden=false; mk.done.focus(); }
 function closeMaker(){ mk.box.hidden=true; }
 const makerOpen=()=>!mk.box.hidden;
 mk.close.addEventListener('click',closeMaker);
@@ -1326,6 +1548,7 @@ new ResizeObserver(resize).observe(stage);
 resize(); cam.z=LEVELS[0].z; lastZ=cam.z;
 setCaption(0); updateChips(0); updateButtons(); updateMeter(); syncSlider();
 markOptions(); drawMePreview();
+window.zoomOut={LEVELS,QUESTS,badges,goTo,award,startQuest,endQuest,quest,ME,remakeMe,cam};   // handy for testing and tinkering
 requestAnimationFrame(frame);
 </script>
 </body>
