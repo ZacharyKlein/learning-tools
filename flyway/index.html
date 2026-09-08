@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flyway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the sky's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: the big button */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --leaf-dk:#2e7d32;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.3;-webkit-text-size-adjust:100%;overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;display:grid;grid-template-rows:auto 1fr auto;
+  gap:10px;padding:10px 14px 12px;max-width:1180px;margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;letter-spacing:.5px;text-shadow:3px 3px 0 var(--gold)}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;background:var(--paper-2);
+  border:3px solid var(--ink);border-radius:18px;padding:6px 14px;
+  box-shadow:4px 4px 0 var(--ink);min-height:56px;transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);background:var(--white);
+  display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:300px;border:5px solid var(--ink);border-radius:26px;
+  overflow:hidden;background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:manipulation;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(58%,470px);background:var(--white);
+  border:3px solid var(--ink);border-radius:18px;padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);top:12px;background:rgba(255,253,247,.92);
+  border:3px solid var(--ink);border-radius:999px;padding:6px 14px;font-weight:800;font-size:14px;
+  pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.hint[hidden]{display:none}
+.stat{position:absolute;right:14px;bottom:12px;display:flex;gap:8px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px)}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;padding:5px 12px;
+  font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(350px,calc(100% - 28px));display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:15.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12.5px;margin-top:6px;opacity:.75}
+.card-x,.q-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink);
+}
+.toast{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);background:var(--gold);
+  border:3px solid var(--ink);border-radius:999px;padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;
+  white-space:nowrap;box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);
+  overflow:hidden;text-overflow:ellipsis;animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(430px,calc(100% - 28px));background:var(--white);
+  border:3px solid var(--ink);border-radius:20px;padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:16px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:8px 14px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14.5px;margin-top:8px;min-height:18px}
+.q-fb.good{color:var(--leaf-dk)}
+.q-fb.bad{color:var(--rocket-dk)}
+
+/* ---------- dock ---------- */
+.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+.levels{display:flex;gap:5px}
+.lvl{
+  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);background:var(--white);
+  font-size:22px;font-family:var(--emoji);line-height:1;padding:0;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s;position:relative;
+}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;background:var(--white);
+  padding:10px 16px;font-size:16px;line-height:1;box-shadow:0 5px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.go{background:var(--grass);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog.dark{background:var(--space);color:var(--white);text-shadow:1px 1px 0 #000}
+.tog.hot{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:860px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;gap:4px}
+  .lvl{width:34px;height:34px;font-size:18px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
+  #btnBack{display:none}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 11px;font-size:14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .ctl-label{font-size:11px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{display:none}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Flyway</h1>
+      <p class="tagline">Follow the birds from a Missouri backyard to the tropics — and back again.</p>
+    </div>
+    <div class="right">
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Journey<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each stop on the journey"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <div class="cap-level" id="capLevel"></div>
+        <div class="cap-text" id="capText"></div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap the birds to meet them</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack">◀ Back</button>
+      <button class="btn big" id="btnNext">NEXT ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-season" hidden>
+        <span class="ctl-label">Season:</span>
+        <button class="tog" data-season="spring">🌱 Spring</button>
+        <button class="tog on" data-season="summer">☀️ Summer</button>
+        <button class="tog" data-season="fall">🍂 Fall</button>
+        <button class="tog" data-season="winter">❄️ Winter</button>
+      </div>
+      <div class="ctl-group" id="ctl-map" hidden>
+        <span class="ctl-label">Traveler:</span>
+        <button class="tog on" data-trav="hum">🌺 Hummingbird</button>
+        <button class="tog" data-trav="tan">🍒 Tanager</button>
+        <button class="tog" data-trav="mar">🏠 Martin</button>
+        <button class="tog" data-trav="goo">❄️ Snow goose</button>
+        <button class="tog go" id="btnFly">▶ Fly!</button>
+      </div>
+      <div class="ctl-group" id="ctl-fuel" hidden>
+        <button class="tog hot" id="btnEat">🍇 Eat!</button>
+        <button class="tog go" id="btnCross">🌊 Cross the Gulf</button>
+        <button class="tog" id="btnFuelReset">↺ Start over</button>
+      </div>
+      <div class="ctl-group" id="ctl-compass" hidden>
+        <button class="tog" id="btnDayNight">🌙 Make it night</button>
+        <button class="tog" id="btnClouds">☁️ Roll in clouds</button>
+        <button class="tog" id="btnField">🧲 Show the magnetic field</button>
+      </div>
+      <div class="ctl-group" id="ctl-night" hidden>
+        <button class="tog on" id="btnLights">💡 City lights: ON</button>
+        <button class="tog" id="btnRadar">📡 Radar view</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+'use strict';
+/* =====================================================================
+   FLYWAY — bird migration for grades 3–4
+   Six stops, drawn on one canvas: why birds leave, the road they take,
+   the fuel they carry, the compasses they steer by, the night sky they
+   cross, and who shows up in Missouri in each season. Every stop has
+   tap-to-meet birds and a challenge that earns a badge.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const rnd=Math.random;
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', SKY='#4fb3f6',
+      GRASS='#63c64d', WHITE='#fffdf7', SPACE='#12103a', WATER='#7fc4ef', LAND='#bcd98f',
+      LAND_DK='#8fbf62', BARK='#8d6b52', BARK_DK='#4e2f18', LEAF='#3f9d3a', LEAF_DK='#2e7d32';
+
+/* ---------- canvas ---------- */
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:520};
+let now=0;
+
+/* ---------- drawing helpers ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(0.1,rx),Math.max(0.1,ry),rot||0,0,TAU); if(fill){ctx.fillStyle=fill;ctx.fill();} if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol,close){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); if(close!==false) ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol){ rrect(x,y,w,h,r); if(fill){ctx.fillStyle=fill;ctx.fill();} if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap,dash){ ctx.save(); if(dash) ctx.setLineDash(dash); ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round'; ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); ctx.restore(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1); ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000'; ctx.fillText(ch,0,px*0.06); ctx.restore(); }
+function label(txt,x,y,o){
+  o=o||{}; const size=o.size||13;
+  ctx.save(); ctx.textAlign=o.align||'center'; ctx.textBaseline=o.baseline||'middle'; ctx.lineJoin='round';
+  ctx.font=(o.weight||800)+' '+size+'px '+(o.display?DISPLAY_FONT:LABEL_FONT);
+  ctx.strokeStyle=o.dark?'rgba(255,248,231,0.85)':'rgba(43,35,80,0.8)'; ctx.lineWidth=Math.max(3,size*0.32);
+  ctx.strokeText(txt,x,y);
+  ctx.fillStyle=o.color||(o.dark?INK:PAPER); ctx.fillText(txt,x,y);
+  ctx.restore();
+}
+function sign(txt,x,y,o){
+  o=o||{}; const size=o.size||13;
+  ctx.save(); ctx.font='800 '+size+'px '+LABEL_FONT;
+  const w=ctx.measureText(txt).width+18, h=size+14;
+  let bx=o.align==='left'?x:o.align==='right'?x-w:x-w/2, by=y-h/2;
+  bx=clamp(bx,4,V.w-w-4); by=clamp(by,4,V.h-h-4);
+  if(o.to) line(bx+w/2,by+h/2,o.to[0],o.to[1],INK,2.5);
+  box(bx,by,w,h,10,o.fill||WHITE,2.5);
+  ctx.fillStyle=o.color||INK; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(txt,bx+w/2,by+h/2+1);
+  ctx.restore(); return {x:bx,y:by,w,h};
+}
+function vgrad(y0,y1,stops){ const g=ctx.createLinearGradient(0,y0,0,y1); stops.forEach(s=>g.addColorStop(s[0],s[1])); return g; }
+
+/* =====================================================================
+   BIRDS — one drawer, many species. Everything is scaled from `s`, the
+   length of the body, so the same bird works as a thumbnail or a giant.
+   ===================================================================== */
+const SPECIES={
+  hummer:{name:'Ruby-throated hummingbird',body:'#3f9c62',belly:'#f2f0e2',head:'#2f7f4e',bill:'#2b2350',billLen:1.15,billW:.055,tail:.5,size:.55,throat:'#d1342b',hover:true},
+  tanager:{name:'Scarlet tanager',body:'#e8342a',belly:'#e8342a',head:'#e8342a',wing:'#241f33',bill:'#c9c9a8',tail:.75,tailDark:true},
+  bunting:{name:'Indigo bunting',body:'#3457d5',belly:'#4b73e8',head:'#2a45b8',bill:'#b9b9a8',tail:.7},
+  cardinal:{name:'Northern cardinal',body:'#d1342b',belly:'#d1342b',head:'#d1342b',bill:'#f2913d',crest:true,face:'#2b2350',tail:.95},
+  chickadee:{name:'Carolina chickadee',body:'#a9a9a2',belly:'#f4f1e4',head:'#f4f1e4',cap:'#2b2350',bib:'#2b2350',bill:'#2b2350',tail:.85,size:.72},
+  jay:{name:'Blue jay',body:'#5b8fd6',belly:'#f2f0e2',head:'#5b8fd6',crest:true,bill:'#2b2350',tail:1.0},
+  junco:{name:'Dark-eyed junco',body:'#5a5a6b',belly:'#f6f4ea',head:'#4a4a5c',bill:'#f0b8c0',tail:.8,size:.78},
+  sparrow:{name:'White-throated sparrow',body:'#9b7a52',belly:'#e8e2d2',head:'#7d6242',bill:'#4b4030',cap:'#3a3020',cheek:'#ffd23f',tail:.8,size:.8},
+  martin:{name:'Purple martin',body:'#4b3d8f',belly:'#4b3d8f',head:'#3d3277',bill:'#2b2350',tail:.8,fork:true,size:.9},
+  swallow:{name:'Barn swallow',body:'#2f4a9c',belly:'#f2c893',head:'#2f4a9c',face:'#c0562f',bill:'#2b2350',tail:1.1,fork:true,size:.8},
+  woodpecker:{name:'Downy woodpecker',body:'#2b2350',belly:'#f6f4ea',head:'#2b2350',bill:'#4a4a5c',nape:'#d1342b',tail:.75,size:.8},
+  goose:{name:'Snow goose',body:'#fdfbf2',belly:'#fdfbf2',head:'#fdfbf2',bill:'#e8909a',wingtip:'#2b2350',neck:1.1,tail:.6,size:1.25},
+  swan:{name:'Trumpeter swan',body:'#fdfbf2',belly:'#fdfbf2',head:'#fdfbf2',bill:'#2b2350',neck:2.2,tail:.5,size:1.5},
+  eagle:{name:'Bald eagle',body:'#5a3a24',belly:'#4a2f1c',head:'#fdfbf2',bill:'#ffc93d',tail:.7,size:1.4},
+  pelican:{name:'American white pelican',body:'#fdfbf2',belly:'#fdfbf2',head:'#fdfbf2',bill:'#f2a83d',billLen:1.9,billW:.13,wingtip:'#2b2350',neck:1.0,tail:.5,size:1.4},
+  teal:{name:'Blue-winged teal',body:'#8a6f4e',belly:'#b89a6d',head:'#4a5560',bill:'#2b2350',crescent:true,tail:.6,size:1.05},
+  thrush:{name:"Swainson's thrush",body:'#8a7050',belly:'#efe8d6',head:'#7a6244',bill:'#4b4030',spots:true,tail:.8,size:.9},
+  warbler:{name:'Yellow warbler',body:'#f2c93d',belly:'#f7e07a',head:'#f2c93d',bill:'#4b4030',tail:.65,size:.62},
+  heron:{name:'Great blue heron',body:'#8fa3bd',belly:'#8fa3bd',head:'#dfe6ee',bill:'#e0b23d',billLen:1.8,billW:.07,neck:2.0,tail:.5,size:1.45,cap:'#2b2350'},
+  hawk:{name:'Red-tailed hawk',body:'#7a5a3c',belly:'#efe4cf',head:'#6a4a30',bill:'#3a3242',tail:.8,tailRed:true,size:1.2},
+};
+
+// draw a perched/flying bird. o: {flip, wing:-1..1 (flap), perch, fat:0..1, scale}
+function bird(x,y,s,key,o){
+  const B=SPECIES[key]||SPECIES.chickadee; o=o||{};
+  const S=s*(B.size||1)*(o.scale||1), TILT=-0.2;
+  ctx.save(); ctx.translate(x,y); if(o.flip) ctx.scale(-1,1);
+  const rx=S*0.44*(1+(o.fat||0)*0.22), ry=S*0.29*(1+(o.fat||0)*0.40);
+  const hr=S*0.235, hx=S*0.36, hy=-S*0.30;
+  const neck=B.neck||0, HX=hx+S*0.055*neck, HY=hy-S*0.30*neck;
+  const dark=B.wing||B.body;
+  // tail, swept back and down
+  const tl=S*0.62*(B.tail||.8), tx=-rx*0.8, ty=ry*0.05;
+  if(B.fork) poly([[tx,ty-S*0.06],[tx-tl*0.95,ty-tl*0.5],[tx-tl*0.6,ty+S*0.02],[tx-tl*0.95,ty+tl*0.42]],dark,2.2);
+  else poly([[tx,ty-S*0.09],[tx-tl*0.95,ty+tl*0.12],[tx-tl*0.9,ty+tl*0.38],[tx,ty+S*0.09]],
+            B.tailRed?'#b5482c':(B.tailDark?dark:B.body),2.2);
+  // legs first, so the body sits on them
+  if(o.perch||o.wade){ const L=ry*(o.wade?3.6:1.35), lw=Math.max(2,S*(o.wade?0.042:0.05));
+    [rx*0.16,-rx*0.16].forEach(lx=>{ line(lx,ry*0.55,lx,L,'#e0a33d',lw);
+      line(lx,L,lx+S*0.09,L+S*0.03,'#e0a33d',Math.max(1.6,S*0.04)); line(lx,L,lx-S*0.07,L+S*0.03,'#e0a33d',Math.max(1.6,S*0.04)); }); }
+  // body
+  ellipse(0,0,rx,ry,TILT,B.body,2.6);
+  ctx.save(); ctx.beginPath(); ctx.ellipse(0,0,rx,ry,TILT,0,TAU); ctx.clip();
+  ellipse(-rx*0.05,ry*0.42,rx*0.9,ry*0.72,TILT,B.belly||B.body,0);
+  if(B.spots){ const rr=seeded(7); for(let i=0;i<8;i++) circle(-rx*0.3+rr()*rx*1.1,ry*0.05+(rr()-.5)*ry*1.1,S*0.024,'#7a6244'); }
+  if(B.crescent) ellipse(rx*0.1,-ry*0.35,rx*0.26,ry*0.3,0,'#a8ceea',0);
+  ctx.restore();
+  // neck
+  if(neck){ const x0=rx*0.30,y0=-ry*0.5,w0=S*0.16,w1=S*0.082,my=(y0+HY)*0.5;
+    ctx.beginPath(); ctx.moveTo(x0-w0/2,y0);
+    ctx.quadraticCurveTo(HX-w1-S*0.13,my,HX-w1*0.6,HY+hr*0.25);
+    ctx.lineTo(HX+w1*0.6,HY+hr*0.25);
+    ctx.quadraticCurveTo(HX+w1*0.5+S*0.02,my,x0+w0/2,y0);
+    ctx.closePath(); ctx.fillStyle=B.head||B.body; ctx.fill();
+    ctx.strokeStyle=INK; ctx.lineWidth=2.4; ctx.lineJoin='round'; ctx.stroke(); }
+  // wing
+  const wa=o.wing==null?0.1:o.wing;
+  ctx.save(); ctx.translate(-rx*0.06,-ry*0.18); ctx.rotate(TILT-wa*0.9);
+  ellipse(0,0,rx*0.66,ry*0.46,0,dark,2.4);
+  if(B.wingtip) poly([[-rx*0.6,-ry*0.02],[-rx*1.02,ry*0.16],[-rx*0.42,ry*0.28]],B.wingtip,2);
+  ctx.restore();
+  // head
+  disc(HX,HY,hr,B.head||B.body,2.6);
+  if(B.cap){ ctx.save(); ctx.beginPath(); ctx.arc(HX,HY,hr,Math.PI*1.02,TAU*0.02); ctx.closePath(); ctx.fillStyle=B.cap; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=2; ctx.stroke(); ctx.restore(); }
+  if(B.cheek) circle(HX-hr*0.05,HY-hr*0.5,hr*0.24,B.cheek);
+  if(B.nape) circle(HX-hr*0.6,HY-hr*0.3,hr*0.32,B.nape);
+  if(B.face){ ctx.save(); ctx.beginPath(); ctx.arc(HX,HY,hr,0,TAU); ctx.clip(); circle(HX+hr*0.45,HY+hr*0.2,hr*0.62,B.face); ctx.restore(); }
+  if(B.bib){ ctx.save(); ctx.beginPath(); ctx.arc(HX,HY,hr,0,TAU); ctx.clip(); ellipse(HX+hr*0.35,HY+hr*0.75,hr*0.6,hr*0.6,0,B.bib,0); ctx.restore(); }
+  if(B.throat) ellipse(HX+hr*0.3,HY+hr*0.62,hr*0.42,hr*0.34,0.35,B.throat,2);
+  if(B.crest) poly([[HX-hr*0.35,HY-hr*0.8],[HX+hr*0.1,HY-hr*1.95],[HX+hr*0.62,HY-hr*0.6]],B.head||B.body,2.4);
+  // bill
+  const bl=S*0.2*(B.billLen||1), bw=S*(B.billW||0.062);
+  poly([[HX+hr*0.7,HY-bw],[HX+hr*0.7+bl,HY+bw*0.1],[HX+hr*0.7,HY+bw*1.05]],B.bill,2);
+  // eye
+  circle(HX+hr*0.28,HY-hr*0.22,Math.max(1.6,S*0.05),INK);
+  circle(HX+hr*0.36,HY-hr*0.32,Math.max(0.7,S*0.018),WHITE);
+  ctx.restore();
+}
+// wrap text to a width, in canvas
+function wrapText(txt,maxw,size,display){
+  ctx.save(); ctx.font='800 '+size+'px '+(display?DISPLAY_FONT:LABEL_FONT);
+  const words=txt.split(' '), lines=[]; let cur='';
+  words.forEach(w=>{ const t=cur?cur+' '+w:w;
+    if(ctx.measureText(t).width>maxw&&cur){ lines.push(cur); cur=w; } else cur=t; });
+  if(cur) lines.push(cur); ctx.restore(); return lines;
+}
+// the one line of scene text, always in the same corner
+function banner(txt){ if(V.w<620) return; label(txt,V.w*0.03,V.h*0.945,{size:Math.max(13,V.h*0.04),display:true,dark:true,align:'left'}); }
+// a tappable marker for things that are ideas rather than objects
+function tapMark(x,y,emo,r){
+  r=r||18; const pu=1+Math.sin(now*2.4)*0.05;
+  ctx.save(); ctx.translate(x,y); ctx.scale(pu,pu);
+  disc(0,0,r,'rgba(255,253,247,0.94)',3);
+  ctx.setLineDash([4,5]); ring(0,0,r+6,'rgba(43,35,80,0.5)',2); ctx.setLineDash([]);
+  if(emo) emoji(emo,0,0,r*1.15);
+  ctx.restore();
+}
+// a flying silhouette-ish bird: two wings + body, used in flocks
+function flyer(x,y,s,col,ph,ol){
+  const up=Math.sin(ph)*0.9;
+  ctx.save(); ctx.translate(x,y);
+  poly([[-s,-up*s*0.7],[-s*0.25,-s*0.12],[0,0],[-s*0.25,s*0.1]],col,ol||0);
+  poly([[s,-up*s*0.7],[s*0.25,-s*0.12],[0,0],[s*0.25,s*0.1]],col,ol||0);
+  ellipse(0,0,s*0.3,s*0.16,0,col,ol||0);
+  ctx.restore();
+}
+
+/* =====================================================================
+   STOP 1 — WHY GO?  A Missouri backyard, four seasons.
+   The point: birds don't leave because it gets cold. They leave because
+   their food disappears. The bug counter is the argument.
+   ===================================================================== */
+const SEASON={
+  spring:{sky:['#a8dcff','#e6f6ff'],bugs:55,day:13.0,leaf:'#8fd06a',ground:'#7fc85e',word:'Spring'},
+  summer:{sky:['#5fbdf7','#dff2ff'],bugs:100,day:14.7,leaf:'#3f9d3a',ground:'#63c64d',word:'Summer'},
+  fall:{sky:['#8fc7ea','#ffe9c0'],bugs:30,day:11.0,leaf:'#e0912c',ground:'#c8b565',word:'Fall'},
+  winter:{sky:['#a9c4d8','#eef4f8'],bugs:2,day:9.9,leaf:'#8d6b52',ground:'#f2f4f6',word:'Winter'},
+};
+const CROWN=[[0,-0.55,0.5],[-0.55,-0.25,0.45],[0.55,-0.28,0.44],[-0.3,-0.72,0.38],[0.32,-0.7,0.4],[0,-0.15,0.42]];
+const YARD_BIRDS={
+  hummer:{sp:'hummer',p:[.52,.55],hover:1,sub:'Leaves in September',
+    fact:'Weighs about as much as a penny. It eats nectar and tiny insects — both gone by winter.',
+    extra:'Winters in Mexico and Central America. Back in Missouri around mid-April.'},
+  tanager:{sp:'tanager',p:[.76,.28],sub:'Leaves in September',
+    fact:'Hunts caterpillars high in the oak leaves. When the caterpillars vanish, so does the tanager.',
+    extra:'Winters in the rainforests of Peru, Ecuador and Bolivia — about 3,000 miles away.'},
+  bunting:{sp:'bunting',p:[.10,.585],sub:'Leaves in October',
+    fact:'Sings all summer from a fence wire, then flies to Central America — at night, steering by the stars.',
+    extra:'Scientists learned how birds use the stars by watching these birds under a planetarium sky.'},
+  martin:{sp:'martin',p:[.55,.19],fly:1,sub:'Leaves in August',
+    fact:'Catches every meal in mid-air. No flying insects means no martins, so it heads for Brazil.',
+    extra:'Purple martins in the East nest almost only in birdhouses people put up for them.'},
+  chickadee:{sp:'chickadee',p:[.345,.44],sub:'Stays all winter',
+    fact:'Switches from caterpillars to seeds when the bugs run out — so it never has to leave.',
+    extra:'It hides thousands of seeds in the fall and remembers where it put them.'},
+  cardinal:{sp:'cardinal',p:[.42,.715],sub:'Stays all winter',
+    fact:'Seeds and berries all winter. Missouri cardinals almost never move more than a few miles.',
+    extra:'The state bird of Missouri — and six other states.'},
+  jay:{sp:'jay',p:[.16,.585],sub:'Some stay, some go',
+    fact:'Buries acorns in the fall and digs them up all winter. Some jays migrate, some do not — and nobody is sure why.',
+    extra:'Jays plant oak trees by forgetting where they buried things.'},
+  junco:{sp:'junco',p:[.26,.715],ground:1,sub:'Winter visitor',
+    fact:'Spends its summer in Canada, then comes DOWN to Missouri for the winter. To a junco, this is the warm south.',
+    extra:'People call them "snowbirds" — they show up with the first cold snap.'},
+  sparrow:{sp:'sparrow',p:[.60,.715],ground:1,sub:'Winter visitor',
+    fact:'Another Canadian. It whistles "Old Sam Peabody" under Missouri bushes from October to April.',
+    extra:'It scratches with both feet at once to kick seeds out of the leaves.'},
+  woodpecker:{sp:'woodpecker',p:[.733,.53],sub:'Stays all winter',
+    fact:'Chisels sleeping insects out from under the bark. That food does not fly away, so neither does the woodpecker.',
+    extra:'Missouri\u2019s smallest woodpecker — about the size of a sparrow.'},
+  thrush:{sp:'thrush',p:[.30,.46],sub:'Just passing through',
+    fact:'Nests in Canada, winters in South America, and stops in Missouri woods to rest and eat berries.',
+    extra:'It travels at night and rests by day — you can hear its flight call overhead in October.'},
+};
+const YARD={spring:['hummer','tanager','martin','chickadee','cardinal'],
+            summer:['hummer','tanager','bunting','martin','chickadee','cardinal'],
+            fall:['hummer','thrush','jay','chickadee','cardinal'],
+            winter:['junco','sparrow','woodpecker','jay','chickadee','cardinal']};
+let season='summer';
+const bugs=[]; for(let i=0;i<30;i++) bugs.push({x:rnd(),y:0.3+rnd()*0.45,ph:rnd()*TAU,sp:0.3+rnd()*0.7});
+
+const sceneWhy={
+  ctls:['season'], hint:'👆 Tap a bird to meet it',
+  stat(){ const S=SEASON[season];
+    return '<span>🐛 Insects to eat: <b>'+S.bugs+'</b> of 100</span><span>🌞 Daylight: <b>'+S.day.toFixed(1)+' h</b></span>'; },
+  items(){
+    const A=[];
+    YARD[season].forEach(k=>{ const b=YARD_BIRDS[k];
+      A.push({id:k,name:SPECIES[b.sp].name,sub:b.sub,fact:b.fact,extra:b.extra,sp:b.sp,
+              x:b.p[0]*V.w,y:b.p[1]*V.h,r:Math.max(26,V.h*0.07)}); });
+    A.push({id:'bugs',name:'The bug supply',sub:SEASON[season].word,emo:'🐛',bg:'#dff0c8',mark:true,
+      x:V.w*0.63,y:V.h*0.32,r:V.h*0.06,
+      fact:'In summer a Missouri oak is crawling with caterpillars. By January there is almost nothing moving.',
+      extra:'One pair of chickadees needs 6,000–9,000 caterpillars to raise a single brood of chicks.'});
+    return A;
+  },
+  draw(dt){
+    const S=SEASON[season], H=V.h, W=V.w, gy=H*0.76;
+    ctx.fillStyle=vgrad(0,gy,[[0,S.sky[0]],[1,S.sky[1]]]); ctx.fillRect(0,0,W,gy);
+    const sunY=H*(season==='winter'?0.24:season==='summer'?0.10:0.16);
+    disc(W*0.94,sunY,H*0.055,'#ffe57a',3);
+    ctx.fillStyle=S.ground; ctx.fillRect(0,gy,W,H-gy);
+    if(season==='winter'){ ctx.fillStyle='#fbfdff'; ctx.fillRect(0,gy-4,W,H-gy+4); }
+    else { for(let i=0;i<70;i++){ const gx=(i*37%100)/100*W, gh=H*0.02*(0.6+((i*13)%5)/6);
+        line(gx,gy+H*0.01+((i*7)%9)/9*(H-gy)*0.8,gx+3,gy+H*0.01+((i*7)%9)/9*(H-gy)*0.8-gh,season==='fall'?'#b09a4a':'#3f9d3a',2); } }
+    ctx.fillStyle='rgba(43,35,80,0.10)'; ctx.fillRect(0,gy,W,3);
+    // the oak, on the right where nothing covers it
+    const tx=W*0.76, cy=H*0.30, cr=H*0.21;
+    ctx.fillStyle=BARK; ctx.fillRect(tx-W*0.013,cy,W*0.026,gy-cy+2);
+    ctx.strokeStyle=INK; ctx.lineWidth=2.5; ctx.strokeRect(tx-W*0.013,cy,W*0.026,gy-cy+2);
+    line(tx,cy+H*0.14,tx-W*0.055,cy+H*0.07,BARK,7); line(tx,cy+H*0.09,tx+W*0.055,cy+H*0.03,BARK,7);
+    if(season!=='winter'){
+      CROWN.forEach(c=>circle(tx+c[0]*cr,cy+c[1]*cr*0.85,c[2]*cr,S.leaf));
+      CROWN.forEach(c=>circle(tx+c[0]*cr-cr*0.08,cy+c[1]*cr*0.85-cr*0.08,c[2]*cr*0.7,season==='fall'?'#f2b24a':season==='spring'?'#a8dd7a':'#5fc04a'));
+    } else { const rr=seeded(3); for(let i=0;i<12;i++){ const a=-0.25-rr()*2.6; line(tx,cy+cr*0.25,tx+Math.cos(a)*cr*1.15,cy+cr*0.25+Math.sin(a)*cr*0.95,BARK_DK,3); } }
+    // fence, left
+    for(let i=0;i<5;i++){ const fx=W*0.03+i*W*0.045; ctx.fillStyle='#c8a878'; ctx.fillRect(fx,gy-H*0.15,W*0.012,H*0.15);
+      ctx.strokeStyle=INK; ctx.lineWidth=2; ctx.strokeRect(fx,gy-H*0.15,W*0.012,H*0.15); }
+    line(W*0.02,gy-H*0.12,W*0.24,gy-H*0.12,'#c8a878',6); line(W*0.02,gy-H*0.06,W*0.24,gy-H*0.06,'#c8a878',6);
+    // feeder
+    const fx=W*0.34, fy=gy-H*0.28;
+    line(fx,fy,fx,gy,'#7a6a55',6);
+    box(fx-W*0.035,fy,W*0.07,H*0.07,6,'#e8d9b8',2.5);
+    poly([[fx-W*0.05,fy],[fx,fy-H*0.06],[fx+W*0.05,fy]],'#b5482c',2.5);
+    for(let i=0;i<9;i++) circle(fx-W*0.025+ (i%5)*W*0.012, fy+H*0.05-(i>4?H*0.012:0), 2.6,'#8a6a3a');
+    // flowers
+    for(let i=0;i<7;i++){ const px=W*(0.44+i*0.028), ph=H*0.11*(0.7+((i*7)%5)/8);
+      line(px,gy,px,gy-ph,season==='winter'?'#b5a98d':'#4a9d3a',3);
+      if(season==='spring'||season==='summer'){ disc(px,gy-ph,H*0.017,i%2?'#ff6b9c':'#f2913d',2); circle(px,gy-ph,H*0.006,GOLD); }
+      else if(season==='fall') circle(px,gy-ph,H*0.012,'#c8a04a'); }
+    // insects
+    const n=Math.round(S.bugs/100*bugs.length);
+    for(let i=0;i<n;i++){ const b=bugs[i], px=(b.x*1.02+Math.sin(now*b.sp+b.ph)*0.03)*W, py=b.y*H+Math.cos(now*b.sp*1.3+b.ph)*H*0.03;
+      circle(px,py,3.2,'#6b5a2a'); line(px-4,py-3,px-1,py-1,'#6b5a2a',1.4); line(px+4,py-3,px+1,py-1,'#6b5a2a',1.4); }
+    if(season==='winter'){ const rr=seeded(11); for(let i=0;i<70;i++){ const sx=(rr()*W+now*8)%W, sy=(rr()*H+now*22)%H; circle(sx,sy,2.2,'rgba(255,255,255,0.9)'); } }
+    // the birds
+    YARD[season].forEach(k=>{ const b=YARD_BIRDS[k], x=b.p[0]*W, y=b.p[1]*H, s=H*0.11;
+      if(b.hover) bird(x,y+Math.sin(now*3)*3,s,b.sp,{wing:Math.sin(now*26)*1.2,flip:1});
+      else if(b.fly) bird(x+Math.sin(now*0.5)*W*0.1,y+Math.sin(now*1.1)*H*0.03,s,b.sp,{wing:Math.sin(now*7)*0.9});
+      else bird(x,y,s,b.sp,{perch:!b.ground,wing:0.12,flip:x>W*0.55}); });
+    banner(SEASON[season].word+' in a Missouri backyard');
+  },
+};
+
+/* =====================================================================
+   STOP 2 — THE FLYWAY.  A map of the Americas, the Mississippi corridor
+   down the middle of it, and four Missouri birds flying their real
+   routes. Distances are measured along the drawn route, not made up.
+   ===================================================================== */
+const AMERICAS=[[-168,66],[-166,60],[-160,58],[-152,59],[-145,60],[-135,57],[-130,52],[-124,48],[-122,37],[-117,32],[-114,28],[-110,23],[-106,21],[-99,16],[-94,16],[-92,14],[-87,13],[-84,10],[-80,8],[-78,8],[-77,4],[-80,0],[-81,-6],[-76,-14],[-71,-18],[-70,-23],[-72,-37],[-74,-45],[-75,-52],[-68,-55],[-65,-55],[-62,-50],[-62,-42],[-57,-38],[-53,-34],[-48,-25],[-40,-22],[-39,-13],[-35,-8],[-44,-2],[-50,0],[-52,4],[-60,8],[-66,10],[-72,12],[-77,8],[-82,9],[-83,15],[-88,16],[-87,21],[-91,19],[-95,19],[-97,26],[-97,28],[-94,29],[-90,29],[-85,30],[-82,25],[-81,31],[-76,35],[-74,40],[-70,43],[-67,45],[-65,48],[-56,50],[-64,53],[-65,60],[-70,60],[-80,63],[-95,68],[-110,69],[-130,70],[-155,71],[-165,68]];
+const HUDSON=[[-95,60],[-82,58],[-78,62],[-82,65],[-88,66],[-95,64]];
+const CUBA=[[-84,22],[-77,20],[-74,20],[-79,23],[-84,23]];
+const HISPANIOLA=[[-74,19.5],[-68,19],[-69,18],[-74,17.8]];
+const MISSISSIPPI=[[-95,47],[-92,44],[-91,42],[-90.5,39.5],[-89.3,37],[-90,35],[-91,32],[-91,30],[-89.4,29]];
+const MISSOURI_R=[[-111,45.5],[-104,47],[-98,44],[-96,42],[-94.6,39.1],[-92,38.8],[-90.5,38.8]];
+const MO=[-92.5,38.5];
+const ROUTES={
+  hum:{key:'hummer',color:'#d1342b',icon:'🌺',name:'Ruby-throated hummingbird',
+    pts:[[-92.5,38.5],[-92,34],[-91,30.2],[-91,25],[-90.5,21],[-88,17.5],[-84,10.5]],
+    home:'Costa Rica',note:'Crosses 500 miles of open water in one 18–22 hour flight.'},
+  tan:{key:'tanager',color:'#e8342a',icon:'🍒',name:'Scarlet tanager',
+    pts:[[-92.5,38.5],[-89,33],[-87,29.5],[-84,22],[-79,15],[-76,9],[-74,4],[-73,-6]],
+    home:'the Andes foothills of Peru',note:'Nests in Missouri oaks, winters in South American rainforest.'},
+  mar:{key:'martin',color:'#4b3d8f',icon:'🏠',name:'Purple martin',
+    pts:[[-92.5,38.5],[-91,33],[-90,29.5],[-88,21],[-84,14],[-77,8],[-70,0],[-60,-6]],
+    home:'the Amazon in Brazil',note:'Roosts by the hundreds of thousands before it goes.'},
+  goo:{key:'goose',color:'#3f7fbf',icon:'❄️',name:'Snow goose',
+    pts:[[-95.2,40.1],[-97,43.5],[-99,49],[-101,55],[-98,61],[-90,64],[-84,67]],
+    home:'the Arctic coast around Hudson Bay',note:'Flies north to nest where summer days almost never end.',north:true},
+};
+function haversine(a,b){ const R=3959,t=Math.PI/180, dLat=(b[1]-a[1])*t, dLon=(b[0]-a[0])*t,
+  h=Math.sin(dLat/2)**2+Math.cos(a[1]*t)*Math.cos(b[1]*t)*Math.sin(dLon/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h)); }
+Object.values(ROUTES).forEach(R=>{ let d=0; R.seg=[0]; for(let i=1;i<R.pts.length;i++){ d+=haversine(R.pts[i-1],R.pts[i]); R.seg.push(d); } R.miles=d; });
+let mapProj={x:0,y:0,k:1};
+function P(p){ return [mapProj.x+p[0]*mapProj.k*0.86, mapProj.y-p[1]*mapProj.k]; }
+function setProj(){
+  const lon0=-170,lon1=-30,lat0=-58,lat1=74;
+  const k=Math.min(V.w*0.98/((lon1-lon0)*0.86), V.h*0.99/(lat1-lat0));
+  mapProj.k=k; mapProj.x=V.w/2-((lon0+lon1)/2)*k*0.86; mapProj.y=V.h/2+((lat0+lat1)/2)*k;
+}
+let traveler='hum', flight=null;
+const sceneMap={
+  ctls:['map'], hint:'👆 Tap a bird, the star, or the river',
+  enter(){ flight=null; },
+  stat(){ const R=ROUTES[traveler];
+    if(flight){ const m=Math.round(R.miles*flight.t/100)*100;
+      return '<span>'+R.icon+' Flown: <b>'+m.toLocaleString()+'</b> mi</span><span>🏁 Trip: <b>'+(Math.round(R.miles/50)*50).toLocaleString()+'</b> mi</span>'; }
+    return '<span>'+R.icon+' '+R.name+'</span><span>🏁 One way: about <b>'+(Math.round(R.miles/50)*50).toLocaleString()+'</b> miles</span>'; },
+  items(){
+    const A=[], R=ROUTES[traveler], end=P(R.pts[R.pts.length-1]);
+    A.push({id:'star',name:'Missouri',sub:'The middle of the Mississippi Flyway',emo:'⭐',bg:'#ffeeb8',
+      x:P(MO)[0],y:P(MO)[1],r:26,
+      fact:'Almost every bird on this map passes over Missouri, or stops here, or spends part of the year here.',
+      extra:'A flyway is not a road in the sky. It is a broad band that millions of birds happen to share.'});
+    A.push({id:'river',name:'The Mississippi River',sub:'A signpost 2,300 miles long',emo:'🌊',bg:'#cfe8fb',
+      x:P([-90,35])[0],y:P([-90,35])[1],r:24,
+      fact:'Ducks, geese and cranes follow the river valley south. It is easy to see from the air, and it is lined with food and water.',
+      extra:'The Missouri River joins it just above St. Louis — two signposts crossing right at our state.'});
+    A.push({id:'gulf',name:'The Gulf of Mexico',sub:'500 miles with nowhere to land',emo:'🌊',bg:'#a8d8f5',
+      x:P([-91,24])[0],y:P([-91,24])[1],r:26,
+      fact:'Some birds go around it. Some fly straight across — a whole day and night over water with no rest and no food.',
+      extra:'Storms over the Gulf can force birds down on the coast by the thousands. Birders call that a "fallout".'});
+    A.push({id:'dest',name:R.name+"'s winter home",sub:R.home,emo:R.icon,bg:'#d8f0c8',
+      x:end[0],y:end[1],r:26,fact:R.note,
+      extra:'Round trip: about '+(Math.round(R.miles*2/100)*100).toLocaleString()+' miles every single year.'});
+    return A;
+  },
+  draw(dt){
+    setProj();
+    ctx.fillStyle='#9fd4f2'; ctx.fillRect(0,0,V.w,V.h);
+    poly(AMERICAS.map(P),LAND,3);
+    // the flyway band, laid over the land like a highlighter stripe
+    ctx.save(); ctx.globalAlpha=.45;
+    path([P([-93,72]),P([-93,55]),P([-91,45]),P([-90,38]),P([-90,30]),P([-90,24])],'#ffd23f',mapProj.k*8,'round');
+    ctx.restore();
+    poly(HUDSON.map(P),'#9fd4f2',2.5); poly(CUBA.map(P),LAND,2.5); poly(HISPANIOLA.map(P),LAND,2.5);
+    path(MISSISSIPPI.map(P),'#3f8fd6',Math.max(2,mapProj.k*0.55));
+    path(MISSOURI_R.map(P),'#3f8fd6',Math.max(1.6,mapProj.k*0.4));
+    label('MISSISSIPPI',P([-90.4,33])[0]+mapProj.k*3.4,P([-90.4,33])[1],{size:Math.max(9,mapProj.k*1.5),dark:true,align:'left'});
+    label('FLYWAY',P([-93,58])[0],P([-93,58])[1],{size:Math.max(10,mapProj.k*1.9),display:true,dark:true});
+    label('Gulf of Mexico',P([-91,24])[0],P([-91,24])[1],{size:Math.max(9,mapProj.k*1.4),color:'#1f5f8f',dark:true});
+    // routes: the chosen one bright, the others faint
+    Object.keys(ROUTES).forEach(k=>{ const R=ROUTES[k], on=k===traveler;
+      ctx.save(); ctx.globalAlpha=on?1:0.22;
+      path(R.pts.map(P),on?R.color:'#6b6b7a',on?Math.max(2.5,mapProj.k*0.6):2,'round',on?null:[5,6]);
+      ctx.restore(); });
+    // the star on Missouri
+    const st=P(MO); ctx.save(); ctx.translate(st[0],st[1]); const sp=[];
+    for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, r=i%2?mapProj.k*1.1:mapProj.k*2.4; sp.push([Math.cos(a)*r,Math.sin(a)*r]); }
+    poly(sp,GOLD,2.2); ctx.restore();
+    label('MISSOURI',st[0],st[1]-mapProj.k*3.6,{size:Math.max(9,mapProj.k*1.5),display:true,dark:true});
+    // the traveler
+    const R=ROUTES[traveler];
+    let at, ang=0;
+    if(flight){
+      flight.t=Math.min(1,flight.t+dt*0.09);
+      const d=R.miles*flight.t; let i=1; while(i<R.seg.length-1&&R.seg[i]<d) i++;
+      const f=(d-R.seg[i-1])/Math.max(1,(R.seg[i]-R.seg[i-1]));
+      const a=P(R.pts[i-1]), b=P(R.pts[i]);
+      at=[lerp(a[0],b[0],f),lerp(a[1],b[1],f)]; ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+      ctx.save(); ctx.globalAlpha=.85; path(R.pts.map(P).slice(0,i).concat([at]),R.color,Math.max(3,mapProj.k*0.8)); ctx.restore();
+      if(flight.t>=1&&!flight.done){ flight.done=true; toast(R.icon+' Made it! '+(Math.round(R.miles/50)*50).toLocaleString()+' miles.',5000); }
+    } else at=P(R.pts[0]);
+    ctx.save(); ctx.translate(at[0],at[1]);
+    bird(0,0,Math.max(22,mapProj.k*5),R.key,{wing:Math.sin(now*9)*0.8,flip:Math.cos(ang)<0});
+    ctx.restore();
+    // the finish flag
+    const end=P(R.pts[R.pts.length-1]); disc(end[0],end[1],Math.max(5,mapProj.k*1.2),R.color,2.5);
+    // a traveler card in the empty ocean to the west, when there is room for it
+    const west=P([-170,0])[0];
+    if(west>200){
+      const pw=Math.min(250,west-30), px=16, py=V.h*0.30, ph=V.h*0.50, cx=px+pw/2;
+      box(px,py,pw,ph,18,'rgba(255,253,247,0.95)',3.5);
+      bird(cx,py+ph*0.20,pw*0.34/(SPECIES[R.key].size||1),R.key,{perch:1,wing:0.35});
+      let ty=py+ph*0.40;
+      wrapText(R.name,pw-24,15,true).forEach(l=>{ label(l,cx,ty,{size:15,display:true,dark:true}); ty+=19; });
+      ty+=6;
+      wrapText('Missouri → '+R.home,pw-24,13).forEach(l=>{ label(l,cx,ty,{size:13,dark:true}); ty+=17; });
+      ty+=8;
+      label('about '+(Math.round(R.miles/50)*50).toLocaleString()+' miles',cx,ty,{size:15,display:true,dark:true,color:R.color}); ty+=19;
+      label('one way',cx,ty,{size:12,dark:true}); ty+=22;
+      wrapText('Round trip every year: '+(Math.round(R.miles*2/100)*100).toLocaleString()+' miles',pw-24,12).forEach(l=>{ label(l,cx,ty,{size:12,dark:true}); ty+=16; });
+    }
+    banner(flight?'Following the '+R.name.toLowerCase():'Pick a traveler, then press ▶ Fly!');
+  },
+};
+
+/* =====================================================================
+   STOP 3 — FUEL UP.  A hummingbird on the Gulf coast. Fat is gasoline:
+   3.5 grams of it buys exactly the 500 miles of open water ahead.
+   ===================================================================== */
+const LEAN=2.5, FULL=6.0, GULF=500, MPG=GULF/(FULL-LEAN);   // miles per gram of fat
+const fuel={w:3.25,fly:null,msg:''};
+const sceneFuel={
+  ctls:['fuel'], hint:'👆 Tap the food — then fill the tank',
+  enter(){ fuel.fly=null; },
+  stat(){ const range=Math.round((fuel.w-LEAN)*MPG);
+    if(fuel.fly) return '<span>⚖️ <b>'+fuel.fly.w.toFixed(2)+' g</b></span><span>🌊 Flown: <b>'+Math.round(fuel.fly.d)+'</b> of 500 mi</span>';
+    return '<span>⚖️ Weight: <b>'+fuel.w.toFixed(2)+' g</b> of 6.00</span><span>⛽ That buys: <b>'+range+'</b> of 500 mi</span>'; },
+  items(){ return [
+    {id:'bug',name:'Little flying insects',sub:'Protein',emo:'🦟',bg:'#dff0c8',mark:true,x:V.w*0.32,y:V.h*0.47,r:30,
+     fact:'Hummingbirds are not only nectar drinkers. Half of what they eat is gnats, aphids and spiders.',
+     extra:'Nectar is the fuel; insects are what build muscle and feathers.'},
+    {id:'flower',name:'Late-summer flowers',sub:'Sugar',emo:'🌺',bg:'#ffe0ec',x:V.w*0.13,y:V.h*0.62,r:34,
+     fact:'Sugar turns into body fat in a few hours. A hummingbird can put on fat faster than almost any animal alive.',
+     extra:'Jewelweed, cardinal flower and trumpet vine bloom just in time for the trip south.'},
+    {id:'berry',name:'Fall berries',sub:'Fast fuel for bigger birds',emo:'🫐',bg:'#e0d8f5',x:V.w*0.05,y:V.h*0.55,r:34,
+     fact:'Thrushes and warblers switch to berries in the fall. Fruit is sugary, easy to find, and it does not run away.',
+     extra:'Spicebush, dogwood and pokeweed berries ripen exactly when the migrants come through.'},
+    {id:'bird',name:'Ruby-throated hummingbird',sub:'3.25 g → 6 g',sp:'hummer',x:V.w*0.25,y:V.h*0.56,r:38,
+     fact:'Before it crosses the Gulf it nearly doubles its weight — from about 3.25 grams to over 6 grams — almost all of it fat.',
+     extra:'It lands on the far shore weighing about 2.5 g. The whole tank is gone.'},
+    {id:'water',name:'The Gulf of Mexico',sub:'500 miles, no place to stop',emo:'🌊',bg:'#a8d8f5',x:V.w*0.62,y:V.h*0.82,r:44,
+     fact:'The crossing takes 18 to 22 hours of nonstop flying, most of it in the dark.',
+     extra:'Birds that leave with too little fat turn back — or meet a headwind and fall short.'},
+  ]; },
+  draw(dt){
+    const W=V.w,H=V.h, sea=H*0.66;
+    ctx.fillStyle=vgrad(0,sea,[[0,'#67c0f5'],[1,'#ffe6b8']]); ctx.fillRect(0,0,W,sea);
+    disc(W*0.86,H*0.14,H*0.06,'#ffe57a',3);
+    ctx.fillStyle=vgrad(sea,H,[[0,'#4a9fd8'],[1,'#2a6fa8']]); ctx.fillRect(0,sea,W,H-sea);
+    for(let i=0;i<9;i++){ const y=sea+H*0.04*i+(i%2?6:0); path([[0,y],[W*0.25,y-4],[W*0.5,y+4],[W*0.75,y-4],[W,y+3]],'rgba(255,255,255,0.28)',2.5); }
+    // near shore: a low green headland with a sandy lip
+    poly([[0,H],[0,sea-H*0.10],[W*0.12,sea-H*0.06],[W*0.26,sea+H*0.01],[W*0.20,H]],'#6fbf4a',3);
+    poly([[W*0.26,sea+H*0.01],[W*0.20,H],[W*0.245,H],[W*0.29,sea+H*0.015]],'#e8d9a8',3);
+    // far shore
+    poly([[W,sea-H*0.08],[W*0.84,sea+H*0.02],[W,sea+H*0.02]],'#6fbf4a',3);
+    // berry bush + flowers on the headland
+    for(let i=0;i<4;i++){ const bx=W*(0.02+i*0.035), by=sea-H*0.03-i%2*H*0.02;
+      circle(bx,by,H*0.035,'#3f8d3a'); for(let j=0;j<5;j++) circle(bx+Math.cos(j*1.3)*H*0.02,by+Math.sin(j*1.3)*H*0.02,3.4,'#5b3f8f'); }
+    for(let i=0;i<5;i++){ const px=W*(0.10+i*0.028), ph=H*0.09;
+      line(px,sea-H*0.02,px,sea-H*0.02-ph,'#4a9d3a',3); disc(px,sea-H*0.02-ph,H*0.017,i%2?'#ff6b9c':'#f2913d',2); }
+    label('Gulf coast',W*0.13,sea-H*0.20,{size:Math.max(11,H*0.032),dark:true});
+    label('Yucatán',W*0.93,sea-H*0.185,{size:Math.max(11,H*0.032),dark:true});
+    label('500 miles of open water',W*0.60,sea+H*0.12,{size:Math.max(12,H*0.04),display:true,color:WHITE});
+    // the fat tank
+    const gx=W*0.42,gy=H*0.33,gw=W*0.32,gh=H*0.075;
+    const w=fuel.fly?fuel.fly.w:fuel.w, f=clamp((w-LEAN)/(FULL-LEAN),0,1);
+    box(gx,gy,gw,gh,gh/2,WHITE,3); box(gx+3,gy+3,(gw-6)*f,gh-6,(gh-6)/2,f>0.98?GRASS:f>0.6?GOLD:ROCKET,0);
+    label('⛽ FAT TANK',gx+gw/2,gy+gh/2,{size:Math.max(11,gh*0.42),display:true,dark:true});
+    label('empty',gx,gy-gh*0.35,{size:Math.max(9,gh*0.3),dark:true});
+    label('6.00 g = 500 mi',gx+gw,gy-gh*0.35,{size:Math.max(9,gh*0.3),dark:true});
+    // the bird
+    const fat=clamp((w-3.25)/(FULL-3.25),0,1);
+    let bxp=W*0.25, byp=H*0.56;
+    if(fuel.fly){ const F=fuel.fly;
+      if(!F.back){ F.d+=dt*140; F.w=Math.max(LEAN,F.startW-F.d/MPG);
+        if(F.d>=GULF){ F.d=GULF; F.done=1; }
+        else if(F.w<=LEAN+0.001){ F.back=1; toast('⛽ Out of fuel — it turned back to the shore. Eat more first!',5500); } }
+      else { F.d-=dt*160; if(F.d<=0){ fuel.fly=null; fuel.w=LEAN+0.35; } }
+      if(F.done&&!F.told){ F.told=1; toast('🌺 Made it! 500 miles, about 20 hours, tank empty.',6000); }
+      const pr=clamp(F.d/GULF,0,1);
+      bxp=lerp(W*0.25,W*0.9,pr); byp=H*0.56-H*0.14*Math.sin(pr*Math.PI)+Math.sin(now*2)*H*0.015;
+    }
+    bird(bxp,byp+(fuel.fly?0:Math.sin(now*3)*3),H*0.13,'hummer',{wing:Math.sin(now*26)*1.2,fat:fat});
+    if(!fuel.fly&&fat<0.99) sign('Press 🍇 Eat!',bxp,byp-H*0.10,{size:Math.max(11,H*0.032),fill:GOLD});
+    banner(fuel.fly?(fuel.fly.done?'Made it — and the tank is empty':'Crossing…'):'Fattening up on the Gulf coast');
+  },
+};
+
+/* =====================================================================
+   STOP 4 — FINDING THE WAY.  Four compasses, and a sky you can spoil.
+   ===================================================================== */
+const nav={night:false,clouds:false,field:false};
+function cues(){ return {sun:!nav.night&&!nav.clouds, stars:nav.night&&!nav.clouds, mag:true, land:!nav.night&&!nav.clouds}; }
+const STARS=[]; for(let i=0;i<90;i++) STARS.push({a:rnd()*TAU,r:0.08+rnd()*0.95,s:0.6+rnd()*1.6});
+const sceneCompass={
+  ctls:['compass'], hint:'👆 Tap the sun, the stars, the ground — or the bird',
+  stat(){ const c=cues(), on=[]; if(c.sun)on.push('☀️ sun'); if(c.stars)on.push('⭐ stars'); if(c.land)on.push('🌊 landmarks'); on.push('🧲 magnetic');
+    return '<span>🧭 Compasses working: <b>'+on.join(', ')+'</b></span>'; },
+  items(){ const A=[]; const c=cues();
+    A.push({id:'bird',name:'A young bird on its first trip',sub:'Nobody shows it the way',emo:null,sp:'bunting',x:V.w*0.5,y:V.h*0.42,r:44,
+      fact:'Many young birds migrate alone, at night, with no adults — and still arrive at a place they have never seen.',
+      extra:'The direction and roughly how far to go are built in. The landmarks are learned on the way.'});
+    if(!nav.night) A.push({id:'sun',name:'The sun compass',sub:'Works by day',emo:'☀️',bg:'#ffeeb8',x:V.w*0.8,y:V.h*0.17,r:44,
+      fact:'Birds read direction from where the sun sits, combined with their body clock — they know what time it is, so they know which way is south.',
+      extra:'In the 1950s scientists shifted the sun with mirrors and starlings turned to match the fake sun.'});
+    if(nav.night) A.push({id:'stars',name:'The star compass',sub:'Works on clear nights',emo:'⭐',bg:'#1a1740',x:V.w*0.78,y:V.h*0.22,r:44,
+      fact:'Birds do not memorize stars. They watch which part of the sky does NOT turn — that still point is north.',
+      extra:'Stephen Emlen proved it in 1967 by raising indigo buntings under a planetarium sky and spinning it.'});
+    A.push({id:'mag',name:'The magnetic compass',sub:'Works day, night, cloud or fog',emo:'🧲',bg:'#e0d8f5',mark:true,x:V.w*0.12,y:V.h*0.46,r:34,
+      fact:'Birds sense Earth\'s magnetic field — partly with iron in the head, and partly, it seems, by SEEING it with special proteins in the eye.',
+      extra:'This is the backup that never fails. It is why a cloudy night does not strand a migrating bird.'});
+    A.push({id:'land',name:'Landmarks',sub:'Rivers, coasts, ridges',emo:'🌊',bg:'#cfe8fb',x:V.w*0.56,y:V.h*0.86,r:44,
+      fact:'Waterfowl follow the Mississippi. Hawks follow ridges. Coastlines work like a guardrail.',
+      extra:'An older bird knows its route the way you know the way to school — by what it has seen before.'});
+    return A; },
+  draw(dt){
+    const W=V.w,H=V.h, gy=H*0.74;
+    if(nav.night){ ctx.fillStyle=vgrad(0,gy,[[0,'#0c0a26'],[1,'#2f2a63']]); ctx.fillRect(0,0,W,gy);
+      const px=W*0.78, py=H*0.22, R=Math.min(W,H)*0.42, spin=now*0.06;
+      STARS.forEach(s=>{ const a=s.a+spin, r=s.r*R; circle(px+Math.cos(a)*r*1.4,py+Math.sin(a)*r,s.s,'rgba(255,255,255,0.9)'); });
+      disc(px,py,3.4,WHITE,0); ring(px,py,10+Math.sin(now*2)*2,'rgba(255,210,63,0.8)',2);
+      label('North Star — the sky turns around it',px,py+H*0.085,{size:Math.max(10,H*0.03),color:GOLD});
+      ctx.save(); ctx.setLineDash([4,7]); ring(px,py,R*0.55,'rgba(255,255,255,0.35)',1.5); ring(px,py,R*0.9,'rgba(255,255,255,0.25)',1.5); ctx.restore();
+    } else { ctx.fillStyle=vgrad(0,gy,[[0,'#5fbdf7'],[1,'#dff2ff']]); ctx.fillRect(0,0,W,gy);
+      disc(W*0.8,H*0.17,H*0.07,'#ffe57a',3);
+      for(let i=0;i<12;i++){ const a=i/12*TAU; line(W*0.8+Math.cos(a)*H*0.09,H*0.17+Math.sin(a)*H*0.09,W*0.8+Math.cos(a)*H*0.115,H*0.17+Math.sin(a)*H*0.115,'#ffd23f',3); } }
+    // magnetic field lines
+    if(nav.field){ ctx.save(); ctx.globalAlpha=.85;
+      for(let i=0;i<6;i++){ const x=W*(0.08+i*0.17);
+        ctx.strokeStyle='#b06bd6'; ctx.lineWidth=3; ctx.setLineDash([9,7]); ctx.lineDashOffset=-now*22;
+        ctx.beginPath(); ctx.moveTo(x-W*0.05,0); ctx.quadraticCurveTo(x,H*0.4,x+W*0.05,gy); ctx.stroke();
+        ctx.setLineDash([]);
+        poly([[x+W*0.035,gy*0.72],[x+W*0.055,gy*0.72],[x+W*0.045,gy*0.78]],'#b06bd6',0); }
+      ctx.restore(); }
+    // clouds
+    if(nav.clouds){ const rr=seeded(5); for(let i=0;i<7;i++){ const cx=((rr()*1.3+now*0.012)%1.3-0.15)*W, cy=H*(0.06+rr()*0.42), s=H*(0.06+rr()*0.05);
+        ctx.save(); ctx.globalAlpha=.94; for(let j=0;j<5;j++) circle(cx+j*s*0.7-s,cy+((j%2)?-s*0.25:0),s*(0.6+(j%3)*0.12),nav.night?'#4a4570':'#fdfdfd'); ctx.restore(); } }
+    // ground + river
+    ctx.fillStyle=nav.night?'#1b2b1a':'#5fae4a'; ctx.fillRect(0,gy,W,H-gy);
+    ctx.save(); ctx.beginPath(); ctx.moveTo(W*0.36,gy); ctx.bezierCurveTo(W*0.44,gy+H*0.08,W*0.5,gy+H*0.12,W*0.62,H);
+    ctx.lineTo(W*0.78,H); ctx.bezierCurveTo(W*0.62,gy+H*0.1,W*0.56,gy+H*0.06,W*0.5,gy); ctx.closePath();
+    ctx.fillStyle=nav.night?'#22305e':'#5fb0e8'; ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=2.5; ctx.stroke(); ctx.restore();
+    for(let i=0;i<9;i++){ const tx=W*(0.05+i*0.11), th=H*0.06; if(tx>W*0.33&&tx<W*0.72) continue;
+      ctx.fillStyle=nav.night?'#101f10':'#3a7d2a'; ctx.fillRect(tx,gy-th,4,th); circle(tx+2,gy-th,H*0.03,nav.night?'#16321a':'#3f9d3a'); }
+    // the bird + compass rose
+    const bx=W*0.5, by=H*0.42+Math.sin(now*1.6)*H*0.015;
+    const c=cues(), works=c.sun||c.stars||c.mag;
+    ctx.save(); ctx.globalAlpha=.9; ring(bx,by,H*0.16,works?GOLD:'#ff6b35',3);
+    [['N',-Math.PI/2],['E',0],['S',Math.PI/2],['W',Math.PI]].forEach(d=>{
+      label(d[0],bx+Math.cos(d[1])*H*0.16,by+Math.sin(d[1])*H*0.16,{size:Math.max(10,H*0.032),display:true,dark:!nav.night,color:nav.night?WHITE:INK}); });
+    ctx.restore();
+    const dir=Math.PI/2;   // south
+    path([[bx,by],[bx+Math.cos(dir)*H*0.13,by+Math.sin(dir)*H*0.13]],ROCKET,4);
+    poly([[bx-8,by+H*0.13],[bx+8,by+H*0.13],[bx,by+H*0.16]],ROCKET,2);
+    bird(bx,by-H*0.03,H*0.13,'bunting',{wing:Math.sin(now*7)*0.8});
+    label(nav.clouds&&!nav.night?'Sun hidden — steering by magnet':nav.clouds?'Stars hidden — steering by magnet':nav.night?'Steering by the stars':'Steering by the sun',
+      bx,by+H*0.21,{size:Math.max(11,H*0.034),display:true,dark:!nav.night,color:nav.night?GOLD:INK});
+  },
+};
+
+/* =====================================================================
+   STOP 5 — NIGHT FLIGHT.  Most songbirds cross Missouri in the dark.
+   Turning the city lights off is the whole lesson, and you can do it.
+   ===================================================================== */
+const night={lights:true,radar:false,caught:0};
+const NBIRDS=[]; for(let i=0;i<34;i++) NBIRDS.push({x:rnd(),y:rnd()*0.7,v:0.035+rnd()*0.05,ph:rnd()*TAU,trap:0,a:rnd()*TAU});
+const sceneNight={
+  ctls:['night'], hint:'👆 Tap the tower, the moon, or a bird',
+  stat(){ if(night.radar) return '<span>📡 Radar: <b>400 million</b> birds aloft over the U.S. tonight</span>';
+    return '<span>🌙 Flying over Missouri right now: <b>thousands</b></span><span>😵 Circling the lights: <b>'+night.caught+'</b></span>'; },
+  items(){ return [
+    {id:'tower',name:'A lit-up building',sub:'The night danger',emo:'🏢',bg:'#2a2a4a',x:V.w*0.635,y:V.h*0.52,r:44,
+     fact:'Bright lights pull night migrants off course. They circle the glow until they are exhausted — or hit the glass.',
+     extra:'Buildings kill more than a billion birds a year in the United States. Most of them are migrating at night.'},
+    {id:'window',name:'A window',sub:'Birds cannot see glass',emo:'🪟',bg:'#cfe8fb',mark:true,x:V.w*0.82,y:V.h*0.78,r:34,
+     fact:'A window shows the sky and the trees behind the bird. It looks like somewhere to fly.',
+     extra:'Dots, stripes or screens on the OUTSIDE of the glass, about 2 inches apart, fix it.'},
+    {id:'moon',name:'The moon',sub:'Not a compass',emo:'🌙',bg:'#1a1740',x:V.w*0.12,y:V.h*0.42,r:40,
+     fact:'People used to think birds steered by the moon. They do not — the moon moves and changes shape too much.',
+     extra:'On a full-moon night you can watch birds cross the moon\'s face through a telescope. Birders call it "moon watching."'},
+    {id:'radar',name:'Weather radar',sub:'How we know',emo:'📡',bg:'#0f3a1f',mark:true,x:V.w*0.30,y:V.h*0.46,r:34,
+     fact:'The same radar that finds storms also sees birds. On a typical fall night about 400 million birds are in the air over the United States.',
+     extra:'On the night of September 25, 2025, radar counted more than 1.2 billion — the biggest night ever recorded.'},
+    {id:'help',name:'What actually helps',sub:'Four things you can do',emo:'💚',bg:'#d8f0c8',mark:true,x:V.w*0.46,y:V.h*0.44,r:34,
+     fact:'Turn off outdoor and upper-floor lights in spring and fall. Mark your windows. Keep cats indoors. Plant native plants that feed insects.',
+     extra:'North America has about 3 billion fewer birds than it had in 1970. These four things are the ones that scale.'},
+  ]; },
+  draw(dt){
+    const W=V.w,H=V.h, gy=H*0.78;
+    ctx.fillStyle=vgrad(0,H,[[0,'#080720'],[0.75,'#1d1a4a'],[1,night.lights?'#4a3a52':'#241f43']]); ctx.fillRect(0,0,W,H);
+    const rr=seeded(21); for(let i=0;i<120;i++) circle(rr()*W,rr()*gy*0.95,rr()*1.5+0.4,'rgba(255,255,255,0.75)');
+    disc(W*0.12,H*0.42,H*0.055,'#f6f2d8',0); circle(W*0.105,H*0.40,H*0.012,'#e2ddbe'); circle(W*0.14,H*0.44,H*0.016,'#e2ddbe');
+    // skyline
+    const B=[[0.05,0.16],[0.14,0.1],[0.22,0.22],[0.31,0.13],[0.42,0.18],[0.52,0.11],[0.7,0.15],[0.8,0.09],[0.9,0.2]];
+    B.forEach((b,i)=>{ const x=b[0]*W, w=W*0.075, h=b[1]*H;
+      box(x,gy-h,w,h+H*0.3,4,'#141230',2.5);
+      for(let r=0;r<4;r++) for(let c=0;c<3;c++){ const lit=night.lights?((i*7+r*3+c)%3!==0):((i*7+r*3+c)%9===0);
+        ctx.fillStyle=lit?'rgba(255,224,130,0.95)':'rgba(120,130,170,0.25)'; ctx.fillRect(x+w*0.16+c*w*0.28,gy-h+H*0.02+r*H*0.028,w*0.16,H*0.016); } });
+    // the tall tower
+    const tx=W*0.6, tw=W*0.075, th=H*0.42;
+    box(tx,gy-th,tw,th+H*0.3,5,'#1a1840',3);
+    for(let r=0;r<9;r++) for(let c=0;c<3;c++){ ctx.fillStyle=night.lights?'rgba(255,224,130,0.95)':'rgba(120,130,170,0.22)';
+      ctx.fillRect(tx+tw*0.15+c*tw*0.28,gy-th+H*0.03+r*H*0.04,tw*0.16,H*0.022); }
+    const lx=tx+tw/2, ly=gy-th-H*0.02;
+    if(night.lights){ const g=ctx.createRadialGradient(lx,ly,2,lx,ly,H*0.34); g.addColorStop(0,'rgba(255,224,130,0.55)'); g.addColorStop(1,'rgba(255,224,130,0)');
+      ctx.fillStyle=g; ctx.beginPath(); ctx.arc(lx,ly,H*0.34,0,TAU); ctx.fill(); disc(lx,ly,H*0.02,'#fff3b8',0); }
+    // migrating birds
+    night.caught=0;
+    NBIRDS.forEach(b=>{
+      if(night.lights&&!b.trap){ const dx=b.x*W-lx, dy=b.y*H-ly, d=Math.hypot(dx,dy);
+        if(d<H*0.26){ b.trap=1; b.a=Math.atan2(dy,dx); b.rad=Math.max(H*0.07,d); } }
+      if(b.trap&&!night.lights){ b.trap=0; b.x=(lx+Math.cos(b.a)*b.rad)/W; b.y=(ly+Math.sin(b.a)*b.rad)/H; }
+      if(b.trap){ night.caught++; b.a+=dt*1.5; const px=lx+Math.cos(b.a)*b.rad, py=ly+Math.sin(b.a)*b.rad;
+        flyer(px,py,H*0.022,'#0d0b22',now*11+b.ph,1.6); b.x=px/W; b.y=py/H; }
+      else{ b.x-=b.v*dt*0.5; b.y+=b.v*dt*0.42; if(b.x<-0.05||b.y>0.72){ b.x=1.05; b.y=rnd()*0.5; }
+        flyer(b.x*W,b.y*H,H*0.02,'#0d0b22',now*9+b.ph,1.5); }
+    });
+    label(night.lights?'Bright lights pull them off course':'Lights out — they fly straight through',
+      W*0.03,H*0.945,{size:Math.max(13,H*0.04),display:true,align:'left',color:night.lights?'#ffb3a0':GOLD});
+    // radar overlay
+    if(night.radar){
+      const cx=W*0.5, cy=H*0.50, R=Math.min(W,H)*0.33;
+      ctx.save(); ctx.globalAlpha=.92; disc(cx,cy,R,'#07200f',3);
+      const rr2=seeded(9);
+      for(let i=0;i<260;i++){ const a=rr2()*TAU, r=Math.pow(rr2(),0.6)*R*0.95, br=0.25+rr2()*0.75;
+        circle(cx+Math.cos(a)*r,cy+Math.sin(a)*r,2+rr2()*4,'rgba(90,'+Math.round(180+br*70)+',110,'+br+')'); }
+      [0.33,0.66,1].forEach(f=>ring(cx,cy,R*f,'rgba(150,255,180,0.35)',1.5));
+      const sa=now*1.1%TAU; const g=ctx.createLinearGradient(cx,cy,cx+Math.cos(sa)*R,cy+Math.sin(sa)*R);
+      g.addColorStop(0,'rgba(180,255,200,0.55)'); g.addColorStop(1,'rgba(180,255,200,0)');
+      ctx.strokeStyle=g; ctx.lineWidth=R*0.06; ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(cx+Math.cos(sa)*R,cy+Math.sin(sa)*R); ctx.stroke();
+      ring(cx,cy,R,INK,3);
+      label('These green blooms are not rain.',cx,cy-R*0.78,{size:Math.max(11,H*0.033),color:'#b8ffcc'});
+      label('They are birds.',cx,cy-R*0.6,{size:Math.max(13,H*0.045),display:true,color:GOLD});
+      ctx.restore();
+    }
+  },
+};
+
+/* =====================================================================
+   STOP 6 — THE MISSOURI GUEST LIST.  The same four seasons as stop 1,
+   but statewide: a wetland, a bluff, and whoever is here right now.
+   ===================================================================== */
+const SPOT={air:[[.58,.22],[.50,.33],[.66,.17]],water:[[.34,.74],[.52,.78],[.63,.70]],
+           bank:[[.16,.855],[.30,.90],[.72,.865],[.87,.905]],bluff:[.885,.375]};
+const GUEST={
+  spring:{sky:['#7fc8f5','#ffe8c0'],birds:[
+    {sp:'pelican',p:SPOT.water[0],swim:1,name:'American white pelican',sub:'Passing through, March–April',
+      fact:'Flocks of these giants rest on Missouri rivers and lakes on the way to prairie nesting lakes up north.',
+      extra:'A nine-foot wingspan — one of the largest birds in North America.'},
+    {sp:'warbler',p:SPOT.bank[0],name:'Yellow warbler',sub:'Passing through, late April–May',
+      fact:'More than 30 kinds of warblers pour through Missouri in about three weeks each spring.',
+      extra:'Most fly all night and spend the day eating caterpillars in neighborhood trees.'},
+    {sp:'martin',p:SPOT.air[1],fly:1,name:'Purple martin',sub:'Home from Brazil, March',
+      fact:'Scouts arrive first and check the birdhouses. The rest of the colony follows within weeks.',
+      extra:'People have kept martin houses in Missouri for generations.'},
+    {sp:'teal',p:SPOT.water[1],swim:1,name:'Blue-winged teal',sub:'Heading north, March–April',
+      fact:'One of the first ducks north in spring and the first one south in fall — it hates the cold.',
+      extra:'Some blue-winged teal winter as far away as Peru and Brazil.'},
+    {sp:'hummer',p:SPOT.bank[2],hover:1,name:'Ruby-throated hummingbird',sub:'Back around mid-April',
+      fact:'It arrives just as the first flowers open — and often returns to the very same yard.',
+      extra:'Put a feeder out in early April and you may catch the first one.'}]},
+  summer:{sky:['#5fbdf7','#dff2ff'],birds:[
+    {sp:'heron',p:[.63,.665],wade:1,name:'Great blue heron',sub:'Here all summer',
+      fact:'Nests in treetop colonies called rookeries and stalks fish in the shallows below.',
+      extra:'Some stay all winter wherever the water stays open.'},
+    {sp:'swallow',p:SPOT.air[1],fly:1,name:'Barn swallow',sub:'Nesting May–August',
+      fact:'Builds a mud cup under a bridge or in a barn and catches every meal on the wing.',
+      extra:'It winters in South America — one of the longest trips of any Missouri nester.'},
+    {sp:'bunting',p:SPOT.bank[2],name:'Indigo bunting',sub:'Singing all summer',
+      fact:'Sings from wires and fencerows all day, even in July heat when everything else is quiet.',
+      extra:'It is not really blue — the feathers bend light, like a soap bubble.'},
+    {sp:'tanager',p:SPOT.bank[0],name:'Scarlet tanager',sub:'High in the oaks',
+      fact:'Spends the summer in the treetops eating caterpillars, then leaves for South America in September.',
+      extra:'You hear it long before you see it — a robin with a sore throat.'},
+    {sp:'hummer',p:SPOT.bank[3],hover:1,name:'Ruby-throated hummingbird',sub:'Raising young',
+      fact:'The nest is the size of a walnut, built with spider silk so it can stretch as the chicks grow.',
+      extra:'The ruby-throated is the only hummingbird that nests in Missouri.'}]},
+  fall:{sky:['#8fc7ea','#ffe0a8'],birds:[
+    {sp:'thrush',p:SPOT.bank[0],name:"Swainson's thrush",sub:'Passing through, September–October',
+      fact:'It nests in Canada and winters in South America; Missouri woods are its rest stop.',
+      extra:'On a quiet October night you can hear its short "wheep" call from the dark sky.'},
+    {sp:'teal',p:SPOT.water[1],swim:1,name:'Blue-winged teal',sub:'First duck south, September',
+      fact:'Gone before the first hard frost. Missouri wetlands are its refueling stations.',
+      extra:'Missouri manages thousands of acres of wetland just for these travelers.'},
+    {sp:'hawk',p:SPOT.air[2],fly:1,name:'Red-tailed hawk',sub:'Some migrate, some stay',
+      fact:'Hawks ride rising bubbles of warm air called thermals — circling up, then gliding south for free.',
+      extra:'Northern red-tails move into Missouri as our local ones drift south.'},
+    {sp:'hummer',p:SPOT.bank[2],hover:1,name:'Ruby-throated hummingbird',sub:'Last ones out, early October',
+      fact:'It is fattening up for the Gulf. Leaving your feeder up will not keep any bird from going.',
+      extra:'The urge to leave comes from the shortening day, not from hunger.'},
+    {sp:'goose',p:SPOT.air[0],fly:1,name:'Snow goose',sub:'First flocks, November',
+      fact:'You hear them before you see them: a high, yapping chorus from a wavy line of white specks.',
+      extra:'They come from the Arctic coast — some from more than 2,000 miles north.'}]},
+  winter:{sky:['#a9c4d8','#eef4f8'],birds:[
+    {sp:'eagle',p:SPOT.bluff,name:'Bald eagle',sub:'Winter, December–February',
+      fact:'Missouri is one of the best places in the country to watch wintering eagles — they gather where the water stays open below the dams.',
+      extra:'Loess Bluffs refuge has counted as many as 475 bald eagles in one winter.'},
+    {sp:'swan',p:SPOT.water[2],swim:1,name:'Trumpeter swan',sub:'Winter visitor',
+      fact:'The heaviest bird in North America. Nearly wiped out a century ago, and back on Missouri wetlands every winter now.',
+      extra:'Almost 4,200 were counted at Loess Bluffs in early 2024.'},
+    {sp:'goose',p:SPOT.water[0],swim:1,name:'Snow goose',sub:'Winter, by the hundred thousand',
+      fact:'In February 2013 more than a MILLION snow geese were counted at Loess Bluffs refuge in northwest Missouri at once.',
+      extra:'When something spooks them the whole marsh lifts off at the same instant.'},
+    {sp:'junco',p:SPOT.bank[3],name:'Dark-eyed junco',sub:'Down from Canada',
+      fact:'To a junco, Missouri IS the warm south. It spends its summer in the northern forest.',
+      extra:'Migration is not always about going far. It is about going where the food is.'},
+    {sp:'sparrow',p:SPOT.bank[1],name:'White-throated sparrow',sub:'Down from Canada',
+      fact:'Whistles "Old Sam Peabody" under Missouri brush piles all winter, then heads north in April.',
+      extra:'Half the birds at a Missouri winter feeder can be visitors from the north.'}]},
+};
+const GSTAT={
+  spring:'<span>🌸 Warblers passing through: <b>30+ kinds</b></span><span>📅 Hummingbirds return: <b>mid-April</b></span>',
+  summer:'<span>🪺 Nesting season: <b>May–July</b></span><span>🌞 Daylight: <b>14.7 h</b> to feed chicks</span>',
+  fall:'<span>📅 Peak songbird nights: <b>Sept–Oct</b></span><span>🦆 First duck south: <b>blue-winged teal</b></span>',
+  winter:'<span>❄️ Snow geese at Loess Bluffs: <b>1,000,000+</b></span><span>🦅 Bald eagles there: <b>up to 475</b></span>',
+};
+const sceneGuests={
+  ctls:['season'], hint:'👆 Tap this season\u2019s visitors',
+  stat(){ return GSTAT[season]; },
+  items(){ return GUEST[season].birds.map((b,i)=>({id:'g'+i,name:b.name,sub:b.sub,fact:b.fact,extra:b.extra,sp:b.sp,
+    x:b.p[0]*V.w,y:b.p[1]*V.h,r:Math.max(26,V.h*0.07)})); },
+  draw(dt){
+    const W=V.w,H=V.h, G=GUEST[season], wy=H*0.62, by=H*0.86;
+    ctx.fillStyle=vgrad(0,wy,[[0,G.sky[0]],[1,G.sky[1]]]); ctx.fillRect(0,0,W,wy);
+    disc(W*0.68,H*(season==='winter'?0.20:0.12),H*0.05,'#ffe57a',3);
+    // the far bank, then the treeline standing on it
+    ctx.fillStyle=season==='winter'?'#e8eef2':season==='fall'?'#c8b565':'#6fbf4a'; ctx.fillRect(0,wy-H*0.025,W,H*0.03);
+    for(let i=0;i<22;i++){ const tx=W*(0.02+i*0.045), r=H*(0.028+((i*7)%5)/70), ty=wy-H*0.02-r*0.55;
+      ctx.fillStyle='#6b4f38'; ctx.fillRect(tx-2.5,ty,5,r*0.9);
+      circle(tx,ty,r,season==='winter'?'#8a9a8a':season==='fall'?(i%3?'#d09a3f':'#c26a35'):season==='spring'?'#7fc55a':'#3f8d3a'); }
+    // the bluff on the right
+    poly([[W,wy],[W,H*0.16],[W*0.90,H*0.20],[W*0.83,H*0.36],[W*0.82,wy]],'#c8a878',3);
+    poly([[W,H*0.16],[W*0.90,H*0.20],[W*0.93,H*0.27],[W,H*0.25]],'#e0c49a',0);
+    // water, then the near bank
+    ctx.fillStyle=vgrad(wy,by,[[0,season==='winter'?'#9fc0d8':'#6bb8e8'],[1,season==='winter'?'#c8dae8':'#3f8fc0']]); ctx.fillRect(0,wy,W,by-wy);
+    for(let i=0;i<6;i++){ const y=wy+(by-wy)*(i+0.5)/6; path([[0,y],[W*0.3,y-3],[W*0.6,y+3],[W,y-2]],'rgba(255,255,255,0.28)',2); }
+    ctx.fillStyle=season==='winter'?'#f2f6f8':season==='fall'?'#c8b565':'#63c64d'; ctx.fillRect(0,by,W,H-by);
+    line(0,by,W,by,'rgba(43,35,80,0.15)',3);
+    // cattails along the bank
+    for(let i=0;i<14;i++){ const cx=W*(0.02+i*0.075)+((i*13)%5), ch=H*0.11;
+      if(cx>W*0.24&&cx<W*0.62) continue;
+      line(cx,by+H*0.03,cx,by+H*0.03-ch,season==='winter'?'#c8b98d':'#6b9d3a',3);
+      box(cx-3,by+H*0.03-ch-H*0.03,6,H*0.035,3,'#7a5a2a',0); }
+    // seasonal weather
+    if(season==='winter'){ const rr=seeded(13);
+      for(let i=0;i<80;i++){ const fx=((rr()*1.2+now*0.01)%1.2-0.1)*W, fy=H*(0.04+rr()*0.4), sz=H*0.011*(0.6+rr());
+        flyer(fx,fy,sz,'#fdfbf2',now*7+i,1.2); }
+      for(let i=0;i<34;i++){ const rx=W*(0.08+rr()*0.8), ry=wy+H*(0.02+rr()*0.2);
+        line(rx+H*0.009,ry-H*0.002,rx+H*0.013,ry-H*0.012,'#fdfbf2',2.4);
+        ellipse(rx,ry,H*0.013,H*0.007,0,'#fdfbf2',1.4); circle(rx+H*0.014,ry-H*0.013,H*0.005,'#fdfbf2'); }
+      const rs=seeded(19); for(let i=0;i<60;i++) circle((rs()*W+now*6)%W,(rs()*H+now*18)%H,2,'rgba(255,255,255,0.85)'); }
+    if(season==='fall'){ const rr=seeded(17); for(let i=0;i<14;i++){ const lx=((rr()+now*0.03)%1)*W, ly=((rr()+now*0.05)%1)*wy;
+        ctx.save(); ctx.translate(lx,ly); ctx.rotate(now+i); ellipse(0,0,6,3.5,0,'#d08a3a',1.5); ctx.restore(); } }
+    // the guests
+    G.birds.forEach(b=>{ const x=b.p[0]*W, y=b.p[1]*H, s=H*0.095;
+      if(b.swim) ellipse(x,y+H*0.035,H*0.055,H*0.012,0,'rgba(43,35,80,0.13)',0);
+      if(b.hover) bird(x,y+Math.sin(now*3)*3,s*0.9,b.sp,{wing:Math.sin(now*26)*1.2,flip:1});
+      else if(b.fly) bird(x+Math.sin(now*0.4)*W*0.09,y+Math.sin(now*0.9)*H*0.02,s,b.sp,{wing:Math.sin(now*6)*0.9});
+      else bird(x,y,s,b.sp,{perch:!b.swim&&!b.wade,wade:b.wade,wing:0.12,flip:x>W*0.55}); });
+    banner(SEASON[season].word+' in Missouri');
+  },
+};
+
+/* =====================================================================
+   THE JOURNEY — six stops
+   ===================================================================== */
+const CH=[
+  {id:'why',icon:'🍂',name:'Why go?',title:'🍂 Why leave at all?',scene:sceneWhy,
+   caption:'Missouri winters are cold — but cold is not why birds leave. Change the season and watch the <b>bug counter</b>. When the food runs out, the bird has to go.'},
+  {id:'map',icon:'🗺️',name:'The flyway',title:'🗺️ The Mississippi Flyway',scene:sceneMap,
+   caption:'Missouri sits in the middle of a bird highway. Pick a traveler, press <b>▶ Fly!</b>, and follow its real route south.'},
+  {id:'fuel',icon:'⛽',name:'Fuel up',title:'⛽ Fill the tank',scene:sceneFuel,
+   caption:'Ahead: 500 miles of water with nowhere to land. Fat is the gas tank. Press <b>🍇 Eat!</b> until it is full, then try the crossing.'},
+  {id:'compass',icon:'🧭',name:'Finding the way',title:'🧭 Four compasses',scene:sceneCompass,
+   caption:'A bird carries more than one compass. Spoil the sky with <b>clouds</b>, or switch to <b>night</b>, and see which ones still work.'},
+  {id:'night',icon:'🌙',name:'Night flight',title:'🌙 Crossing in the dark',scene:sceneNight,
+   caption:'Most songbirds migrate at night. Watch what bright lights do to them — then press <b>💡</b> and turn the city off.'},
+  {id:'guests',icon:'🦆',name:'Guest list',title:'🦆 Missouri’s guest list',scene:sceneGuests,
+   caption:'Some birds nest here, some spend the winter here, some only pass through. Change the season and meet who is here right now.'},
+];
+let current=0, selected=null;
+const badges={};
+const els={ capLevel:$('capLevel'),capText:$('capText'),caption:$('caption'),hint:$('hint'),stat:$('stat'),
+  card:$('card'),cardName:$('cardName'),cardSub:$('cardSub'),cardFact:$('cardFact'),cardExtra:$('cardExtra'),cardClose:$('cardClose'),thumb:$('thumb'),
+  toast:$('toast'),levels:$('levels'),btnBack:$('btnBack'),btnNext:$('btnNext'),btnQuest:$('btnQuest'),
+  quest:$('quest'),qTitle:$('qTitle'),qDots:$('qDots'),qText:$('qText'),qOpts:$('qOpts'),qFb:$('qFb'),questClose:$('questClose'),
+  badges:$('badges'),meter:$('meter') };
+
+/* ---------- header badges + the chapter chips ---------- */
+CH.forEach(c=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge'; els.badges.appendChild(b); c.badgeEl=b; });
+CH.forEach((c,i)=>{ const b=document.createElement('button'); b.className='lvl'; b.textContent=c.icon;
+  b.setAttribute('aria-label','Stop '+(i+1)+': '+c.name); b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b; });
+
+/* ---------- words ---------- */
+function setCaption(i){ const c=CH[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); } }
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+let lastStat='';
+function refreshStat(){ const s=CH[current].scene.stat?CH[current].scene.stat():'';
+  if(s===lastStat) return; lastStat=s;
+  if(!s){ els.stat.hidden=true; return; } els.stat.innerHTML=s; els.stat.hidden=false; }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx, realV={w:V.w,h:V.h}; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(item.sp) bird(38,50,46/(SPECIES[item.sp].size||1),item.sp,{wing:0.5,perch:1});
+  else if(item.emo) emoji(item.emo,42,42,46);
+  ctx=real; V.w=realV.w; V.h=realV.h;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const c=CH.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won'); updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CH.length){ els.meter.classList.add('all'); burstConfetti(); toast('🪶 All six badges — you are a FLYWAY GUIDE!',7000); }
+  else toast(c.icon+' Badge earned! '+(CH.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const Q=QUESTS[id]; if(!Q) return;
+  closeCard(); quest.active=Q(); quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true; document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing'); }
+function renderStep(){
+  const Q=quest.active; if(!Q) return; const S=Q.steps[quest.step]; if(!S) return;
+  els.qDots.innerHTML=''; Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){ els.qOpts.hidden=false; S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); }); }
+  else els.qOpts.hidden=true;
+  if(S.onShow) S.onShow();
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){ const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
+  else setTimeout(renderStep,1300); }
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true);
+    if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S||!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that one. Look again!'),false);
+  return true;
+}
+function questCheck(){ const Q=quest.active; if(!Q) return; const S=Q.steps[quest.step]; if(!S) return;
+  if(S.check&&S.check()){ feedback(S.yes||'Yes!',true); S.check=null; stepDone(); } }
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CH[current].id); });
+
+const QUESTS={
+  why:()=>({id:'why',title:'🍂 Why they go',steps:[
+    {prompt:'Why do most Missouri birds head south in the fall?',options:[
+      {text:'🐛 Their food runs out',ok:true,say:'Exactly. No insects, no insect-eaters.'},
+      {text:'🥶 They get cold',say:'Feathers are wonderful coats. Chickadees stay all winter in the same cold.'},
+      {text:'😴 They get bored',say:'Nice try! Think about the bug counter.'}]},
+    {prompt:'Switch to <b>❄️ Winter</b> and tap a bird that came DOWN to Missouri from Canada.',
+     tap:it=>(it&&(it.id==='junco'||it.id==='sparrow'))?true:(season!=='winter'?'Press ❄️ Winter first.':'Those two live here all year. Look on the ground for the winter visitors.'),
+     yes:'Yes! It flew south to get here. Missouri is somebody\'s tropical vacation.'},
+    {prompt:'A chickadee stays all winter. How?',options:[
+      {text:'🌰 It switches to seeds',ok:true,say:'Right — it changes its menu instead of its address.'},
+      {text:'😴 It sleeps until April',say:'Birds do not hibernate (well — almost none do).'},
+      {text:'🐛 It finds summer bugs anyway',say:'The caterpillars really are gone. It eats something else.'}]},
+  ]}),
+  map:()=>({id:'map',title:'🗺️ Reading the map',steps:[
+    {prompt:'What is a <b>flyway</b>?',options:[
+      {text:'🌤️ A wide band of sky that millions of birds share',ok:true,say:'Yes. Not a road — a river of birds.'},
+      {text:'🛣️ A paved road for birds',say:'There is nothing up there to pave!'},
+      {text:'📏 One narrow line every bird follows exactly',say:'It is much broader and messier than that.'}]},
+    {prompt:'Tap the part of the trip with <b>nowhere to land</b>.',
+     tap:it=>it&&it.id==='gulf'?true:'Look at the big blue water between Louisiana and Mexico.',
+     yes:'The Gulf of Mexico — 500 miles of it.'},
+    {prompt:'Press each traveler button and read the miles. Which one flies the <b>farthest</b>?',options:[
+      {text:'🏠 Purple martin',ok:true,say:'Yes — all the way to the Amazon in Brazil.'},
+      {text:'🌺 Hummingbird',say:'Amazing for its size, but not the longest trip here.'},
+      {text:'❄️ Snow goose',say:'Long — but it is going the other way, and not as far.'}]},
+  ]}),
+  fuel:()=>({id:'fuel',title:'⛽ Fuel math',steps:[
+    {prompt:'What does a bird burn on a long flight?',options:[
+      {text:'🧈 Fat it stored by eating',ok:true,say:'Yes. Fat is bird gasoline.'},
+      {text:'💧 Water',say:'Water matters, but it is not fuel.'},
+      {text:'🍃 Nothing — flying is free',say:'Flying is one of the most expensive things an animal can do.'}]},
+    {prompt:'Fill the tank all the way to <b>6.00 g</b>, then press <b>🌊 Cross the Gulf</b> and make it to the far shore.',
+     check:()=>fuel.fly&&fuel.fly.done, yes:'It made it — and landed with an empty tank.'},
+    {prompt:'It left at 6 grams and landed at 2.5. Where did 3.5 grams go?',options:[
+      {text:'🔥 Burned as fuel on the way',ok:true,say:'Every gram of fat bought about 140 miles.'},
+      {text:'💧 It got rained off',say:'Not rain — the bird spent it.'},
+      {text:'🥚 It laid eggs over the water',say:'Definitely not over 500 miles of ocean!'}]},
+  ]}),
+  compass:()=>({id:'compass',title:'🧭 Which compass?',steps:[
+    {prompt:'It is a <b>cloudy night</b>. No sun, no stars. Which compass still works?',options:[
+      {text:'🧲 The magnetic one',ok:true,say:'Yes — Earth\'s magnetic field goes right through clouds.'},
+      {text:'☀️ The sun compass',say:'The sun is down AND behind clouds.'},
+      {text:'⭐ The star compass',say:'Clouds just covered the stars.'}]},
+    {prompt:'Press <b>🌙 Make it night</b>, then tap the star the whole sky turns around.',
+     tap:it=>it&&it.id==='stars'?true:(!nav.night?'Press 🌙 Make it night first.':'Tap the bright star the circles spin around.'),
+     yes:'The North Star. Birds find north by watching what does not move.'},
+    {prompt:'How does a young bird on its very first migration know which way to go?',options:[
+      {text:'🧬 It hatches already knowing the direction',ok:true,say:'True! Direction and distance are built in. The landmarks get learned later.'},
+      {text:'👨‍👩‍👧 Its parents always lead it',say:'Cranes and geese do travel as families — but most songbirds go alone.'},
+      {text:'🗺️ It follows the other birds',say:'Young birds often leave before or after the adults, on their own.'}]},
+  ]}),
+  night:()=>({id:'night',title:'🌙 Lights out',steps:[
+    {prompt:'When do most songbirds migrate?',options:[
+      {text:'🌙 At night',ok:true,say:'Yes — cooler, calmer air, and fewer hawks.'},
+      {text:'🌞 In the middle of the day',say:'Hawks and vultures do. Songbirds mostly fly in the dark.'},
+      {text:'🌅 Only at sunrise',say:'That is when they land, tired, and start eating.'}]},
+    {prompt:'Birds are stuck circling the tower. Press <b>💡</b> and set them free.',
+     check:()=>!night.lights&&night.caught===0, yes:'That is it — that is the whole fix.'},
+    {prompt:'Pick <b>two</b> things you could do at your own house to help.',need:2,options:[
+      {text:'🪟 Put dots on the windows',ok:true,say:'Yes — birds cannot see plain glass.'},
+      {text:'💡 Turn off outside lights in spring and fall',ok:true,say:'Yes — the cheapest fix there is.'},
+      {text:'🐈 Keep the cat indoors at night',ok:true,say:'Yes — cats are the biggest bird danger of all.'},
+      {text:'📻 Play bird songs on a speaker all night',say:'That just tires birds out. Not a help.'}]},
+  ]}),
+  guests:()=>({id:'guests',title:'🦆 Who is here?',steps:[
+    {prompt:'Switch to <b>❄️ Winter</b> and tap the bird that arrives by the <b>million</b>.',
+     tap:it=>it&&it.name==='Snow goose'?true:(season!=='winter'?'Press ❄️ Winter first.':'Look for the white ones on the water.'),
+     yes:'Snow geese — over a million counted at Loess Bluffs at once.'},
+    {prompt:'A junco summers in Canada and winters in Missouri. Is it a migrant?',options:[
+      {text:'✅ Yes — migration is about food, not distance',ok:true,say:'Right. Missouri is its warm south.'},
+      {text:'❌ No, it did not go far enough',say:'There is no minimum distance for migrating.'},
+      {text:'❌ No, it never left North America',say:'Plenty of migrants never leave the continent.'}]},
+    {prompt:'Switch to <b>☀️ Summer</b> and tap a bird that flies all the way to <b>South America</b> and back each year.',
+     tap:it=>it&&(it.name==='Scarlet tanager'||it.name==='Barn swallow')?true:(season!=='summer'?'Press ☀️ Summer first.':'Two of these summer birds cross the equator. Keep tapping.'),
+     yes:'Yes — it nests in Missouri and winters a hemisphere away.'},
+  ]}),
+};
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){ if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7}); }
+function drawConfetti(dt){ for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i];
+  p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt; if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+  ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); } }
+
+/* ---------- controls ---------- */
+function showCtls(names){ ['season','map','fuel','compass','night'].forEach(n=>{ const g=$('ctl-'+n); if(g) g.hidden=names.indexOf(n)<0; }); }
+document.querySelectorAll('[data-season]').forEach(b=>b.addEventListener('click',()=>{
+  season=b.dataset.season;
+  document.querySelectorAll('[data-season]').forEach(o=>o.classList.toggle('on',o===b));
+  closeCard(); refreshStat();
+  const M=CH[current].id==='guests'
+    ? {spring:'🌱 Spring — pelicans, warblers and the martins coming home.',summer:'☀️ Summer — the nesters are here and singing.',
+       fall:'🍂 Fall — teal, thrushes and the first snow geese.',winter:'❄️ Winter — eagles, swans and a million snow geese.'}
+    : {spring:'🌱 Spring — the travelers are coming back.',summer:'☀️ Summer — long days, and food everywhere.',
+       fall:'🍂 Fall — the food is fading. Time to go.',winter:'❄️ Winter — almost no insects left at all.'};
+  toast(M[season],3200);
+}));
+document.querySelectorAll('[data-trav]').forEach(b=>b.addEventListener('click',()=>{
+  traveler=b.dataset.trav; flight=null;
+  document.querySelectorAll('[data-trav]').forEach(o=>o.classList.toggle('on',o===b));
+  closeCard(); refreshStat(); }));
+$('btnFly').addEventListener('click',()=>{ flight={t:0}; closeCard(); });
+$('btnEat').addEventListener('click',()=>{ if(fuel.fly) return;
+  fuel.w=Math.min(FULL,+(fuel.w+0.35).toFixed(2)); refreshStat();
+  if(fuel.w>=FULL) toast('⛽ Full tank: 6.00 g. That is 500 miles of fuel — exactly enough.',5000); });
+$('btnCross').addEventListener('click',()=>{ if(fuel.fly) return; closeCard();
+  fuel.fly={t:0,d:0,w:fuel.w,startW:fuel.w}; });
+$('btnFuelReset').addEventListener('click',()=>{ fuel.fly=null; fuel.w=3.25; refreshStat(); });
+$('btnDayNight').addEventListener('click',()=>{ nav.night=!nav.night; closeCard();
+  $('btnDayNight').textContent=nav.night?'☀️ Make it day':'🌙 Make it night';
+  $('btnDayNight').classList.toggle('dark',nav.night); refreshStat(); });
+$('btnClouds').addEventListener('click',()=>{ nav.clouds=!nav.clouds;
+  $('btnClouds').textContent=nav.clouds?'🌤️ Clear the clouds':'☁️ Roll in clouds';
+  $('btnClouds').classList.toggle('on',nav.clouds); refreshStat();
+  if(nav.clouds) toast('☁️ Sun and stars are hidden — but the magnetic compass does not care.',4500); });
+$('btnField').addEventListener('click',()=>{ nav.field=!nav.field;
+  $('btnField').textContent=nav.field?'🧲 Hide the magnetic field':'🧲 Show the magnetic field';
+  $('btnField').classList.toggle('on',nav.field); });
+$('btnLights').addEventListener('click',()=>{ night.lights=!night.lights;
+  $('btnLights').textContent='💡 City lights: '+(night.lights?'ON':'OFF');
+  $('btnLights').classList.toggle('on',night.lights); refreshStat();
+  toast(night.lights?'💡 Lights on — watch the birds start to circle.':'🌙 Lights out. They go back on course.',4000); });
+$('btnRadar').addEventListener('click',()=>{ night.radar=!night.radar;
+  $('btnRadar').textContent=night.radar?'📡 Hide the radar':'📡 Radar view';
+  $('btnRadar').classList.toggle('on',night.radar); refreshStat(); });
+
+/* ---------- moving between stops ---------- */
+function updateButtons(){
+  els.btnBack.disabled=current===0;
+  els.btnNext.textContent=current===CH.length-1?'↩ START OVER':'NEXT ▶';
+  els.btnQuest.classList.toggle('won',!!badges[CH[current].id]);
+  els.btnQuest.textContent=badges[CH[current].id]?'✓ Badge earned':'🎯 Challenge!';
+  CH.forEach((c,i)=>{ c.chip.classList.toggle('on',i===current); c.chip.classList.toggle('done',i<current); });
+}
+function goTo(i){
+  i=clamp(i,0,CH.length-1); if(i===current&&els.caption.dataset.set) return;
+  current=i; els.caption.dataset.set='1';
+  closeCard(); endQuest(); els.toast.hidden=true; clearTimeout(toastTimer);
+  const c=CH[i]; if(c.scene.enter) c.scene.enter();
+  setCaption(i); showCtls(c.scene.ctls||[]); refreshStat(); updateButtons();
+  els.hint.textContent=c.scene.hint||'👆 Tap things to meet them'; els.hint.hidden=false;
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CH.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+addEventListener('keydown',e=>{ if(e.key==='ArrowRight') goTo(current+1); if(e.key==='ArrowLeft') goTo(current-1); });
+
+/* ---------- tapping ---------- */
+function hit(px,py){
+  const A=CH[current].scene.items?CH[current].scene.items():[];
+  let best=null,bd=1e9;
+  A.forEach(it=>{ const d=Math.hypot(it.x-px,it.y-py); if(d<it.r&&d<bd){ bd=d; best=it; } });
+  return best;
+}
+stage.addEventListener('pointerdown',e=>{
+  const r=view.getBoundingClientRect(), px=(e.clientX-r.left)*(V.w/r.width), py=(e.clientY-r.top)*(V.h/r.height);
+  const it=hit(px,py);
+  const QS=quest.active&&quest.active.steps[quest.step];
+  if(QS&&QS.tap){ questTap(it); if(it) showCard(it); return; }
+  if(it) showCard(it); else closeCard();
+});
+
+/* ---------- canvas sizing + the loop ---------- */
+function resize(){
+  const r=stage.getBoundingClientRect(), dpr=Math.min(devicePixelRatio||1,2);
+  V.w=Math.max(320,r.width); V.h=Math.max(240,r.height);
+  view.width=Math.round(V.w*dpr); view.height=Math.round(V.h*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+addEventListener('resize',resize);
+let last=0;
+function frame(t){
+  requestAnimationFrame(frame);
+  const dt=Math.min(0.05,(t-last)/1000||0); last=t; now=t/1000;
+  ctx.setTransform(Math.min(devicePixelRatio||1,2),0,0,Math.min(devicePixelRatio||1,2),0,0);
+  ctx.clearRect(0,0,V.w,V.h);
+  const S=CH[current].scene;
+  S.draw(REDUCED?0.016:dt);
+  if(S.items) S.items().forEach(it=>{ if(it.mark) tapMark(it.x,it.y,it.emo,Math.min(20,it.r*0.6)); });
+  if(confetti.length) drawConfetti(dt);
+  questCheck(); refreshStat();
+}
+resize(); goTo(0); requestAnimationFrame(frame);
+window.flyway={CH,SPECIES,ROUTES,badges,goTo,hit,startQuest,quest,state:()=>({season,traveler,fuel,nav,night,current})};
+</script>
+</body>
+</html>
