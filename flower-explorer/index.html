@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Flower Explorer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the garden's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: NEXT PART */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --white:#fffdf7;
+  --leaf:#3f9d3a;
+  --leaf-dk:#2e7d32;
+  --soil:#8b5a2b;
+  --petal:#ff77b0;
+  --petal-dk:#c2417c;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--body);
+  font-size:17px;
+  line-height:1.3;
+  -webkit-text-size-adjust:100%;
+  overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;
+  grid-template-rows:auto 1fr auto;
+  gap:10px;
+  padding:10px 14px 12px;
+  max-width:1180px;
+  margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold);
+}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;
+  transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:20px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.map{
+  display:flex;align-items:center;gap:8px;
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;padding:4px 10px 4px 6px;box-shadow:4px 4px 0 var(--ink);
+}
+.map canvas{width:44px;height:64px;display:block}
+.map span{font-family:var(--display);font-weight:600;font-size:10px;letter-spacing:1px;text-transform:uppercase;line-height:1.2;text-align:center}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:300px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* the little round speaker button that reads a panel out loud */
+.spk{
+  flex:0 0 auto;width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--sky);font-size:19px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink);pointer-events:auto;
+  transition:transform .08s,box-shadow .08s;
+}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 #1f6fa8,0 1px 0 2px var(--ink)}
+.spk.talking{background:var(--gold);box-shadow:0 3px 0 #c9a01d,0 3px 0 2px var(--ink);animation:wobble .6s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+body.nospeech .spk{display:none}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(60%,470px);
+  display:flex;gap:10px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:9px 14px 11px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+body.questing .caption{display:none}
+.cap-body{min-width:0}
+.cap-level{font-family:var(--display);font-weight:700;font-size:25px;line-height:1.1}
+.cap-text{font-weight:800;font-size:16.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--petal-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 15px;font-weight:800;font-size:15px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.hint[hidden]{display:none}
+.stat{
+  position:absolute;right:14px;bottom:12px;display:flex;gap:8px;pointer-events:none;flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px);
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 13px;font-family:var(--display);font-weight:600;font-size:16px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(360px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:88px;height:88px;flex:0 0 88px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-top{display:flex;gap:8px;align-items:flex-start}
+.card-names{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--petal-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:16px;margin-top:6px}
+.card-extra{font-weight:700;font-size:13px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:36px;height:36px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:21px;line-height:1;
+  box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:64px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:20px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);overflow:hidden;text-overflow:ellipsis;
+  animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+/* the challenge sits where the caption was, at the top — that keeps the
+   whole lower half of the picture free to tap, which most steps ask for */
+.quest{
+  position:absolute;left:14px;top:12px;width:min(440px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:18px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-row{display:flex;gap:9px;align-items:flex-start;margin-top:6px}
+.q-text{font-weight:800;font-size:17px;flex:1;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.q-opts[hidden]{display:none}
+.opt{
+  display:flex;align-items:center;gap:8px;
+  font-family:var(--display);font-weight:600;font-size:17px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:9px 15px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt .pic{font-family:var(--emoji);font-size:23px;line-height:1}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:15px;margin-top:8px;min-height:19px}
+.q-fb.good{color:var(--leaf-dk)}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:36px;height:36px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:21px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ---------- */
+.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+.parts{display:flex;gap:5px}
+.prt{
+  width:46px;height:46px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-size:24px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+}
+.prt:hover{transform:translateY(-2px)}
+.prt.on{background:var(--gold);transform:scale(1.12)}
+.prt.done{background:var(--paper-2)}
+.prt.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:19px;height:19px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 12px/15px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:17px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+.btn.read{background:var(--sky);color:var(--white);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 5px 0 #1f6fa8,0 5px 0 3px var(--ink)}
+.btn.read:active{box-shadow:0 1px 0 #1f6fa8,0 1px 0 3px var(--ink)}
+.btn.read .rd-icon{font-family:var(--emoji)}
+.btn.read .rd-word{margin-left:6px}
+.btn.read.off{background:var(--white);color:var(--ink);text-shadow:none;box-shadow:0 5px 0 var(--ink);opacity:.75}
+body.nospeech .btn.read{display:none}
+
+/* chapter controls: one group shown at a time */
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 14px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.wet{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+.tog.sun{background:var(--gold)}
+.tog.bee{background:#ffc63f}
+.tog.wind{background:#c9e6ff}
+.tog.seed{background:var(--leaf);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+.swatch{width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);box-shadow:0 3px 0 var(--ink);padding:0;transition:transform .12s}
+.swatch.on{transform:scale(1.18);box-shadow:0 3px 0 var(--ink),0 0 0 3px var(--gold)}
+
+/* ---------- small screens ---------- */
+@media (max-width:1120px){
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"parts buttons" "ctl ctl";gap:9px}
+  .parts{grid-area:parts}
+  .buttons{grid-area:buttons;justify-content:flex-end}
+  .ctl{grid-area:ctl;justify-content:flex-end}
+}
+@media (max-width:860px){
+  .app{padding:8px;gap:8px}
+  body{font-size:16px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:18px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .map{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:29px;height:29px;font-size:14px;border-width:2px}
+  .badges{gap:4px}
+  .btn.read{padding:7px 9px;font-size:15px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
+  .btn.read .rd-word{display:none}
+  .top{min-width:0}
+  .brand{min-width:0;flex:1}
+  .brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"parts buttons" "ctl ctl";gap:8px}
+  .parts{grid-area:parts;gap:4px}
+  .prt{width:36px;height:36px;font-size:19px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
+  #btnBack{display:none}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 11px;font-size:15px}
+  .tog{font-size:14px;padding:7px 11px}
+  .swatch{width:32px;height:32px}
+  .ctl-label{display:none}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px;gap:7px}
+  .cap-level{font-size:18px}.cap-text{font-size:13.5px}
+  .spk{width:34px;height:34px;font-size:16px}
+  .hint{display:none}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:58px;height:58px;flex-basis:58px}
+  .card-name{font-size:18px}.card-sub{font-size:13px}.card-fact{font-size:13.5px}.card-extra{display:none}
+  .quest{width:calc(100% - 28px);padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:15px}.opt{font-size:15px;padding:7px 12px}
+  body.carding .caption{display:none}
+  .stat span{font-size:13px;padding:4px 10px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Flower Explorer</h1>
+      <p class="tagline">Every part of a flower — and the job it does. Tap anything!</p>
+    </div>
+    <div class="right">
+      <button class="btn read" id="btnRead" aria-pressed="true"><span class="rd-icon">🔊</span><span class="rd-word">Reading</span></button>
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Flower<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each part of the flower"></div>
+      </div>
+      <div class="map" aria-hidden="true">
+        <canvas id="minimap" width="88" height="128"></canvas>
+        <span>You are<br>here</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <button class="spk" id="spkCap" aria-label="Read this out loud">🔊</button>
+        <div class="cap-body">
+          <div class="cap-level" id="capLevel"></div>
+          <div class="cap-text" id="capText"></div>
+        </div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap any part of the flower</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="176" height="176"></canvas>
+        <div class="card-body">
+          <div class="card-top">
+            <div class="card-names">
+              <div class="card-name" id="cardName"></div>
+              <div class="card-sub" id="cardSub"></div>
+            </div>
+            <button class="spk" id="spkCard" aria-label="Read this out loud">🔊</button>
+          </div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-row">
+          <div class="q-text" id="qText"></div>
+          <button class="spk" id="spkQuest" aria-label="Read the question out loud">🔊</button>
+        </div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb"></div>
+      </div>
+      <div class="toast" id="toast" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="parts" id="parts"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack">◀ Back</button>
+      <button class="btn big" id="btnNext">NEXT PART ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-petals" hidden>
+        <button class="swatch on" id="swPink" style="background:#ff77b0" aria-label="Pink petals"></button>
+        <button class="swatch" id="swGold" style="background:#ffc93f" aria-label="Yellow petals"></button>
+        <button class="swatch" id="swPurple" style="background:#a071e8" aria-label="Purple petals"></button>
+        <button class="swatch" id="swRed" style="background:#f0524a" aria-label="Red petals"></button>
+        <button class="swatch" id="swWhite" style="background:#fdfbf2" aria-label="White petals"></button>
+        <button class="tog bee" id="togBeeEyes">🐝 Bee eyes</button>
+      </div>
+      <div class="ctl-group" id="ctl-stem" hidden>
+        <button class="tog wet on" id="togWater">💧 Water: ON</button>
+        <button class="tog sun on" id="togSun">☀️ Sun: ON</button>
+      </div>
+      <div class="ctl-group" id="ctl-roots" hidden>
+        <button class="tog wet" id="togRain">🌧️ Make it rain</button>
+        <button class="tog wind" id="togWind">💨 Windy day!</button>
+      </div>
+      <div class="ctl-group" id="ctl-pollen" hidden>
+        <button class="tog bee" id="btnBee">🐝 Send the bee</button>
+        <button class="tog" id="btnZoomPollen">🔍 Pollen close-up</button>
+      </div>
+      <div class="ctl-group" id="ctl-seeds" hidden>
+        <button class="tog seed" id="btnPlant">🌱 Plant a seed</button>
+        <button class="tog wind" id="btnBlow">💨 Blow the seeds</button>
+        <button class="tog" id="btnReset">↺ Start over</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+/* =====================================================================
+   Flower Explorer — one flower, five parts, for kindergarten & 1st grade.
+   Single file, no dependencies. Everything is drawn on one canvas in
+   "flower units": the ground is y = 0, the flower's head is up at y ≈ 1.1,
+   and the roots go down to y ≈ -0.45. Each part of the flower is a chapter
+   that frames the same plant from a different distance.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const rnd=Math.random;
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7';
+const LEAF='#3f9d3a', LEAF_DK='#2e7d32', LEAF_LT='#7ccf5a', SOIL='#8b5a2b', SOIL_DK='#5a3a1c', SOIL_LT='#a9713a';
+const STEM='#4aa83f', STEM_DK='#2f7a2a', POLLEN='#ffcf2e', POLLEN_DK='#d79c00', NECTAR='#ffb03a';
+
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:520,dpr:1};
+let now=0;                    // seconds since load
+
+/* ---------- little drawing helpers (shared with the other Learning Tools) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,Math.max(0.1,r),0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(0.1,rx),Math.max(0.1,ry),rot||0,0,TAU); if(fill){ctx.fillStyle=fill; ctx.fill();} if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); } if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,w/2,h/2); ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol){ rrect(x,y,w,h,r); ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ if(P.length<2) return; ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round'; ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1); ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000'; ctx.fillText(ch,0,px*0.06); ctx.restore(); }
+function bezPts(p0,p1,p2,n){ const out=[]; for(let i=0;i<=n;i++){ const t=i/n,u=1-t; out.push([u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]); } return out; }
+function bezAt(p0,p1,p2,t){ const u=1-t; return [u*u*p0[0]+2*u*t*p1[0]+t*t*p2[0], u*u*p0[1]+2*u*t*p1[1]+t*t*p2[1]]; }
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return `rgba(${c[0]},${c[1]},${c[2]},${a})`; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b); return `rgb(${Math.round(lerp(A[0],B[0],t))},${Math.round(lerp(A[1],B[1],t))},${Math.round(lerp(A[2],B[2],t))})`; }
+function darker(h,k){ const c=hexRgb(h).map(v=>Math.round(v*(1-k))); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function lighter(h,k){ const c=hexRgb(h).map(v=>Math.round(v+(255-v)*k)); return `rgb(${c[0]},${c[1]},${c[2]})`; }
+function dist(ax,ay,bx,by){ return Math.hypot(ax-bx,ay-by); }
+
+/* a word on the canvas, in a soft pill so it reads over anything */
+function label(txt,x,y,o){
+  o=o||{}; const size=o.size||14;
+  ctx.font=(o.display?'600 ':'800 ')+size+'px '+(o.display?DISPLAY_FONT:LABEL_FONT);
+  ctx.textAlign=o.align||'center'; ctx.textBaseline='middle';
+  const w=ctx.measureText(txt).width, padX=size*0.5, padY=size*0.34;
+  let x0=x-w/2; if(o.align==='left') x0=x; else if(o.align==='right') x0=x-w;
+  if(o.pill!==false){ box(x0-padX,y-size/2-padY,w+padX*2,size+padY*2,(size+padY*2)/2,o.bg||'rgba(255,253,247,0.93)',o.ol===false?0:Math.max(1.5,size*0.14)); }
+  ctx.fillStyle=o.color||INK; ctx.textAlign=o.align||'center';
+  ctx.fillText(txt,o.align==='left'?x:o.align==='right'?x:x,y);
+}
+/* a label on a leader line pointing at (px,py) */
+function tag(txt,px,py,tx,ty,o){
+  o=o||{};
+  ctx.setLineDash(o.dash===false?[]:[7,5]); ctx.lineDashOffset=-now*14;
+  line(px,py,tx,ty,o.line||INK,Math.max(2,V.h*0.004));
+  ctx.setLineDash([]);
+  disc(px,py,Math.max(3.5,V.h*0.007),o.dot||GOLD,2);
+  label(txt,tx,ty,{size:o.size||Math.max(12,V.h*0.030),display:true,bg:o.bg||'rgba(255,253,247,0.95)'});
+}
+
+/* =====================================================================
+   READ ALOUD — the whole point for a class that can't read yet.
+   Uses the browser's built-in speech. If there is none, every 🔊 button
+   hides itself and the tool still works.
+   ===================================================================== */
+const Speech=(()=>{
+  const has=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+  if(!has) document.body.classList.add('nospeech');
+  let on=true, voice=null, btn=null, current=null;
+  function pickVoice(){
+    if(!has) return;
+    const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+    const want=[/samantha/i,/karen/i,/moira/i,/google us english/i,/zira/i,/female/i];
+    for(const w of want){ const v=vs.find(v=>/^en/i.test(v.lang)&&w.test(v.name)); if(v){ voice=v; return; } }
+    voice=vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||vs[0];
+  }
+  if(has){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+  /* strip the markup and the pronunciation hints — "petals (PET-uls)" reads badly */
+  function plain(html){
+    return String(html).replace(/<[^>]*>/g,'').replace(/\s*\((?=[A-Z]{2,})[^)]*\)/g,'')
+      .replace(/&amp;/g,'and').replace(/&nbsp;/g,' ').replace(/[·•]/g,',').replace(/\s+/g,' ').trim();
+  }
+  function stop(){ if(!has) return; current=null; speechSynthesis.cancel(); if(btn){ btn.classList.remove('talking'); btn=null; } }
+  function say(text,fromBtn){
+    if(!has) return;
+    const t=plain(text); if(!t) return;
+    stop();
+    const u=new SpeechSynthesisUtterance(t);
+    if(voice) u.voice=voice;
+    u.rate=0.86; u.pitch=1.12; u.volume=1;
+    btn=fromBtn||null; if(btn) btn.classList.add('talking');
+    u.onend=u.onerror=()=>{ if(btn){ btn.classList.remove('talking'); btn=null; } current=null; };
+    current=u;
+    /* Chrome sometimes needs a tick after cancel() */
+    setTimeout(()=>{ if(current===u) speechSynthesis.speak(u); },REDUCED?0:60);
+  }
+  /* auto-read: only when the toggle is on */
+  function auto(text){ if(on) say(text); }
+  return { has, say, auto, stop, plain,
+    get on(){ return on; }, set on(v){ on=v; if(!v) stop(); } };
+})();
+
+/* =====================================================================
+   THE WORLD — flower units. Ground at y = 0, up is +y.
+   ===================================================================== */
+const cam={cx:0,cy:0.55,hm:1.6};
+let K=300;                                  // pixels per flower unit
+function sx(x){ return V.w/2+(x-cam.cx)*K; }
+function sy(y){ return V.h/2-(y-cam.cy)*K; }
+function toWorld(px,py){ return [cam.cx+(px-V.w/2)/K, cam.cy-(py-V.h/2)/K]; }
+const M=m=>m*K;                                    // flower units → pixels
+const LW=(m,min)=>Math.max(min||1.5,m*K);          // a line width, never thinner than `min` px
+
+/* ---------- the plant ---------- */
+const PETAL_COLORS={
+  pink:{fill:'#ff77b0',dk:'#c2417c',name:'pink'},
+  gold:{fill:'#ffc93f',dk:'#c9901a',name:'yellow'},
+  purple:{fill:'#a071e8',dk:'#6c44ad',name:'purple'},
+  red:{fill:'#f0524a',dk:'#a72f29',name:'red'},
+  white:{fill:'#fdfbf2',dk:'#c3b9a0',name:'white'},
+};
+const P={
+  x:0, h:1.06, n:12, bloom:1, hue:'pink',
+  water:1, sun:1, wilt:0, pale:0,
+  seedMode:0,          // 0 = flower, 1 = seed head
+  pollen:1,            // how much pollen is still on the anthers
+  delivered:0,         // pollen grains the bee has brought
+  phase:0,
+};
+const NEIGHBORS=[
+  {x:1.12, h:0.90, n:11, hue:'gold',   phase:1.7, bloom:1, pollen:1, hs:0.88},
+  {x:-1.05,h:0.83, n:13, hue:'purple', phase:3.1, bloom:1, pollen:1, hs:0.82},
+];
+const petalC=f=>PETAL_COLORS[f.hue];
+let beeEyes=false, windAmt=0, windWant=0, rainAmt=0, rainWant=0, soilSee=0, soilSeeWant=0;
+let pollenZoom=0, pollenZoomWant=0;
+
+/* the head of a flower, after wilt and sway */
+function headOf(f){
+  const sway=Math.sin(now*1.05+f.phase)*(0.010+0.075*windAmt)+windAmt*0.055;
+  const droop=(f===P?P.wilt:0);
+  return { x:f.x+sway, y:f.h*(1-0.14*droop), sway };
+}
+function stemPts(f,n){
+  const H=headOf(f), base=[f.x,0], top=[H.x,H.y];
+  const ctrl=[f.x+(H.x-f.x)*0.35, f.h*0.55];
+  return bezPts(base,ctrl,top,n||18);
+}
+function leafAnchors(f){
+  const pts=stemPts(f,18);
+  const k=f.hs||1;                       /* a smaller plant gets smaller leaves */
+  return [ {p:pts[4],  side:-1, len:0.30*k, tilt:0.55},
+           {p:pts[9],  side: 1, len:0.26*k, tilt:0.45} ];
+}
+
+/* ---------- roots: grown once, then just drawn ---------- */
+const ROOTS=(()=>{
+  const R=[], rr=seeded(1207);
+  function grow(x,y,ang,len,w,depth){
+    const p0=[x,y], p1=[x+Math.cos(ang)*len*0.5, y+Math.sin(ang)*len*0.5];
+    const p2=[x+Math.cos(ang)*len+(rr()-0.5)*0.09, y+Math.sin(ang)*len];
+    const pts=bezPts(p0,p1,p2,10);
+    R.push({pts,w,depth,hairs:depth>=2});
+    if(depth<3){
+      const k=depth===0?3:2;
+      for(let i=0;i<k;i++){
+        const a=ang+(rr()-0.5)*1.5-(depth===0?0:0);
+        const t=0.55+rr()*0.4, at=pts[Math.round(t*10)];
+        grow(at[0],at[1],clamp(a,-Math.PI+0.25,-0.25),len*(0.55+rr()*0.25),w*0.6,depth+1);
+      }
+    }
+  }
+  grow(0,-0.005,-Math.PI/2,0.20,0.030,0);
+  grow(0,-0.005,-Math.PI/2-0.75,0.17,0.024,0);
+  grow(0,-0.005,-Math.PI/2+0.8,0.17,0.024,0);
+  return R;
+})();
+const ROOT_TIPS=ROOTS.filter(r=>r.depth>=2).map(r=>r.pts[r.pts.length-1]);
+
+/* water beads that climb from a root tip, up the stem, out to a leaf */
+const drops=[];
+function spawnDrop(){
+  const tip=ROOT_TIPS[Math.floor(rnd()*ROOT_TIPS.length)];
+  drops.push({from:tip,t:0,speed:0.28+rnd()*0.12,leaf:rnd()<0.5?0:1});
+}
+function dropPos(d){
+  const stem=stemPts(P,18);
+  if(d.t<0.42){ const u=d.t/0.42; return [lerp(d.from[0],0,u), lerp(d.from[1],0,u)]; }
+  if(d.t<0.92){ const u=(d.t-0.42)/0.50, i=clamp(Math.round(u*17),0,17); return stem[i]; }
+  const u=(d.t-0.92)/0.08, L=leafAnchors(P)[d.leaf];
+  const tipP=leafTip(L);
+  return [lerp(L.p[0],tipP[0],u), lerp(L.p[1],tipP[1],u)];
+}
+function leafTip(L){ return [L.p[0]+L.side*L.len*Math.cos(L.tilt), L.p[1]+L.len*Math.sin(L.tilt)*0.85]; }
+
+/* rain + falling petals + flying seeds + pollen grains in the air */
+const rainDrops=[], fallingPetals=[], flyingSeeds=[], airPollen=[];
+
+/* =====================================================================
+   DRAWING
+   ===================================================================== */
+function drawSky(){
+  const g=ctx.createLinearGradient(0,0,0,V.h);
+  const sunny=1-0.55*(1-P.sun);
+  g.addColorStop(0,mix('#4fb3f6','#7f8fa8',1-sunny));
+  g.addColorStop(1,mix('#dff1ff','#c9ccd6',1-sunny));
+  ctx.fillStyle=g; ctx.fillRect(0,0,V.w,V.h);
+  if(P.sun>0.5){
+    const cx=V.w*0.90, cy=V.h*0.12, r=Math.max(16,V.h*0.055);
+    for(let i=0;i<12;i++){ const a=i/12*TAU+now*0.10; line(cx+Math.cos(a)*r*1.35,cy+Math.sin(a)*r*1.35,cx+Math.cos(a)*r*1.95,cy+Math.sin(a)*r*1.95,GOLD,Math.max(2.5,r*0.16)); }
+    disc(cx,cy,r,GOLD,Math.max(2.5,r*0.13));
+  }else{
+    const cx=V.w*0.88, cy=V.h*0.13, r=Math.max(18,V.h*0.06);
+    circle(cx,cy,r,'#8e9bb0'); circle(cx-r*0.7,cy+r*0.25,r*0.75,'#8e9bb0'); circle(cx+r*0.8,cy+r*0.2,r*0.7,'#8e9bb0');
+    circle(cx,cy-r*0.1,r*0.95,'#b9c4d4'); circle(cx-r*0.75,cy+r*0.2,r*0.7,'#b9c4d4'); circle(cx+r*0.85,cy+r*0.15,r*0.65,'#b9c4d4');
+  }
+  /* two soft clouds, drifting */
+  const rr=seeded(41);
+  for(let i=0;i<2;i++){
+    const base=(i*0.55+0.08), drift=(now*0.006*(i+1))%1.4;
+    const cx=((base+drift)%1.4-0.2)*V.w, cy=V.h*(0.10+i*0.11), r=Math.max(14,V.h*(0.045+i*0.012));
+    ctx.globalAlpha=0.75; circle(cx,cy,r,WHITE); circle(cx+r*0.85,cy+r*0.12,r*0.78,WHITE); circle(cx-r*0.8,cy+r*0.15,r*0.7,WHITE); ctx.globalAlpha=1;
+    rr();
+  }
+}
+function drawSoil(){
+  const y0=sy(0);
+  if(y0>V.h+4) return;
+  ctx.save();
+  ctx.fillStyle=mix(SOIL,'#e0b581',soilSee*0.62);   /* the cutaway view lightens the dirt so roots read */
+  ctx.fillRect(0,y0,V.w,V.h-y0+2);
+  /* damp layers */
+  const wet=clamp(rainAmt*1.2,0,1);
+  ctx.fillStyle=rgba(SOIL_DK,0.30+0.25*wet); ctx.fillRect(0,y0,V.w,Math.max(2,M(0.05)));
+  const rr=seeded(88);
+  for(let i=0;i<90;i++){
+    const px=rr()*V.w, wy=-rr()*0.6, py=sy(wy);
+    if(py<y0-2||py>V.h+10) { continue; }
+    const r=M(0.004+rr()*0.010);
+    circle(px,py,r,rr()<0.5?SOIL_DK:SOIL_LT);
+  }
+  ctx.restore();
+  /* the grass line on top */
+  ctx.fillStyle=darker(GRASS,0.15); ctx.fillRect(0,y0-Math.max(1.5,M(0.012)),V.w,Math.max(2,M(0.016)));
+  const gr=seeded(9);
+  for(let i=0;i<Math.ceil(V.w/Math.max(9,M(0.045)));i++){
+    const px=i*Math.max(9,M(0.045))+gr()*6, hgt=M(0.030+gr()*0.028), bend=Math.sin(now*1.3+i)*M(0.008)*(0.3+windAmt*3);
+    path([[px,y0],[px+bend*0.5,y0-hgt*0.6],[px+bend,y0-hgt]],mix(GRASS,LEAF_DK,gr()*0.5),Math.max(1.5,M(0.007)));
+  }
+}
+function drawRoots(){
+  if(sy(0)<-10) return;
+  ROOTS.forEach(R=>{
+    const pts=R.pts.map(p=>[sx(p[0]),sy(p[1])]);
+    path(pts,'#e8d3b0',LW(R.w,2.2));
+    path(pts,'#c9a06a',LW(R.w*0.55,1.2));
+    if(R.hairs&&K>140){
+      const rr=seeded(Math.round(R.pts[0][0]*1000)+R.depth*7+1);
+      for(let i=3;i<pts.length;i+=2){
+        const a=rr()*TAU, len=M(0.018);
+        line(pts[i][0],pts[i][1],pts[i][0]+Math.cos(a)*len,pts[i][1]+Math.sin(a)*len,'#e8d3b0',Math.max(1,LW(0.004,1)));
+      }
+    }
+  });
+  /* the drink: little blue beads sitting on the fuzzy tips */
+  if(rainAmt>0.05){
+    ROOT_TIPS.forEach((t,i)=>{ const b=(Math.sin(now*2+i)*0.5+0.5)*rainAmt; if(b>0.25) disc(sx(t[0]),sy(t[1]),Math.max(1.5,M(0.012*b)),SKY,0); });
+  }
+}
+function drawLeaf(L,f,o){
+  o=o||{};
+  const bx=L.p[0], by=L.p[1], tip=leafTip(L);
+  const c1=[bx+L.side*L.len*0.45, by+L.len*0.55];
+  const c2=[bx+L.side*L.len*0.55, by-L.len*0.12];
+  const up=bezPts([bx,by],c1,tip,12), dn=bezPts(tip,c2,[bx,by],12);
+  const pts=up.concat(dn).map(p=>[sx(p[0]),sy(p[1])]);
+  const green=mix(LEAF,'#c8c98a',(f===P?P.pale:0)*0.75);
+  poly(pts,green,LW(0.010,1.8));
+  /* the middle vein and a few side veins */
+  const mid=bezPts([bx,by],[(bx+tip[0])/2,(by+tip[1])/2+L.len*0.16],tip,10).map(p=>[sx(p[0]),sy(p[1])]);
+  path(mid,darker(green,0.28),LW(0.007,1.2));
+  if(K>110) for(let i=2;i<9;i+=2){
+    const a=mid[i], t=(i/10);
+    line(a[0],a[1],a[0]+L.side*M(L.len*0.20*(1-t)),a[1]+M(L.len*0.10),darker(green,0.20),LW(0.004,1));
+  }
+  if(o.sunbeams&&P.sun>0.5&&K>110){
+    for(let i=0;i<4;i++){
+      const t=0.25+i*0.18, a=mid[Math.round(t*10)];
+      const bob=((now*0.9+i*0.25)%1);
+      ctx.globalAlpha=0.85*(1-bob);
+      line(a[0]+M(0.05),a[1]-M(0.16)-M(0.10)*bob,a[0],a[1]-M(0.02),GOLD,LW(0.010,2));
+      ctx.globalAlpha=1;
+    }
+  }
+}
+function drawPetals(f,H,o){
+  o=o||{};
+  const C=petalC(f), bloom=f.bloom*(1-(f===P?P.seedMode:0));
+  if(bloom<=0.02) return;
+  const cx=sx(H.x), cy=sy(H.y), hs=f.hs||1;
+  const discR=M(0.082*hs), len=M(0.20*bloom*hs), wid=M(0.078*bloom*hs);
+  const fill=mix(C.fill,'#cfc9b6',(f===P?P.pale:0)*0.5);
+  for(let i=0;i<f.n;i++){
+    const a=i/f.n*TAU+(f.phase||0)*0.3+Math.sin(now*0.6+i)*0.012;
+    const d=discR*0.72+len/2;
+    ctx.save(); ctx.translate(cx+Math.cos(a)*d, cy+Math.sin(a)*d); ctx.rotate(a);
+    ellipse(0,0,len/2,wid/2,0,fill,LW(0.008,1.6));
+    /* a soft crease down the middle */
+    ctx.globalAlpha=0.35; line(-len*0.3,0,len*0.36,0,darker(C.fill,0.25),LW(0.006,1)); ctx.globalAlpha=1;
+    /* nectar guides: the runway a bee actually sees */
+    if(beeEyes&&o.guides!==false){
+      ctx.globalAlpha=0.8;
+      for(let k=-1;k<=1;k++) line(-len*0.42,k*wid*0.16,len*0.05,k*wid*0.10,'#3b2d6b',LW(0.010,1.6));
+      ctx.globalAlpha=1;
+    }
+    ctx.restore();
+  }
+}
+function drawHeadCenter(f,H,o){
+  o=o||{};
+  const cx=sx(H.x), cy=sy(H.y), R=M(0.082*(f.hs||1));
+  const seed=(f===P?P.seedMode:0);
+  if(f.bloom<0.22&&seed<0.5){   /* still a bud: green, wrapped up tight */
+    ellipse(cx,cy,R*0.62,R*0.86,0,'#57ab45',LW(0.010,1.8));
+    for(let i=-1;i<=1;i++){ ellipse(cx+i*R*0.34,cy+R*0.06,R*0.24,R*0.72,i*0.32,'#79c265',LW(0.007,1.3)); }
+    return;
+  }
+  /* the disc */
+  disc(cx,cy,R*(1+seed*0.55),mix('#f0a92c','#b98a4a',seed),LW(0.010,1.8));
+  const rr=seeded(17);
+  if(seed<0.4&&K>120){ for(let i=0;i<26;i++){ const a=rr()*TAU,d=Math.sqrt(rr())*R*0.85; circle(cx+Math.cos(a)*d,cy+Math.sin(a)*d,Math.max(0.8,R*0.055),rgba('#8a5a12',0.5)); } }
+  if(seed<0.5){
+    /* anthers: little pollen-tipped knobs standing in a ring */
+    const n=10, pol=f.pollen;
+    for(let i=0;i<n;i++){
+      const a=i/n*TAU+0.2, d=R*0.62, wob=Math.sin(now*1.6+i)*R*0.05;
+      const ax=cx+Math.cos(a)*d, ay=cy+Math.sin(a)*d-R*0.10+wob;
+      line(cx+Math.cos(a)*R*0.28,cy+Math.sin(a)*R*0.28,ax,ay,'#e8c887',LW(0.007,1.2));
+      disc(ax,ay,Math.max(1.6,R*0.20),mix('#e4d7b4',POLLEN,pol),LW(0.005,1));
+    }
+    /* stigma: the sticky middle, on a little stalk */
+    const sr=Math.max(2,R*0.24);
+    disc(cx,cy-R*0.05,sr*1.15,'#7ec96b',LW(0.006,1.2));
+    for(let i=0;i<3;i++){ const a=-Math.PI/2+i*TAU/3; line(cx,cy-R*0.05,cx+Math.cos(a)*sr*1.3,cy-R*0.05+Math.sin(a)*sr*1.3,'#4f9d40',LW(0.008,1.5)); }
+    /* pollen the bee has delivered, stuck on top */
+    if(f===P&&P.delivered>0&&K>150){
+      const dr=seeded(5);
+      for(let i=0;i<Math.min(P.delivered*3,14);i++){ const a=dr()*TAU,d=dr()*sr*1.2; circle(cx+Math.cos(a)*d,cy-R*0.05+Math.sin(a)*d,Math.max(1,R*0.09),POLLEN_DK); }
+    }
+  }
+  if(seed>0.35){
+    /* seeds packed across the middle, in the spiral a real seed head grows in */
+    const packed=Math.round(34*seed);
+    for(let i=0;i<packed;i++){
+      const t=(i+0.5)/34, a=i*2.39996, d=Math.sqrt(t)*R*1.35*seed;
+      ellipse(cx+Math.cos(a)*d,cy+Math.sin(a)*d,R*0.13,R*0.20,a+Math.PI/2,'#8d6b52',Math.max(1,R*0.045));
+    }
+    /* and a fluffy crown of parachute seeds around the edge */
+    const n=16;
+    for(let i=0;i<n;i++){
+      const a=i/n*TAU, out=R*(0.9+0.9*seed), wob=Math.sin(now*0.9+i*0.7)*M(0.006);
+      const sxp=cx+Math.cos(a)*out, syp=cy+Math.sin(a)*out+wob;
+      if(flyingSeeds.some(s=>s.i===i)) continue;
+      drawSeed(sxp,syp,a,M(0.030),seed);
+    }
+  }
+}
+function drawSeed(x,y,ang,r,fluff){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang+Math.PI/2);
+  ellipse(0,0,r*0.34,r*0.62,0,'#8d6b52',Math.max(1,r*0.11));
+  if(fluff>0.2){
+    line(0,-r*0.55,0,-r*1.25,'#cfc0a4',Math.max(1,r*0.09));
+    for(let k=-3;k<=3;k++){ const a=-Math.PI/2+k*0.28; line(0,-r*1.25,Math.cos(a)*r*0.85,-r*1.25+Math.sin(a)*r*0.85,'#efe6d2',Math.max(1,r*0.08)); }
+  }
+  ctx.restore();
+}
+function drawFlower(f,o){
+  o=o||{};
+  const H=headOf(f);
+  const pts=stemPts(f,18).map(p=>[sx(p[0]),sy(p[1])]);
+  const stemCol=mix(STEM,'#b9b98d',(f===P?P.pale:0)*0.6);
+  path(pts,darker(stemCol,0.30),LW(0.046,3));
+  path(pts,stemCol,LW(0.032,2));
+  if(f===P&&o.showXylem&&K>150){
+    ctx.setLineDash([M(0.03),M(0.03)]); ctx.lineDashOffset=-now*M(0.10);
+    path(pts,rgba(SKY,0.9),LW(0.012,1.5)); ctx.setLineDash([]);
+  }
+  leafAnchors(f).forEach(L=>drawLeaf(L,f,o));
+  drawPetals(f,H,o);
+  drawHeadCenter(f,H,o);
+  /* sepals: the little green cup under the petals */
+  const cx=sx(H.x), cy=sy(H.y), R=M(0.082*(f.hs||1));
+  for(let i=0;i<5;i++){ const a=Math.PI*0.15+i*Math.PI*0.175; ellipse(cx+Math.cos(a)*R*0.95,cy+Math.sin(a)*R*0.95,R*0.34,R*0.17,a,'#4f9d40',LW(0.006,1)); }
+}
+/* a plant with its roots cut off, for the windy-day test */
+const noRoot={x:0.55,h:0.42,n:9,hue:'gold',phase:2.2,bloom:1,pollen:0.6,hs:0.55,tilt:0};
+function drawNoRootPlant(){
+  ctx.save();
+  const bx=sx(noRoot.x), by=sy(0);
+  ctx.translate(bx,by); ctx.rotate(noRoot.tilt); ctx.translate(-bx,-by);
+  drawFlower(noRoot,{guides:false});
+  ctx.restore();
+}
+
+/* =====================================================================
+   THE BEE — she flies flower to flower, and the pollen rides along.
+   ===================================================================== */
+const BEE={x:-0.75,y:1.45,vx:0,vy:0,load:0,queue:[],wait:0,resting:true,flip:1,trips:0};
+function beeHome(){ return [P.x-0.85,P.h+0.45]; }
+function sendBee(){
+  if(BEE.queue.length) return;
+  const A=NEIGHBORS[0], HA=headOf(A), HP=headOf(P);
+  BEE.queue=[
+    {x:HA.x+0.10,y:HA.y+0.16,act:null,pause:0.2},
+    {x:HA.x,     y:HA.y+0.055,act:'pickup',pause:1.1},
+    {x:(HA.x+HP.x)/2, y:Math.max(HA.y,HP.y)+0.34, act:null, pause:0},
+    {x:HP.x,     y:HP.y+0.055,act:'deliver',pause:1.2},
+    {x:beeHome()[0],y:beeHome()[1],act:'rest',pause:0},
+  ];
+  BEE.resting=false;
+}
+function updateBee(dt){
+  const target=BEE.queue[0];
+  if(!target){
+    /* idle hover near home */
+    const h=beeHome();
+    BEE.x+=((h[0]+Math.sin(now*0.7)*0.08)-BEE.x)*Math.min(1,dt*1.6);
+    BEE.y+=((h[1]+Math.sin(now*1.3)*0.05)-BEE.y)*Math.min(1,dt*1.6);
+    return;
+  }
+  if(BEE.wait>0){ BEE.wait-=dt; BEE.y+=Math.sin(now*9)*0.0016; if(BEE.wait<=0){ BEE.queue.shift(); } return; }
+  const dx=target.x-BEE.x, dy=target.y-BEE.y, d=Math.hypot(dx,dy);
+  const sp=0.95;
+  if(d<0.035){
+    if(target.act==='pickup'){
+      const A=NEIGHBORS[0]; A.pollen=Math.max(0.25,A.pollen-0.35); BEE.load=Math.min(3,BEE.load+3);
+      const H=headOf(A); for(let i=0;i<10;i++) airPollen.push({x:H.x+(rnd()-0.5)*0.10,y:H.y+(rnd()-0.5)*0.08,vx:(rnd()-0.5)*0.10,vy:0.05+rnd()*0.10,life:1});
+      toast('🐝 Pollen picked up!',2200);
+    }
+    if(target.act==='deliver'&&BEE.load>0){
+      BEE.load=0; P.delivered++; P.pollen=Math.min(1,P.pollen+0.1); BEE.trips++;
+      const H=headOf(P); for(let i=0;i<8;i++) airPollen.push({x:H.x+(rnd()-0.5)*0.07,y:H.y+0.06+rnd()*0.05,vx:(rnd()-0.5)*0.05,vy:-0.12,life:1});
+      toast('🌸 Pollen delivered! Now this flower can make seeds.',3200);
+      refreshStat();
+    }
+    if(target.act==='rest') BEE.resting=true;
+    BEE.wait=target.pause||0;
+    if(BEE.wait<=0.02){ BEE.wait=0; BEE.queue.shift(); }   /* no pause here: move straight on */
+    return;
+  }
+  BEE.flip=dx<0?-1:1;
+  BEE.x+=dx/d*sp*dt; BEE.y+=dy/d*sp*dt;
+}
+function drawBee(){
+  const x=sx(BEE.x), y=sy(BEE.y), s=Math.max(9,M(0.085));
+  ctx.save(); ctx.translate(x,y); ctx.scale(BEE.flip,1);
+  ctx.rotate(Math.sin(now*2.2)*0.10);
+  /* wings */
+  const flap=Math.sin(now*34)*0.5+0.5;
+  ctx.globalAlpha=0.55;
+  ellipse(-s*0.05,-s*0.62,s*0.46,s*0.24*(0.55+flap*0.6),-0.5,'#dff2ff',Math.max(1,s*0.05));
+  ellipse( s*0.30,-s*0.58,s*0.40,s*0.21*(0.55+flap*0.6),-0.25,'#dff2ff',Math.max(1,s*0.05));
+  ctx.globalAlpha=1;
+  /* body */
+  ellipse(0,0,s*0.62,s*0.44,0,'#ffcc3d',Math.max(1.4,s*0.09));
+  ctx.save(); ellipse(0,0,s*0.62,s*0.44,0,null,0); ctx.clip();
+  ctx.fillStyle='#3a2f20'; ctx.fillRect(-s*0.34,-s*0.5,s*0.17,s); ctx.fillRect(s*0.02,-s*0.5,s*0.17,s);
+  ctx.restore();
+  ellipse(0,0,s*0.62,s*0.44,0,null,Math.max(1.4,s*0.09));
+  /* head + fuzzy collar */
+  disc(s*0.62,-s*0.05,s*0.26,'#3a2f20',Math.max(1.2,s*0.07));
+  circle(s*0.70,-s*0.11,s*0.07,WHITE);
+  line(s*0.70,-s*0.26,s*0.92,-s*0.46,'#3a2f20',Math.max(1,s*0.06));
+  line(s*0.56,-s*0.28,s*0.66,-s*0.52,'#3a2f20',Math.max(1,s*0.06));
+  /* the pollen she is carrying, packed on her back legs */
+  if(BEE.load>0){
+    disc(-s*0.30,s*0.40,s*0.20,POLLEN,Math.max(1,s*0.06));
+    disc(-s*0.02,s*0.44,s*0.16,POLLEN,Math.max(1,s*0.06));
+    const rr=seeded(3);
+    for(let i=0;i<7;i++) circle(-s*0.5+rr()*s*0.9,-s*0.1+rr()*s*0.35,Math.max(0.8,s*0.05),POLLEN);
+  }
+  ctx.restore();
+}
+
+/* =====================================================================
+   PARTICLES: rain, falling petals, flying seeds, pollen in the air
+   ===================================================================== */
+function updateParticles(dt){
+  rainAmt+=(rainWant-rainAmt)*Math.min(1,dt*1.6);
+  windAmt+=(windWant-windAmt)*Math.min(1,dt*1.8);
+  soilSee+=(soilSeeWant-soilSee)*Math.min(1,dt*3);
+  pollenZoom+=(pollenZoomWant-pollenZoom)*Math.min(1,dt*3);
+  /* rain */
+  if(rainAmt>0.2&&!REDUCED&&rnd()<dt*45) rainDrops.push({x:cam.cx+(rnd()-0.5)*3.2,y:cam.cy+cam.hm*0.6,v:1.9+rnd()*0.8});
+  for(let i=rainDrops.length-1;i>=0;i--){ const d=rainDrops[i]; d.y-=d.v*dt; if(d.y<0){ rainDrops.splice(i,1); } }
+  /* water climbing the plant */
+  if(P.water>0.5&&!REDUCED&&rnd()<dt*(2.2+rainAmt*4)) spawnDrop();
+  for(let i=drops.length-1;i>=0;i--){ const d=drops[i]; d.t+=d.speed*dt; if(d.t>=1) drops.splice(i,1); }
+  /* petals that let go when the flower turns into a seed head */
+  for(let i=fallingPetals.length-1;i>=0;i--){ const p=fallingPetals[i]; p.vy-=0.55*dt; p.x+=(p.vx+windAmt*0.5)*dt; p.y+=p.vy*dt; p.r+=p.vr*dt; if(p.y<-0.05) fallingPetals.splice(i,1); }
+  /* seeds on parachutes */
+  for(let i=flyingSeeds.length-1;i>=0;i--){
+    const s=flyingSeeds[i];
+    s.x+=(0.28+windAmt*0.9+Math.sin(now*1.4+s.i)*0.06)*dt; s.y-=0.13*dt; s.r=Math.sin(now*1.1+s.i)*0.25;
+    if(s.y<=0.012){ s.y=0.012; s.landed=true; }
+    if(s.x>cam.cx+cam.hm*1.6) flyingSeeds.splice(i,1);
+  }
+  /* loose pollen */
+  for(let i=airPollen.length-1;i>=0;i--){ const p=airPollen[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy-=0.10*dt; p.life-=dt*0.7; if(p.life<=0) airPollen.splice(i,1); }
+  /* the no-root plant gives up in the wind */
+  const want=windAmt>0.6?0.95:0;
+  noRoot.tilt+=(want-noRoot.tilt)*Math.min(1,dt*(windAmt>0.6?1.1:2.2));
+  /* wilt + pale follow the toggles */
+  P.wilt+=((P.water>0.5?0:1)-P.wilt)*Math.min(1,dt*0.7);
+  P.pale+=((P.sun>0.5?0:1)-P.pale)*Math.min(1,dt*0.6);
+  SPROUT.update(dt);
+}
+function drawParticles(){
+  ctx.lineCap='round';
+  rainDrops.forEach(d=>{ line(sx(d.x),sy(d.y),sx(d.x),sy(d.y)+M(0.045),rgba('#4fb3f6',0.8),LW(0.008,1.5)); });
+  drops.forEach(d=>{ const p=dropPos(d); disc(sx(p[0]),sy(p[1]),Math.max(1.6,M(0.016)),SKY,LW(0.004,1)); });
+  fallingPetals.forEach(p=>{ ctx.save(); ctx.translate(sx(p.x),sy(p.y)); ctx.rotate(p.r); ellipse(0,0,M(0.09),M(0.035),0,p.c,LW(0.006,1)); ctx.restore(); });
+  flyingSeeds.forEach(s=>drawSeed(sx(s.x),sy(s.y),s.r,M(0.030),1));
+  airPollen.forEach(p=>{ ctx.globalAlpha=clamp(p.life,0,1); circle(sx(p.x),sy(p.y),Math.max(1.2,M(0.011)),POLLEN); ctx.globalAlpha=1; });
+}
+
+/* =====================================================================
+   CHAPTER 5's little seed: plant it, water it, watch it become a flower
+   ===================================================================== */
+const SPROUT=(()=>{
+  const S={x:-0.66,t:-1,grow:0,planted:false};
+  function plant(){ S.planted=true; S.t=0; S.grow=0; }
+  function reset(){ S.planted=false; S.t=-1; S.grow=0; flyingSeeds.length=0; }
+  function update(dt){
+    if(!S.planted) return;
+    S.t+=dt*(P.water>0.5?1:0.15)*(P.sun>0.5?1:0.35);
+    S.grow=clamp(S.t/9,0,1);
+  }
+  function plant2(){ return {x:S.x,h:0.10+0.62*easeOut(S.grow),n:10,hue:P.hue,phase:0.8,hs:0.45+0.45*S.grow,bloom:clamp((S.grow-0.72)/0.26,0,1),pollen:1}; }
+  function draw(){
+    if(!S.planted) return;
+    if(S.grow<0.06){ drawSeed(sx(S.x),sy(-0.045),0.4,M(0.030),0); return; }
+    const f=plant2();
+    if(S.grow<0.20){
+      const pts=stemPts(f,10).map(p=>[sx(p[0]),sy(p[1])]);
+      path(pts,STEM,LW(0.022,2));
+      /* two baby leaves */
+      [-1,1].forEach(sd=>{ const tp=pts[pts.length-1]; ellipse(tp[0]+sd*M(0.05),tp[1],M(0.05),M(0.026),sd*0.5,LEAF_LT,LW(0.006,1.2)); });
+      return;
+    }
+    drawFlower(f,{guides:false});
+  }
+  function stat(){
+    if(!S.planted) return '<span>🌱 Plant a seed and watch!</span>';
+    if(S.grow>=1) return '<span>🌸 It grew into a flower!</span>';
+    if(P.water<0.5||P.sun<0.5) return '<span>😟 It needs sun AND water to grow…</span>';
+    return '<span>🌱 Growing… '+Math.round(S.grow*100)+'%</span>';
+  }
+  return {S,plant,reset,update,draw,stat,get grow(){return S.grow;},get planted(){return S.planted;},plant2};
+})();
+function blowSeeds(){
+  if(P.seedMode<0.5){ toast('First come to the Seeds part! 🌻',2600); return; }
+  const H=headOf(P);
+  for(let i=0;i<16;i++){
+    if(flyingSeeds.some(s=>s.i===i)) continue;
+    const a=i/16*TAU;
+    flyingSeeds.push({i,x:H.x+Math.cos(a)*0.13,y:H.y+Math.sin(a)*0.13,r:a});
+  }
+  windWant=1; setTimeout(()=>{ if(CHAPTERS[current].id==='seeds') windWant=0; },2600);
+  toast('💨 Off they go! Each one could be a new flower.',3600);
+}
+
+/* =====================================================================
+   THE WHOLE SCENE
+   ===================================================================== */
+function drawWorld(){
+  drawSky();
+  drawRoots();
+  drawSoil();
+  if(CHAPTERS[current].id==='roots') { drawRoots(); drawNoRootPlant(); }
+  NEIGHBORS.forEach(f=>drawFlower(f,{guides:false}));
+  SPROUT.draw();
+  drawFlower(P,{showXylem:CHAPTERS[current].id==='stem',sunbeams:CHAPTERS[current].id==='stem'});
+  drawParticles();
+  drawBee();
+  drawTags();
+  if(pollenZoom>0.02) drawPollenLoupe();
+}
+/* the little magnifier that shows what a pollen grain really looks like */
+function drawPollenLoupe(){
+  const r=Math.min(V.w,V.h)*0.20*pollenZoom, cx=V.w-r-Math.max(14,V.w*0.03), cy=V.h-r-Math.max(14,V.h*0.05);
+  ctx.save(); ctx.globalAlpha=clamp(pollenZoom,0,1);
+  disc(cx,cy,r,'#fff4cf',Math.max(3,r*0.06));
+  const rr=seeded(23);
+  for(let i=0;i<7;i++){
+    const a=rr()*TAU,d=rr()*r*0.55, gx=cx+Math.cos(a)*d, gy=cy+Math.sin(a)*d, gr=r*(0.13+rr()*0.06);
+    disc(gx,gy,gr,POLLEN,Math.max(1.5,gr*0.16));
+    for(let k=0;k<12;k++){ const b=k/12*TAU; line(gx+Math.cos(b)*gr*0.8,gy+Math.sin(b)*gr*0.8,gx+Math.cos(b)*gr*1.22,gy+Math.sin(b)*gr*1.22,POLLEN_DK,Math.max(1,gr*0.12)); }
+  }
+  ring(cx,cy,r,INK,Math.max(3,r*0.06));
+  label('Pollen, way up close',cx,cy+r+Math.max(11,r*0.20),{size:Math.max(11,r*0.16),display:true});
+  ctx.restore();
+}
+/* the name tags for whichever part we are visiting */
+function drawTags(){
+  if(trans) return;
+  const id=CHAPTERS[current].id, H=headOf(P), size=Math.max(12,V.h*0.032);
+  const off=V.h*0.16;
+  if(id==='petals'){
+    const a=2.5, d=M(0.082)*0.72+M(0.20)*0.6;
+    tag('Petals',sx(H.x)+Math.cos(a)*d,sy(H.y)+Math.sin(a)*d,sx(H.x)-M(0.46),sy(H.y)+M(0.30),{size});
+    if(beeEyes) tag('The bee\'s landing stripes',sx(H.x)+M(0.20),sy(H.y)+M(0.16),sx(H.x)+M(0.44),sy(H.y)+M(0.34),{size:size*0.85,dot:SKY});
+  }else if(id==='stem'){
+    const L=leafAnchors(P)[0], tp=leafTip(L), pts=stemPts(P,18);
+    tag('Leaves',sx(tp[0]),sy(tp[1]),sx(tp[0])-M(0.30),sy(tp[1])-M(0.22),{size});
+    tag('Stem',sx(pts[9][0]),sy(pts[9][1]),sx(pts[9][0])+M(0.34),sy(pts[9][1])-M(0.05),{size});
+  }else if(id==='roots'){
+    const tip=ROOT_TIPS[2]||[0,-0.3];
+    tag('Roots',sx(0),sy(-0.16),sx(0)-M(0.42),sy(-0.10),{size});
+    if(K>150) tag('Root hairs',sx(tip[0]),sy(tip[1]),sx(tip[0])+M(0.30),sy(tip[1])-M(0.03),{size:size*0.85});
+    if(windAmt>0.4) tag('No roots!',sx(noRoot.x),sy(0.05),sx(noRoot.x)+M(0.30),sy(0.42),{size:size*0.9,dot:ROCKET});
+  }else if(id==='pollen'){
+    const R=M(0.082);
+    tag('Pollen',sx(H.x)+R*0.62,sy(H.y)-R*0.55,sx(H.x)+M(0.34),sy(H.y)+M(0.30),{size});
+    tag('Sticky middle',sx(H.x),sy(H.y)-R*0.05,sx(H.x)-M(0.40),sy(H.y)+M(0.34),{size,dot:'#7ec96b'});
+  }else if(id==='seeds'){
+    if(P.seedMode>0.5) tag('Seeds',sx(H.x)+M(0.13),sy(H.y)-M(0.09),sx(H.x)+M(0.42),sy(H.y)-M(0.34),{size});
+    if(SPROUT.planted&&SPROUT.grow<0.99){ const f=SPROUT.plant2(); tag('A new plant!',sx(f.x),sy(f.h*0.6),sx(f.x)-M(0.34),sy(f.h*0.6+0.30),{size:size*0.9,dot:LEAF_LT}); }
+  }
+}
+
+/* =====================================================================
+   THE PARTS — what a tap can find, and what its card says
+   ===================================================================== */
+function thumbPetal(s){ const c=petalC(P); for(let i=0;i<9;i++){ const a=i/9*TAU; ctx.save(); ctx.translate(s/2+Math.cos(a)*s*0.22,s/2+Math.sin(a)*s*0.22); ctx.rotate(a); ellipse(0,0,s*0.20,s*0.085,0,c.fill,2); ctx.restore(); } disc(s/2,s/2,s*0.13,'#f0a92c',2); }
+function thumbPollen(s){ disc(s/2,s/2,s*0.20,'#f0a92c',2.5); for(let i=0;i<8;i++){ const a=i/8*TAU; const x=s/2+Math.cos(a)*s*0.30,y=s/2+Math.sin(a)*s*0.30; line(s/2+Math.cos(a)*s*0.16,s/2+Math.sin(a)*s*0.16,x,y,'#e8c887',2.5); disc(x,y,s*0.075,POLLEN,1.6);} }
+function thumbStigma(s){ disc(s/2,s/2+s*0.06,s*0.20,'#f0a92c',2); disc(s/2,s/2-s*0.02,s*0.12,'#7ec96b',2); for(let i=0;i<3;i++){ const a=-Math.PI/2+i*TAU/3; line(s/2,s/2-s*0.02,s/2+Math.cos(a)*s*0.20,s/2-s*0.02+Math.sin(a)*s*0.20,'#4f9d40',3); } }
+function thumbStem(s){ path([[s*0.5,s*0.92],[s*0.44,s*0.5],[s*0.5,s*0.08]],STEM_DK,9); path([[s*0.5,s*0.92],[s*0.44,s*0.5],[s*0.5,s*0.08]],STEM,6); ctx.setLineDash([5,5]); path([[s*0.5,s*0.92],[s*0.44,s*0.5],[s*0.5,s*0.08]],rgba(SKY,0.95),2.5); ctx.setLineDash([]); }
+function thumbLeaf(s){ ellipse(s*0.5,s*0.5,s*0.34,s*0.17,-0.4,LEAF,2.5); line(s*0.5-s*0.30,s*0.5+s*0.12,s*0.5+s*0.30,s*0.5-s*0.12,LEAF_DK,2); }
+function thumbRoots(s){ line(s*0.5,s*0.05,s*0.5,s*0.35,STEM,4); [[-1,0.9],[0,1.15],[1,0.9]].forEach(([sd,l])=>{ path([[s*0.5,s*0.35],[s*0.5+sd*s*0.14,s*0.55],[s*0.5+sd*s*0.26*l,s*0.90]],'#c9a06a',3.5); }); ctx.fillStyle=rgba(SOIL,0.30); ctx.fillRect(0,s*0.35,s,s*0.65); }
+function thumbBee(s){ ctx.save(); ctx.translate(s*0.5,s*0.55); const b=s*0.42; ctx.globalAlpha=0.6; ellipse(-b*0.1,-b*0.6,b*0.5,b*0.24,-0.5,'#dff2ff',1.5); ctx.globalAlpha=1; ellipse(0,0,b*0.7,b*0.5,0,'#ffcc3d',2.5); ctx.save(); ellipse(0,0,b*0.7,b*0.5,0,null,0); ctx.clip(); ctx.fillStyle='#3a2f20'; ctx.fillRect(-b*0.38,-b*0.6,b*0.2,b*1.2); ctx.fillRect(b*0.02,-b*0.6,b*0.2,b*1.2); ctx.restore(); ellipse(0,0,b*0.7,b*0.5,0,null,2.5); disc(b*0.7,-b*0.05,b*0.3,'#3a2f20',2); ctx.restore(); }
+function thumbSeed(s){ ctx.fillStyle=rgba(SOIL,0.35); ctx.fillRect(0,s*0.55,s,s*0.45); drawSeed(s*0.5,s*0.5,0,s*0.42,1); }
+function thumbSoil(s){ ctx.fillStyle=SOIL; ctx.fillRect(0,s*0.22,s,s*0.78); ctx.fillStyle=darker(GRASS,0.1); ctx.fillRect(0,s*0.17,s,s*0.07); const rr=seeded(6); for(let i=0;i<26;i++) circle(rr()*s,s*0.24+rr()*s*0.74,s*0.035,rr()<0.5?SOIL_DK:SOIL_LT); }
+function thumbSprout(s){ ctx.fillStyle=rgba(SOIL,0.35); ctx.fillRect(0,s*0.7,s,s*0.3); line(s*0.5,s*0.72,s*0.5,s*0.34,STEM,5); ellipse(s*0.34,s*0.42,s*0.15,s*0.08,0.5,LEAF_LT,2); ellipse(s*0.66,s*0.36,s*0.15,s*0.08,-0.5,LEAF_LT,2); }
+function thumbNoRoot(s){ ctx.save(); ctx.translate(s*0.5,s*0.85); ctx.rotate(1.0); ctx.translate(-s*0.5,-s*0.85); line(s*0.5,s*0.85,s*0.5,s*0.30,STEM,5); disc(s*0.5,s*0.25,s*0.12,'#ffc93f',2); ctx.restore(); ctx.fillStyle=rgba(SOIL,0.35); ctx.fillRect(0,s*0.85,s,s*0.15); }
+
+const ITEMS={
+  petal:{id:'petal',name:'Petals',sub:'The flower\'s big sign',
+    fact:'Bright petals shout COME HERE! to bees and butterflies. They can spot them from far away.',
+    extra:'Try the color buttons — and press 🐝 Bee eyes to see the landing stripes bees follow.',thumb:thumbPetal},
+  pollen:{id:'pollen',name:'Pollen',sub:'Yellow flower dust',
+    fact:'These little knobs make pollen. Pollen is how a flower makes new seeds — but it has to get to another flower first.',
+    extra:'Big-kid word: anther (AN-thur), the part that makes the pollen.',thumb:thumbPollen},
+  stigma:{id:'stigma',name:'The sticky middle',sub:'Where pollen has to land',
+    fact:'The very middle is sticky on purpose. When pollen sticks here, the flower can start making seeds.',
+    extra:'Big-kid word: stigma (STIG-muh).',thumb:thumbStigma},
+  stem:{id:'stem',name:'Stem',sub:'The plant\'s straw',
+    fact:'The stem holds the flower up in the sunshine, and carries water all the way from the roots to the top.',
+    extra:'Watch the blue dots ride up the stem.',thumb:thumbStem},
+  leaf:{id:'leaf',name:'Leaves',sub:'Little green kitchens',
+    fact:'Leaves catch sunshine and use it, with water, to make food for the plant. Green leaves are always cooking.',
+    extra:'Big-kid word: photosynthesis (fo-toe-SIN-thuh-sis).',thumb:thumbLeaf},
+  roots:{id:'roots',name:'Roots',sub:'Straws AND anchors',
+    fact:'Roots do two jobs at once: they drink water out of the soil, and they hold the plant down so wind can\'t blow it over.',
+    extra:'Press 💨 Windy day! and watch what happens to the plant with no roots.',thumb:thumbRoots},
+  roothair:{id:'roothair',name:'Root hairs',sub:'Tiny drinking fuzz',
+    fact:'The fuzzy ends of the roots are where water really gets in. One little plant can have thousands of them.',
+    extra:'Press 🌧️ Make it rain and watch the roots drink.',thumb:thumbRoots},
+  bee:{id:'bee',name:'Honey bee',sub:'The flower\'s helper',
+    fact:'The bee comes for a sweet drink called nectar. Pollen sticks to her fuzzy body, and she carries it to the next flower. That is pollination!',
+    extra:'One honey bee can visit 50 to 100 flowers in a single trip.',thumb:thumbBee},
+  seed:{id:'seed',name:'Seed',sub:'A baby plant in a box',
+    fact:'Inside every seed there is a tiny plant AND a packed lunch. Give it soil, water and sunshine, and it wakes up.',
+    extra:'One dandelion puff can hold 150 to 200 seeds.',thumb:thumbSeed},
+  soil:{id:'soil',name:'Soil',sub:'The roots\' home',
+    fact:'Soil holds water for the roots to drink, and holds the roots tight so the plant stands up straight.',
+    extra:'',thumb:thumbSoil},
+  sprout:{id:'sprout',name:'A new plant',sub:'From one little seed',
+    fact:'It started as a seed, drank water, caught sunshine, and grew a stem, leaves and a flower of its own. Now IT can make seeds too.',
+    extra:'Round and round: seed → plant → flower → seed.',thumb:thumbSprout},
+  noroot:{id:'noroot',name:'A plant with no roots',sub:'Uh oh',
+    fact:'Nothing is holding this one down, and nothing is bringing it a drink. One windy day and over it goes.',
+    extra:'',thumb:thumbNoRoot},
+};
+
+function distToPolyline(pts,x,y){
+  let best=1e9;
+  for(let i=1;i<pts.length;i++){
+    const [ax,ay]=pts[i-1],[bx,by]=pts[i];
+    const dx=bx-ax, dy=by-ay, L=dx*dx+dy*dy;
+    let t=L?((x-ax)*dx+(y-ay)*dy)/L:0; t=clamp(t,0,1);
+    best=Math.min(best,Math.hypot(x-(ax+dx*t),y-(ay+dy*t)));
+  }
+  return best;
+}
+function partHit(wx,wy){
+  const tol=26/K;
+  /* the bee often hovers right on the sticky middle: whichever the finger
+     landed closer to wins, so both stay tappable */
+  const beeD=dist(wx,wy,BEE.x,BEE.y);
+  let midD=1e9;
+  for(const f of [P].concat(NEIGHBORS)){
+    if(f===P&&P.seedMode>0.5) continue;
+    const H=headOf(f), d=dist(wx,wy,H.x,H.y);
+    if(d<Math.max(0.082*(f.hs||1)*0.42,tol*0.55)) midD=Math.min(midD,d);
+  }
+  if(midD<1e8&&midD<=beeD) return ITEMS.stigma;
+  if(beeD<Math.max(0.17,tol*1.4)) return ITEMS.bee;   /* she moves — give little fingers room */
+  if(midD<1e8) return ITEMS.stigma;
+  /* seeds flying or landed */
+  if(flyingSeeds.some(s=>dist(wx,wy,s.x,s.y)<Math.max(0.06,tol))) return ITEMS.seed;
+  /* the new plant growing from the planted seed */
+  if(SPROUT.planted){
+    const f=SPROUT.plant2();
+    if(SPROUT.grow>0.2&&dist(wx,wy,f.x,f.h)<Math.max(0.14,tol*1.4)) return ITEMS.sprout;
+    if(distToPolyline(stemPts(f,10),wx,wy)<Math.max(0.05,tol)) return ITEMS.sprout;
+    if(SPROUT.grow<0.2&&dist(wx,wy,f.x,-0.04)<Math.max(0.07,tol)) return ITEMS.seed;
+  }
+  /* the plant with no roots (only out in the windy-day scene) */
+  if(CHAPTERS[current].id==='roots'&&dist(wx,wy,noRoot.x+Math.sin(noRoot.tilt)*0.4,Math.cos(noRoot.tilt)*noRoot.h)<Math.max(0.16,tol*1.5)) return ITEMS.noroot;
+  /* every flower head: middle, then pollen ring, then petals */
+  const heads=[P].concat(NEIGHBORS);
+  for(const f of heads){
+    const H=headOf(f), R=0.082*(f.hs||1), d=dist(wx,wy,H.x,H.y);
+    const seed=(f===P?P.seedMode:0);
+    if(seed>0.5){ if(d<R*2.6) return ITEMS.seed; }
+    else{
+      if(d<Math.max(R*0.42,tol*0.7)) return ITEMS.stigma;
+      if(d<Math.max(R*1.10,tol)) return ITEMS.pollen;
+      if(d<R*0.75+0.20*f.bloom+tol*0.7) return ITEMS.petal;
+    }
+  }
+  /* leaves and stems */
+  for(const f of heads){
+    for(const L of leafAnchors(f)){
+      const tip=leafTip(L), midx=(L.p[0]+tip[0])/2, midy=(L.p[1]+tip[1])/2;
+      if(dist(wx,wy,midx,midy)<Math.max(0.10,tol)) return ITEMS.leaf;
+    }
+    if(distToPolyline(stemPts(f,18),wx,wy)<Math.max(0.045,tol)) return ITEMS.stem;
+  }
+  /* underground */
+  if(wy<0.01){
+    for(const R of ROOTS){ if(distToPolyline(R.pts,wx,wy)<Math.max(0.035,tol)){ return R.depth>=2?ITEMS.roothair:ITEMS.roots; } }
+    return ITEMS.soil;
+  }
+  return null;
+}
+/* where to draw the gold ring around whatever is selected */
+function itemScreenPos(it){
+  const H=headOf(P), R=M(0.082);
+  switch(it.id){
+    case 'bee': return [sx(BEE.x),sy(BEE.y),Math.max(26,M(0.13))];
+    case 'petal': return [sx(H.x),sy(H.y),Math.max(26,R*0.9+M(0.20*P.bloom))];
+    case 'pollen': return [sx(H.x),sy(H.y),Math.max(22,R*1.15)];
+    case 'stigma': return [sx(H.x),sy(H.y),Math.max(18,R*0.5)];
+    case 'stem': { const p=stemPts(P,18)[9]; return [sx(p[0]),sy(p[1]),Math.max(22,M(0.10))]; }
+    case 'leaf': { const L=leafAnchors(P)[0], t=leafTip(L); return [sx((L.p[0]+t[0])/2),sy((L.p[1]+t[1])/2),Math.max(24,M(0.16))]; }
+    case 'roots': return [sx(0),sy(-0.18),Math.max(30,M(0.25))];
+    case 'roothair': { const t=ROOT_TIPS[2]||[0,-0.3]; return [sx(t[0]),sy(t[1]),Math.max(20,M(0.08))]; }
+    case 'seed': { if(P.seedMode>0.5) return [sx(H.x),sy(H.y),Math.max(26,R*2.2)]; return null; }
+    case 'sprout': { const f=SPROUT.plant2(); return [sx(f.x),sy(f.h*0.7),Math.max(26,M(0.24))]; }
+    case 'noroot': return [sx(noRoot.x),sy(noRoot.h*0.5),Math.max(26,M(0.26))];
+    default: return null;
+  }
+}
+
+/* =====================================================================
+   CHAPTERS — one per part of the flower
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'petals', icon:'🌸', name:'Petals', title:'🌸 Petals',
+   caption:'Petals are the bright part you see first. They shout <b>COME HERE!</b> to bees and butterflies.',
+   cam:{cx:0,cy:1.06,hm:0.90,minW:1.25}, ctls:['petals'], hint:'👆 Tap the petals'},
+  {id:'stem', icon:'🌿', name:'Stem & leaves', title:'🌿 Stem and Leaves',
+   caption:'The <b>stem</b> holds the flower up high. The <b>leaves</b> catch sunshine and make the plant\'s food.',
+   cam:{cx:0.02,cy:0.58,hm:1.35,minW:1.7}, ctls:['stem'], hint:'👆 Tap the stem and the leaves'},
+  {id:'roots', icon:'🥕', name:'Roots', title:'🥕 Roots',
+   caption:'Under the ground the <b>roots</b> drink water — and hold the whole plant down tight.',
+   cam:{cx:0.16,cy:-0.04,hm:1.22,minW:1.9}, ctls:['roots'], hint:'👆 Tap the roots'},
+  {id:'pollen', icon:'🐝', name:'Pollen', title:'🐝 Pollen and the Bee',
+   caption:'Yellow <b>pollen</b> has to get from one flower to the sticky middle of another. A bee gives it a ride!',
+   cam:{cx:0.56,cy:1.00,hm:1.15,minW:2.1}, ctls:['pollen'], hint:'👆 Tap the middle of the flower'},
+  {id:'seeds', icon:'🌻', name:'Seeds', title:'🌻 Seeds',
+   caption:'When the petals fall, <b>seeds</b> are left behind. Every seed can grow into a whole new plant.',
+   cam:{cx:-0.18,cy:0.50,hm:1.85,minW:2.4}, ctls:['seeds'], hint:'👆 Tap a seed'},
+];
+function camFor(c){
+  const a=V.w/V.h, hm=Math.max(c.cam.hm,c.cam.minW/a);
+  return {cx:c.cam.cx,cy:c.cam.cy,hm};
+}
+const narrowMQ=matchMedia('(max-width:860px)');
+let current=0;
+const badges={};
+let selected=null;
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'), cardClose:$('cardClose'), thumb:$('thumb'),
+  toast:$('toast'), parts:$('parts'), btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'), btnRead:$('btnRead'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'), questClose:$('questClose'),
+  badges:$('badges'), meter:$('meter'), minimap:$('minimap'),
+  spkCap:$('spkCap'), spkCard:$('spkCard'), spkQuest:$('spkQuest') };
+
+CHAPTERS.forEach(c=>{ const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge'; els.badges.appendChild(b); c.badgeEl=b; });
+
+/* ---------- the little "you are here" flower in the header ---------- */
+const mctx=els.minimap.getContext('2d');
+function drawMinimap(){
+  const real=ctx; ctx=mctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,44,64);
+  ctx.fillStyle='#cdeeff'; ctx.fillRect(0,0,44,44); ctx.fillStyle=SOIL; ctx.fillRect(0,44,44,20);
+  ctx.fillStyle=darker(GRASS,0.1); ctx.fillRect(0,43,44,2);
+  const gy=44, scale=30;
+  const X=x=>22+x*scale, Y=y=>gy-y*scale;
+  [[-1,0.8],[0,1.0],[1,0.8]].forEach(([sd,l])=>path([[X(0),Y(0)],[X(sd*0.10),Y(-0.12)],[X(sd*0.18*l),Y(-0.42)]],'#c9a06a',1.6));
+  line(X(0),Y(0),X(0),Y(1.02),STEM,2.2);
+  ellipse(X(-0.13),Y(0.42),6,3,-0.4,LEAF,1);
+  ellipse(X(0.13),Y(0.66),5,2.6,0.4,LEAF,1);
+  const C=petalC(P);
+  for(let i=0;i<9;i++){ const a=i/9*TAU; ctx.save(); ctx.translate(X(0)+Math.cos(a)*6,Y(1.06)+Math.sin(a)*6); ctx.rotate(a); ellipse(0,0,5,2.4,0,P.seedMode>0.5?'#d9cbb0':C.fill,1); ctx.restore(); }
+  disc(X(0),Y(1.06),4,'#f0a92c',1);
+  /* the gold ring sits on the part we are visiting */
+  const spot={petals:[0,1.06,9],stem:[0.02,0.55,9],roots:[0,-0.22,10],pollen:[0,1.06,6],seeds:[0,1.06,9]}[CHAPTERS[current].id];
+  ring(X(spot[0]),Y(spot[1]),spot[2],GOLD,3); ring(X(spot[0]),Y(spot[1]),spot[2],INK,1);
+  ctx=real;
+}
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+  Speech.auto(c.title+'. '+c.caption);
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+function statFor(i){
+  const c=CHAPTERS[i];
+  if(c.id==='petals') return '<span>🎨 Petal color: <b>'+petalC(P).name+'</b></span>';
+  if(c.id==='stem') return '<span>☀️ Sun: <b>'+(P.sun>0.5?'yes':'no')+'</b></span><span>💧 Water: <b>'+(P.water>0.5?'yes':'no')+'</b></span>';
+  if(c.id==='roots') return '<span>💨 Wind: <b>'+(windWant?'blowing!':'calm')+'</b></span>';
+  if(c.id==='pollen') return '<span>🐝 Pollen delivered: <b>'+P.delivered+'</b></span>';
+  if(c.id==='seeds') return SPROUT.stat();
+  return '';
+}
+function refreshStat(){ setStat(statFor(current)); }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,88,88);
+  ctx.fillStyle=(item.id==='roots'||item.id==='roothair'||item.id==='soil')?'#f0e0c8':'#e8f4ff'; ctx.fillRect(0,0,88,88);
+  if(item.thumb) item.thumb(88); else if(item.emoji) emoji(item.emoji,44,44,52);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+  Speech.auto(item.name+'. '+(item.sub?item.sub+'. ':'')+item.fact);
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true;
+  const c=CHAPTERS.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🌷 All 5 badges — you are a FLOWER EXPERT!',7000); Speech.auto('You got all five badges! You are a flower expert!'); }
+  else{ toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000); Speech.auto('Badge earned! '+(CHAPTERS.length-n)+' to go.'); }
+}
+
+/* =====================================================================
+   THE CHALLENGES — two or three tiny steps, then a badge.
+   Every question is picture-first so a five-year-old can play it alone.
+   ===================================================================== */
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const Q=QUESTS[id]; if(!Q) return;
+  closeCard(); quest.active=Q(); quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true; document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing'); }
+function questSpeech(){
+  const S=quest.active&&quest.active.steps[quest.step]; if(!S) return '';
+  let t=Speech.plain(S.prompt);
+  if(S.options) t+=' Is it: '+S.options.map(o=>Speech.plain(o.text)).join('… or… ')+'?';
+  return t;
+}
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML=''; Q.steps.forEach((_,i)=>{ const d=document.createElement('span'); d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){
+    els.qOpts.hidden=false;
+    S.options.forEach((o,i)=>{
+      const b=document.createElement('button'); b.className='opt'; b.type='button';
+      if(o.pic){ const s=document.createElement('span'); s.className='pic'; s.textContent=o.pic; b.appendChild(s); }
+      b.appendChild(document.createTextNode(o.text));
+      b.addEventListener('click',()=>pick(i,b));
+      els.qOpts.appendChild(b);
+    });
+  } else els.qOpts.hidden=true;
+  if(S.onShow) S.onShow();
+  Speech.auto(questSpeech());
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); Speech.auto(msg); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1200); }
+  else setTimeout(()=>{ if(quest.active) renderStep(); },1500);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true); if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no'); feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that one. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+const tapIs=(id,hint)=>it=>it&&it.id===id?true:hint;
+
+const QUESTS={
+  petals:()=>({id:'petals',title:'🌸 All about petals',steps:[
+    {prompt:'Tap the <b>petals</b> on the flower.',tap:tapIs('petal','The petals are the big colorful parts around the outside.'),yes:'Those are the petals!'},
+    {prompt:'Why are petals so big and bright?',options:[
+      {pic:'🐝',text:'To call the bees over',ok:true,say:'Yes! Petals are a big sign that says COME HERE.'},
+      {pic:'🪨',text:'To make the flower heavy',say:'Nope — petals are as light as paper.'},
+      {pic:'🌙',text:'To glow in the dark',say:'Petals do not glow. Think about who the flower wants to visit.'}]},
+  ]}),
+  stem:()=>({id:'stem',title:'🌿 Stem and leaves',steps:[
+    {prompt:'A plant needs two things to live and grow. Tap <b>both</b>!',need:2,options:[
+      {pic:'☀️',text:'Sunshine',ok:true,say:'Yes! Sunshine. One more…'},
+      {pic:'💧',text:'Water',ok:true,say:'Yes! Water. That\'s both!'},
+      {pic:'🍕',text:'Pizza',say:'Plants do not eat pizza. They make their own food!'},
+      {pic:'🧦',text:'Socks',say:'Ha! Plants have no feet.'}]},
+    {prompt:'Tap the <b>leaves</b> — the part that catches the sunshine.',tap:tapIs('leaf','The leaves are the flat green parts on the side of the stem.'),yes:'Yes! Leaves are the plant\'s little kitchens.'},
+    {prompt:'Turn the <b>water OFF</b> and watch the flower. What happens?',onShow(){ setWater(false); },options:[
+      {pic:'😢',text:'It droops and wilts',ok:true,say:'Yes! No water, no standing up straight.'},
+      {pic:'💪',text:'It gets bigger',say:'Look again — is it getting taller, or floppier?'},
+      {pic:'🎨',text:'It turns blue',say:'Watch the stem. Is it still standing tall?'}],
+     },
+  ]}),
+  roots:()=>({id:'roots',title:'🥕 Down in the dirt',steps:[
+    {prompt:'Tap the <b>roots</b> under the ground.',tap:it=>it&&(it.id==='roots'||it.id==='roothair')?true:'Look below the grass line for the pale branching parts.',yes:'Those are the roots!'},
+    {prompt:'Roots do two jobs. Tap <b>both</b>!',need:2,options:[
+      {pic:'🥤',text:'Drink water',ok:true,say:'Yes! Roots drink. One more job…'},
+      {pic:'⚓',text:'Hold the plant down',ok:true,say:'Yes! Roots are anchors too.'},
+      {pic:'✈️',text:'Fly around',say:'Roots stay put — that\'s the whole idea!'},
+      {pic:'🎵',text:'Sing songs',say:'It\'s very quiet down there. Try again!'}]},
+    {prompt:'Press <b>💨 Windy day!</b> Then tap the plant that <b>falls over</b>.',onShow(){ setWind(true); },
+     tap:it=>it&&it.id==='noroot'?true:(windAmt<0.4?'Press 💨 Windy day! first.':'Tap the little yellow flower that is tipping over.'),
+     yes:'It had no roots to hold on with. Over it goes!'},
+  ]}),
+  pollen:()=>({id:'pollen',title:'🐝 Pollen delivery',steps:[
+    {prompt:'Press <b>🐝 Send the bee</b>, then tap the <b>bee</b>.',
+     tap:it=>it&&it.id==='bee'?(BEE.trips>0||BEE.load>0?true:'Wait until she has picked up the pollen!'):'Press 🐝 Send the bee, then tap her.',
+     yes:'She is a flying pollen delivery truck!'},
+    {prompt:'Who carries pollen from one flower to another?',options:[
+      {pic:'🐝',text:'A bee',ok:true,say:'Yes! Bees, butterflies and even the wind.'},
+      {pic:'🐟',text:'A fish',say:'Fish stay in the water. Who visits flowers?'},
+      {pic:'🚗',text:'A car',say:'Cars stay on the road! Who lands on flowers?'}]},
+    {prompt:'Tap the <b>sticky middle</b> — the spot pollen has to land on.',tap:tapIs('stigma','It is the little green bump right in the very center.'),yes:'Yes! Pollen sticks there, and seeds start to grow.'},
+  ]}),
+  seeds:()=>({id:'seeds',title:'🌻 Seeds and new plants',steps:[
+    {prompt:'Tap a <b>seed</b> on the flower.',tap:tapIs('seed','The seeds are the little brown ones with fluffy parachutes.'),yes:'That is a seed!'},
+    {prompt:'What grows out of a seed?',options:[
+      {pic:'🌱',text:'A new plant',ok:true,say:'Yes! A whole new plant, with its own flowers.'},
+      {pic:'🪨',text:'A rock',say:'Rocks do not grow. Try again!'},
+      {pic:'🐤',text:'A baby bird',say:'Birds hatch from eggs, not seeds!'}]},
+    {prompt:'Press <b>🌱 Plant a seed</b> and wait for it to bloom. Then tap the new flower.',
+     onShow(){ setWater(true); setSun(true); },
+     tap:it=>it&&it.id==='sprout'?(SPROUT.grow>0.9?true:'Almost! Give it a little more time to grow.'):'Press 🌱 Plant a seed, then wait and tap the new plant.',
+     yes:'From one seed to a whole new flower. Now it can make seeds too!'},
+  ]}),
+};
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff77b0','#a071e8'];
+  for(let i=0;i<130;i++) confetti.push({x:rr()*V.w,y:-10-rr()*130,vx:(rr()-.5)*80,vy:60+rr()*90,r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i]; p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt; if(p.y>V.h+20){ confetti.splice(i,1); continue; } ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c; ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+}
+
+/* =====================================================================
+   THE BUTTONS UNDER THE STAGE
+   ===================================================================== */
+function setPetalColor(k,btn){
+  P.hue=k; NEIGHBORS[1].hue=k==='purple'?'red':'purple';
+  document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('on'));
+  if(btn) btn.classList.add('on');
+  refreshStat(); drawMinimap();
+  toast('🎨 '+petalC(P).name.charAt(0).toUpperCase()+petalC(P).name.slice(1)+' petals!',1800);
+}
+$('swPink').addEventListener('click',e=>setPetalColor('pink',e.currentTarget));
+$('swGold').addEventListener('click',e=>setPetalColor('gold',e.currentTarget));
+$('swPurple').addEventListener('click',e=>setPetalColor('purple',e.currentTarget));
+$('swRed').addEventListener('click',e=>setPetalColor('red',e.currentTarget));
+$('swWhite').addEventListener('click',e=>setPetalColor('white',e.currentTarget));
+$('togBeeEyes').addEventListener('click',e=>{
+  beeEyes=!beeEyes; e.currentTarget.classList.toggle('on',beeEyes);
+  toast(beeEyes?'🐝 Bees see stripes pointing to the sweet middle!':'👀 Back to people eyes.',3400);
+});
+function setWater(on){ P.water=on?1:0; const b=$('togWater'); b.textContent='💧 Water: '+(on?'ON':'OFF'); b.classList.toggle('on',on); b.classList.toggle('wet',on); refreshStat(); }
+function setSun(on){ P.sun=on?1:0; const b=$('togSun'); b.textContent='☀️ Sun: '+(on?'ON':'OFF'); b.classList.toggle('on',on); b.classList.toggle('sun',on); refreshStat(); }
+$('togWater').addEventListener('click',()=>{ setWater(P.water<0.5); toast(P.water>0.5?'💧 Ahh, a drink!':'🥵 No water… watch the flower droop.',3000); });
+$('togSun').addEventListener('click',()=>{ setSun(P.sun<0.5); toast(P.sun>0.5?'☀️ Sunshine!':'☁️ No sun… the leaves go pale.',3000); });
+$('togRain').addEventListener('click',e=>{ rainWant=rainWant?0:1; e.currentTarget.classList.toggle('on',!!rainWant); if(rainWant) setWater(true); toast(rainWant?'🌧️ Rain! Watch the roots drink it up.':'🌤️ The rain stops.',3000); });
+function setWind(on){ windWant=on?1:0; const b=$('togWind'); b.classList.toggle('on',on); refreshStat(); if(on) toast('💨 Hold on tight! Roots keep the plant standing.',3600); }
+$('togWind').addEventListener('click',()=>setWind(!windWant));
+$('btnBee').addEventListener('click',()=>{ sendBee(); toast('🐝 Here she comes…',2000); });
+$('btnZoomPollen').addEventListener('click',e=>{ pollenZoomWant=pollenZoomWant?0:1; e.currentTarget.classList.toggle('on',!!pollenZoomWant); if(pollenZoomWant) toast('🔍 Real pollen grains are covered in spikes and hooks — that\'s how they hang on to a bee.',5000); });
+$('btnPlant').addEventListener('click',()=>{ SPROUT.plant(); refreshStat(); toast('🌱 Planted! Keep the sun and water on.',3200); });
+$('btnBlow').addEventListener('click',blowSeeds);
+$('btnReset').addEventListener('click',()=>{ SPROUT.reset(); flyingSeeds.length=0; refreshStat(); toast('↺ A fresh start.',2000); });
+
+/* the read-aloud switch */
+els.btnRead.addEventListener('click',()=>{
+  Speech.on=!Speech.on;
+  els.btnRead.querySelector('.rd-icon').textContent=Speech.on?'🔊':'🔇';
+  els.btnRead.querySelector('.rd-word').textContent=Speech.on?'Reading':'Quiet';
+  els.btnRead.classList.toggle('off',!Speech.on);
+  els.btnRead.setAttribute('aria-pressed',String(Speech.on));
+  if(Speech.on) Speech.say('Reading is on. I will read the words to you.');
+});
+els.spkCap.addEventListener('click',()=>Speech.say(CHAPTERS[current].title+'. '+CHAPTERS[current].caption,els.spkCap));
+els.spkCard.addEventListener('click',()=>{ if(selected) Speech.say(selected.name+'. '+(selected.sub?selected.sub+'. ':'')+selected.fact+' '+(selected.extra||''),els.spkCard); });
+els.spkQuest.addEventListener('click',()=>Speech.say(questSpeech(),els.spkQuest));
+
+/* =====================================================================
+   MOVING BETWEEN PARTS
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('button'); b.className='prt'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  b.addEventListener('click',()=>goTo(i)); els.parts.appendChild(b); c.chip=b;
+});
+function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?'🔁 Start again':'NEXT PART ▶';
+  els.btnNext.classList.toggle('home',last);
+  const c=CHAPTERS[current], won=!!badges[c.id];
+  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  ['petals','stem','roots','pollen','seeds'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
+}
+let trans=null, seedWant=0;
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
+  closeCard(); endQuest(); Speech.stop();
+  if(REDUCED){ switchTo(i); return; }
+  trans={from:current,to:i,t0:performance.now(),dur:1100,c0:{...cam},c1:camFor(CHAPTERS[i])};
+}
+function switchTo(i){
+  current=i; Object.assign(cam,camFor(CHAPTERS[i]));
+  const id=CHAPTERS[i].id;
+  /* each part sets the scene it needs */
+  soilSeeWant=(id==='roots')?1:0;
+  if(id!=='roots'){ setWind(false); rainWant=0; $('togRain').classList.remove('on'); }
+  if(id==='seeds'){ if(seedWant<0.5) dropPetals(); seedWant=1; }
+  else{ seedWant=0; flyingSeeds.length=0; }
+  if(id!=='pollen'){ pollenZoomWant=0; $('btnZoomPollen').classList.remove('on'); }
+  if(id==='stem'&&P.water<0.5){ /* leave it — the challenge turns it off on purpose */ }
+  setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
+  els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;
+}
+function dropPetals(){
+  if(REDUCED) return;
+  const H=headOf(P), C=petalC(P);
+  for(let i=0;i<P.n;i++){ const a=i/P.n*TAU; fallingPetals.push({x:H.x+Math.cos(a)*0.18,y:H.y+Math.sin(a)*0.18,vx:(rnd()-0.5)*0.30,vy:0.10+rnd()*0.15,r:a,vr:(rnd()-0.5)*3,c:C.fill}); }
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps on the picture ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), [wx,wy]=toWorld(e.clientX-r.left,e.clientY-r.top);
+  const item=partHit(wx,wy);
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item) showCard(item); else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); if(!els.btnBack.disabled) els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); Speech.stop(); }
+  else if(e.key>='1'&&e.key<='5') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(320,Math.round(r.width)); V.h=Math.max(240,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  if(!trans) Object.assign(cam,camFor(CHAPTERS[current]));
+}
+let lastT=performance.now();
+function frame(nowMs){
+  const dt=Math.min(0.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  P.seedMode+=(seedWant-P.seedMode)*Math.min(1,dt*(REDUCED?10:1.3));
+  updateParticles(dt);
+  updateBee(dt);
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1), u=easeInOut(k);
+    cam.cx=lerp(trans.c0.cx,trans.c1.cx,u); cam.cy=lerp(trans.c0.cy,trans.c1.cy,u);
+    cam.hm=Math.exp(lerp(Math.log(trans.c0.hm),Math.log(trans.c1.hm),u));
+    if(k>=1){ const to=trans.to; trans=null; switchTo(to); }
+  }
+  K=V.h/cam.hm;
+  drawWorld();
+  if(selected){ const p=itemScreenPos(selected); if(p){ ctx.save(); ctx.setLineDash([9,7]); ctx.lineDashOffset=-now*30; ring(p[0],p[1],p[2],GOLD,4); ctx.restore(); } }
+  if(CHAPTERS[current].id==='seeds'&&SPROUT.planted&&SPROUT.grow<1) refreshStat();
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 14px Nunito'); document.fonts.load('700 22px Fredoka'); }
+window.flowerExplorer={CHAPTERS,ITEMS,P,BEE,SPROUT,NEIGHBORS,ROOT_TIPS,noRoot,goTo,award,startQuest,quest,badges,cam,V,partHit,
+  setWater,setSun,setWind,sendBee,blowSeeds,Speech,
+  sx,sy,headOf,stemPts,leafAnchors,leafTip,           // handy for tinkering — and for the headless tests
+  get step(){ return quest.step; }};
+
+new ResizeObserver(resize).observe(stage);
+resize();
+setCaption(0); updateChips(); updateButtons(); drawMinimap(); refreshStat();
+els.hint.textContent=CHAPTERS[0].hint;
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
