@@ -1,0 +1,2032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build a House</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the job site's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: NEXT PART */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --sky-lt:#cdeeff;
+  --grass:#63c64d;
+  --grass-dk:#3f8f2f;
+  --gold:#ffd23f;
+  --white:#fffdf7;
+  --brick:#c1553a; --brick-dk:#8f3a26;
+  --wood:#e0ac66;  --wood-dk:#a4712f;
+  --crete:#c3c0b6; --crete-dk:#8c887d;
+  --soil:#9a6a3a;  --soil-dk:#5e3b1a;
+  --shingle:#5a5f6e; --shingle-dk:#383d4a;
+  --glass:#bfe6ff;
+  --pink:#ff77b0;
+  --good:#2f9e57; --bad:#d6353b;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:17px;line-height:1.3;-webkit-text-size-adjust:100%;overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+.emoji{font-family:var(--emoji)}
+
+.app{
+  height:100vh;height:100dvh;display:grid;grid-template-rows:auto auto 1fr auto;
+  gap:8px;padding:8px 14px 10px;max-width:1240px;margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.brandwrap{display:flex;align-items:center;gap:12px;min-width:0}
+#minimap{width:76px;height:60px;flex:0 0 auto;display:block}
+.brand h1{font-family:var(--display);font-weight:700;font-size:36px;line-height:1;margin:0;letter-spacing:.5px;text-shadow:3px 3px 0 var(--gold)}
+.brand .tagline{margin:3px 0 0;font-weight:800;font-size:14px;opacity:.85}
+.meter{
+  display:flex;align-items:center;gap:12px;background:var(--paper-2);
+  border:3px solid var(--ink);border-radius:18px;padding:5px 13px;
+  box-shadow:4px 4px 0 var(--ink);min-height:54px;transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);background:var(--white);
+  display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s}
+@keyframes pop{0%{transform:scale(.4) rotate(-25deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1)}}
+
+/* ---------- chapter rail ---------- */
+.rail{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;padding-bottom:2px;scrollbar-width:none;flex:0 0 auto}
+.rail::-webkit-scrollbar{display:none}
+.rail button{
+  flex:0 0 auto;background:var(--white);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:13px;
+  box-shadow:3px 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap;
+}
+.rail button.on{background:var(--gold);transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink)}
+.rail button .n{font-family:var(--emoji)}
+
+/* ---------- stage ---------- */
+.stage{position:relative;min-height:0;display:grid;grid-template-rows:1fr auto;gap:8px}
+.canvasbox{
+  position:relative;min-height:0;background:var(--white);
+  border:4px solid var(--ink);border-radius:22px;box-shadow:6px 6px 0 var(--ink);overflow:hidden;
+}
+#c{display:block;width:100%;height:100%;touch-action:manipulation}
+.caption{
+  position:absolute;left:10px;right:10px;bottom:10px;background:rgba(255,253,247,.94);
+  border:3px solid var(--ink);border-radius:16px;padding:7px 12px;font-weight:800;font-size:15px;
+  pointer-events:none;box-shadow:3px 3px 0 rgba(43,35,80,.35);
+}
+.caption b{font-family:var(--display);font-weight:700}
+.hud{
+  position:absolute;left:10px;top:10px;background:rgba(255,239,194,.95);border:3px solid var(--ink);
+  border-radius:14px;padding:5px 11px;font-family:var(--display);font-weight:600;font-size:13px;
+  letter-spacing:.4px;box-shadow:3px 3px 0 rgba(43,35,80,.3);pointer-events:none;max-width:60%;
+}
+.hud .v{font-family:var(--body);font-weight:800}
+
+/* tap card that pops over the canvas */
+.card{
+  position:absolute;max-width:290px;background:var(--white);border:4px solid var(--ink);
+  border-radius:18px;padding:11px 13px 12px;box-shadow:5px 5px 0 var(--ink);z-index:6;
+  animation:cardin .18s ease-out;
+}
+@keyframes cardin{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+.card h4{font-family:var(--display);font-weight:700;font-size:19px;margin:0 0 5px;line-height:1.05}
+.card p{margin:0;font-weight:700;font-size:14.5px}
+.card .x{position:absolute;top:-13px;right:-13px;width:32px;height:32px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--rocket);color:var(--white);font-family:var(--display);
+  font-weight:700;font-size:17px;line-height:1;display:grid;place-items:center;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- controls ---------- */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:44px}
+.ctl{display:flex;align-items:center;gap:6px;background:var(--paper-2);border:3px solid var(--ink);
+  border-radius:16px;padding:4px 9px;box-shadow:3px 3px 0 var(--ink)}
+.ctl > span.lbl{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.seg{display:flex;gap:4px}
+.seg button, .pill{
+  background:var(--white);border:3px solid var(--ink);border-radius:999px;padding:3px 11px;
+  font-family:var(--display);font-weight:600;font-size:14px;box-shadow:2px 2px 0 var(--ink);
+}
+.seg button.on{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 rgba(43,35,80,.6)}
+.pill.go{background:var(--rocket);color:var(--white);box-shadow:0 4px 0 var(--rocket-dk),0 4px 0 3px var(--ink);
+  text-shadow:2px 2px 0 var(--rocket-dk);padding:5px 16px;font-size:16px}
+.pill.go:active{transform:translateY(3px);box-shadow:0 1px 0 var(--rocket-dk),0 1px 0 3px var(--ink)}
+.pill.dim{opacity:.45}
+input[type=range]{accent-color:#ff6b35;width:130px}
+
+/* ---------- challenge + nav ---------- */
+.bottom{display:flex;gap:10px;align-items:stretch;flex-wrap:wrap}
+.quest{
+  flex:1 1 340px;min-width:0;background:var(--paper-2);border:4px solid var(--ink);border-radius:20px;
+  padding:8px 12px 10px;box-shadow:5px 5px 0 var(--ink);
+}
+.quest.done{background:var(--gold)}
+.quest .qhead{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1.6px;text-transform:uppercase;opacity:.8}
+.quest .q{font-weight:800;font-size:16px;margin:2px 0 7px}
+.qopts{display:flex;flex-wrap:wrap;gap:6px}
+.qopts button{
+  background:var(--white);border:3px solid var(--ink);border-radius:14px;padding:4px 12px;
+  font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+}
+.qopts button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--ink)}
+.qopts button.no{background:#ffd9d9;animation:shake .35s}
+.qopts button.yes{background:var(--grass);color:var(--white)}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.qwhy{margin:7px 0 0;font-weight:800;font-size:14px}
+.qdots{display:flex;gap:4px;margin-top:6px}
+.qdots i{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.qdots i.on{background:var(--grass)}
+.nav{display:flex;flex-direction:column;gap:6px;justify-content:center}
+.nav button{
+  background:var(--white);border:3px solid var(--ink);border-radius:16px;padding:6px 14px;
+  font-family:var(--display);font-weight:700;font-size:16px;box-shadow:4px 4px 0 var(--ink);white-space:nowrap;
+}
+.nav button.next{background:var(--rocket);color:var(--white);text-shadow:2px 2px 0 var(--rocket-dk)}
+.nav button:disabled{opacity:.35;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- finale ---------- */
+.finale{
+  position:fixed;inset:0;background:rgba(43,35,80,.82);display:grid;place-items:center;z-index:40;padding:20px;
+}
+.finale .box{
+  background:var(--white);border:6px solid var(--ink);border-radius:28px;box-shadow:10px 10px 0 var(--ink);
+  padding:26px 30px;max-width:520px;text-align:center;
+}
+.finale h2{font-family:var(--display);font-weight:700;font-size:40px;margin:0 0 6px;text-shadow:3px 3px 0 var(--gold)}
+.finale p{font-weight:800;margin:0 0 16px}
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:41}
+
+@media (max-width:760px){
+  body{font-size:16px;overflow-x:hidden;overflow-y:auto}
+  .app{padding:6px 8px 12px;gap:6px;height:auto;min-height:100dvh;grid-template-rows:auto auto auto auto}
+  .canvasbox{height:min(56vh,430px);min-height:290px}
+  .quest{padding:6px 10px 8px}
+  .quest .qhead{font-size:11px;letter-spacing:1.2px}
+  .qopts button{border-radius:12px}
+  .controls{min-height:0}
+  .ctl{flex-wrap:wrap;max-width:100%}
+  .seg{flex-wrap:wrap}
+  .ctl > span.lbl{width:100%}
+  .brand h1{font-size:26px}
+  .brand .tagline{display:none}
+  #minimap{width:54px;height:44px}
+  .meter{padding:4px 9px;min-height:46px;gap:8px}
+  .badge{width:30px;height:30px;font-size:15px}
+  .meter-label{font-size:10px}
+  .caption{font-size:12.5px;line-height:1.25;padding:6px 9px;left:6px;right:6px;bottom:6px}
+  .hud{font-size:11.5px;padding:4px 8px;left:6px;top:6px}
+  .quest .q{font-size:14px;margin:2px 0 6px}
+  .qopts button{font-size:13px;padding:3px 9px}
+  .nav{flex-direction:row}
+  .nav button{font-size:14px;padding:5px 11px}
+  input[type=range]{width:96px}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brandwrap">
+      <canvas id="minimap" width="152" height="120" aria-hidden="true"></canvas>
+      <div class="brand">
+        <h1>Build a House</h1>
+        <p class="tagline">From the dirt up &mdash; and every style it can wear.</p>
+      </div>
+    </div>
+    <div class="meter" id="meter">
+      <div class="meter-label">Builder<br>badges</div>
+      <div class="badges" id="badges"></div>
+    </div>
+  </header>
+
+  <nav class="rail" id="rail" aria-label="Parts of the house"></nav>
+
+  <main class="stage">
+    <div class="canvasbox" id="canvasbox">
+      <canvas id="c"></canvas>
+      <div class="hud" id="hud" hidden></div>
+      <div class="caption" id="caption"></div>
+    </div>
+    <div class="controls" id="controls"></div>
+  </main>
+
+  <footer class="bottom">
+    <section class="quest" id="quest" aria-live="polite">
+      <div class="qhead" id="qhead">Challenge</div>
+      <p class="q" id="qtext"></p>
+      <div class="qopts" id="qopts"></div>
+      <p class="qwhy" id="qwhy" hidden></p>
+      <div class="qdots" id="qdots"></div>
+    </section>
+    <div class="nav">
+      <button id="prev">&#9664; Back</button>
+      <button id="next" class="next">Next &#9654;</button>
+    </div>
+  </footer>
+</div>
+<canvas id="confetti" hidden></canvas>
+<script>
+"use strict";
+/* ==========================================================================
+   Build a House — a single-file learning tool, grades 3–4.
+   Six parts: Groundwork, Bones, The Roof, Build It!, Style Detective,
+   Why Houses Look Different.
+   ========================================================================== */
+
+const REDUCED = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const cv = document.getElementById('c');
+let g    = cv.getContext('2d');
+let W = 900, H = 500, DPR = 1, PHONE = false;
+function capH(){ return PHONE?84:66; }   // room the caption bar needs at the bottom
+
+/* ------------------------------ tiny draw kit ---------------------------- */
+const INK='#2b2350', PAPER='#fff8e7', WHITE='#fffdf7', GOLD='#ffd23f', ROCKET='#ff6b35',
+      SKY='#4fb3f6', SKYLT='#cdeeff', GRASS='#63c64d', GRASSDK='#3f8f2f',
+      BRICK='#c1553a', BRICKDK='#8f3a26', WOOD='#e0ac66', WOODDK='#a4712f',
+      CRETE='#c3c0b6', CRETEDK='#8c887d', SOIL='#9a6a3a', SOILDK='#5e3b1a',
+      SHINGLE='#5a5f6e', SHINGLEDK='#383d4a', GLASS='#bfe6ff', GOOD='#2f9e57', BAD='#d6353b';
+
+function lw(n){ g.lineWidth = n; }
+function rr(x,y,w,h,r,fill,stroke,sw){
+  r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2);
+  g.beginPath(); g.moveTo(x+r,y);
+  g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r);
+  g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath();
+  if(fill){g.fillStyle=fill;g.fill();}
+  if(stroke!==false){g.strokeStyle=stroke||INK;lw(sw||3);g.stroke();}
+}
+function box(x,y,w,h,fill,stroke,sw){
+  g.beginPath(); g.rect(x,y,w,h);
+  if(fill){g.fillStyle=fill;g.fill();}
+  if(stroke!==false){g.strokeStyle=stroke||INK;lw(sw===undefined?2:sw);g.stroke();}
+}
+function poly(pts,fill,stroke,sw){
+  if(!pts.length) return;
+  g.beginPath(); g.moveTo(pts[0][0],pts[0][1]);
+  for(let i=1;i<pts.length;i++) g.lineTo(pts[i][0],pts[i][1]);
+  g.closePath();
+  if(fill){g.fillStyle=fill;g.fill();}
+  if(stroke!==false){g.strokeStyle=stroke||INK;lw(sw===undefined?2.5:sw);g.stroke();}
+}
+function line(x1,y1,x2,y2,col,w2,dash){
+  g.beginPath(); if(dash) g.setLineDash(dash); g.moveTo(x1,y1); g.lineTo(x2,y2);
+  g.strokeStyle=col||INK; lw(w2||2); g.stroke(); g.setLineDash([]);
+}
+function circ(x,y,r,fill,stroke,sw){
+  g.beginPath(); g.arc(x,y,r,0,7);
+  if(fill){g.fillStyle=fill;g.fill();}
+  if(stroke!==false){g.strokeStyle=stroke||INK;lw(sw===undefined?2.5:sw);g.stroke();}
+}
+function txt(s,x,y,size,col,align,fam,weight){
+  g.fillStyle=col||INK;
+  g.font=(weight||800)+' '+size+'px '+(fam||'Nunito, "Segoe UI Rounded", system-ui, sans-serif');
+  g.textAlign=align||'center'; g.textBaseline='middle'; g.fillText(s,x,y);
+}
+function dtxt(s,x,y,size,col,align){ txt(s,x,y,size,col,align,'Fredoka, "Comic Sans MS", system-ui, sans-serif',600); }
+function otxt(s,x,y,size,col,align,ow){ // outlined label, readable on any background
+  g.font='800 '+size+'px Nunito, "Segoe UI Rounded", system-ui, sans-serif';
+  g.textAlign=align||'center'; g.textBaseline='middle';
+  g.lineJoin='round'; g.strokeStyle=WHITE; g.lineWidth=ow||4; g.strokeText(s,x,y);
+  g.fillStyle=col||INK; g.fillText(s,x,y);
+}
+function wrapT(str,x,y,maxW,size,col,align,lh){
+  g.font='800 '+size+'px Nunito, "Segoe UI Rounded", system-ui, sans-serif';
+  const step=lh||size*1.3, words=String(str).split(' ');
+  let ln='', n=0;
+  for(const wd of words){
+    const test=ln?ln+' '+wd:wd;
+    if(g.measureText(test).width>maxW && ln){ otxt(ln,x,y+n*step,size,col,align,4); n++; ln=wd; }
+    else ln=test;
+  }
+  if(ln){ otxt(ln,x,y+n*step,size,col,align,4); n++; }
+  return n*step;
+}
+function emo(s,x,y,size){
+  g.font=size+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  g.textAlign='center'; g.textBaseline='middle'; g.fillText(s,x,y);
+}
+function arrow(x1,y1,x2,y2,col,w2,head){
+  line(x1,y1,x2,y2,col,w2);
+  const a=Math.atan2(y2-y1,x2-x1), h=head||10;
+  poly([[x2,y2],[x2-h*Math.cos(a-.4),y2-h*Math.sin(a-.4)],[x2-h*Math.cos(a+.4),y2-h*Math.sin(a+.4)]],col||INK,col||INK,1);
+}
+function clipRect(x,y,w,h,fn){ g.save(); g.beginPath(); g.rect(x,y,w,h); g.clip(); fn(); g.restore(); }
+function hatch(x,y,w,h,col,gap,wd){
+  clipRect(x,y,w,h,()=>{ for(let i=-h;i<w;i+=(gap||8)) line(x+i,y+h,x+i+h,y,col,wd||1.5); });
+}
+const lerp=(a,b,t)=>a+(b-a)*t, clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+function ease(t){ return t<.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+
+/* pointer hit regions, rebuilt every frame by the scenes */
+let HITS=[];
+function hit(id,x,y,w,h,data){ HITS.push({id,x,y,w,h,data}); }
+function hitAt(px,py){ for(let i=HITS.length-1;i>=0;i--){const r=HITS[i];
+  if(px>=r.x&&px<=r.x+r.w&&py>=r.y&&py<=r.y+r.h) return r;} return null; }
+
+/* ------------------------ the parametric house ---------------------------
+   One drawing routine paints every architectural style. A "style" is just a
+   bag of parameters, so the Style Detective and the design-your-own house in
+   the last chapter are the same picture with different knobs.
+   Coordinates: (bx,by) is the FRONT-BOTTOM-LEFT corner, +x right, -y up.
+------------------------------------------------------------------------- */
+function sidingFill(kind, base){
+  return kind==='brick'?BRICK : kind==='halftimber'?'#f2ead6' : kind==='stucco'?'#efe6d2' : base;
+}
+function paintSiding(x,y,w,h,kind,base,dk){
+  const fill=sidingFill(kind,base);
+  box(x,y,w,h,fill,INK,2.5);
+  clipRect(x,y,w,h,()=>{
+    if(kind==='clapboard'||kind==='board'){
+      for(let i=y+7;i<y+h;i+=7) line(x,i,x+w,i,'rgba(43,35,80,.16)',1.2);
+    } else if(kind==='shingle'){
+      for(let i=y+8;i<y+h;i+=8){ line(x,i,x+w,i,'rgba(43,35,80,.16)',1.2);
+        for(let j=x+((i/8|0)%2?5:0);j<x+w;j+=11) line(j,i,j,i-8,'rgba(43,35,80,.12)',1); }
+    } else if(kind==='brick'){
+      for(let i=y+7;i<y+h;i+=7){ line(x,i,x+w,i,'rgba(255,255,255,.35)',1.4);
+        for(let j=x+((i/7|0)%2?8:0);j<x+w;j+=16) line(j,i,j,i-7,'rgba(255,255,255,.3)',1.2); }
+    } else if(kind==='halftimber'){
+      const t='#6b4a2f';
+      line(x,y+h*0.45,x+w,y+h*0.45,t,5);
+      for(let j=x+w*.16;j<x+w-4;j+=w*.22) line(j,y,j,y+h*0.45,t,5);
+      line(x+w*.12,y+h*0.45,x+w*.36,y+h,t,5); line(x+w*.88,y+h*0.45,x+w*.64,y+h,t,5);
+    } else if(kind==='stucco'){
+      for(let i=0;i<w*h/70;i++) circ(x+Math.random()*w,y+Math.random()*h,.8,'rgba(43,35,80,.09)',false);
+    }
+  });
+  box(x,y,w,h,null,INK,2.5);
+}
+function win(x,y,w,h,kind,trim,lit){
+  box(x,y,w,h,lit?'#ffe9a8':GLASS,INK,2.5);
+  if(kind==='sixover'){ line(x,y+h/2,x+w,y+h/2,INK,1.6); line(x+w/3,y,x+w/3,y+h/2,INK,1.4);
+    line(x+2*w/3,y,x+2*w/3,y+h/2,INK,1.4); line(x+w/2,y+h/2,x+w/2,y+h,INK,1.4); }
+  else if(kind==='fourover'){ line(x,y+h*.42,x+w,y+h*.42,INK,1.6);
+    line(x+w/2,y,x+w/2,y+h*.42,INK,1.4); line(x+w/4,y,x+w/4,y+h*.42,INK,1.2); line(x+3*w/4,y,x+3*w/4,y+h*.42,INK,1.2); }
+  else if(kind==='tall'){ line(x,y+h*.3,x+w,y+h*.3,INK,1.5); line(x+w/2,y,x+w/2,y+h*.3,INK,1.3); }
+  else if(kind==='picture'){ line(x+w*.22,y,x+w*.22,y+h,INK,1.8); line(x+w*.78,y,x+w*.78,y+h,INK,1.8); }
+  if(trim){ box(x-2,y-2,w+4,h+4,null,trim,3); }
+}
+function drawStyleHouse(bx,by,w,P,opt){
+  opt=opt||{};
+  const S = w/100;                      // one "house unit"
+  const dx = 26*S*(P.depth||1), dy = -17*S*(P.depth||1);   // axonometric depth
+  const stor = P.stories||1;
+  const wallH = (stor<=1?30:stor<=1.5?32:stor<=2?52:60)*S;
+  const rise  = (P.pitch||.6) * (w/2);
+  const eave  = (P.eave===undefined?.04:P.eave)*w;
+  const base  = P.color||'#f4ead8';
+  const trim  = P.trim||'#6b5b8a';
+  const roofC = P.roofColor||SHINGLE, roofD = P.roofColorDk||SHINGLEDK;
+  const T = by - wallH;                 // wall top (front)
+  const front = (P.roof==='gableFront'||P.roof==='aframe'||P.roof==='gambrel');
+
+  // ---- right-side face (gives it a little body) ----
+  if(P.roof!=='aframe'){
+    poly([[bx+w,by],[bx+w+dx,by+dy],[bx+w+dx,T+dy],[bx+w,T]], shade(base,-18), INK, 2.5);
+  }
+
+  // ---- roof ----
+  let peak=null, roofPolys=[];
+  if(P.roof==='flat'||P.roof==='shed'){
+    const r2 = P.roof==='shed'? rise*.5 : 0;
+    roofPolys.push([[bx-eave,T],[bx+w+eave,T-r2],[bx+w+eave+dx,T-r2+dy],[bx-eave+dx,T+dy]]);
+    peak=[bx+w/2, T-r2/2];
+  } else if(P.roof==='hip'){
+    const inx=w*.26, ridgeY=T-rise*.8;
+    const RL=[bx+inx+dx/2, ridgeY+dy/2], RR=[bx+w-inx+dx/2, ridgeY+dy/2];
+    roofPolys.push([[bx-eave,T],[bx+w+eave,T],RR,RL]);          // front slope
+    roofPolys.push([[bx+w+eave,T],[bx+w+eave+dx,T+dy],RR]);     // right hip
+    peak=[bx+w/2, ridgeY];
+  } else if(P.roof==='gable'||P.roof==='cross'){
+    const RL=[bx-eave+dx/2, T-rise+dy/2], RR=[bx+w+eave+dx/2, T-rise+dy/2];
+    roofPolys.push([[bx-eave,T],[bx+w+eave,T],RR,RL]);
+    roofPolys.push([[bx+w+eave,T],[bx+w+eave+dx,T+dy],RR]);
+    peak=[bx+w/2, T-rise];
+  } else if(P.roof==='gableFront'){
+    const PF=[bx+w/2, T-rise], PB=[bx+w/2+dx, T-rise+dy];
+    roofPolys.push([[bx-eave,T],PF,PB,[bx-eave+dx,T+dy]]);      // left slope (hidden-ish)
+    roofPolys.push([[bx+w+eave,T],PF,PB,[bx+w+eave+dx,T+dy]]);  // right slope
+    peak=PF;
+  } else if(P.roof==='gambrel'){
+    const k=[[bx-eave,T],[bx+w*.14,T-rise*.62],[bx+w/2,T-rise],[bx+w-w*.14,T-rise*.62],[bx+w+eave,T]];
+    roofPolys.push(k.concat(k.slice().reverse().map(p=>[p[0]+dx,p[1]+dy])));
+    peak=[bx+w/2,T-rise];
+  } else if(P.roof==='aframe'){
+    const PF=[bx+w/2, by-rise*1.05], PB=[bx+w/2+dx*.8, by-rise*1.05+dy*.8];
+    roofPolys.push([[bx,by],PF,PB,[bx+dx*.8,by+dy*.8]]);
+    roofPolys.push([[bx+w,by],PF,PB,[bx+w+dx*.8,by+dy*.8]]);
+    peak=PF;
+  }
+  // paint roofs after walls for gable/hip so the wall meets the eave cleanly
+  const paintRoof=()=>{
+    roofPolys.forEach((p,i)=>{
+      poly(p, i===0?roofC:roofD, INK, 2.5);
+      if(!opt.flat) clipRect(Math.min(...p.map(q=>q[0])), Math.min(...p.map(q=>q[1])),
+        Math.max(...p.map(q=>q[0]))-Math.min(...p.map(q=>q[0])),
+        Math.max(...p.map(q=>q[1]))-Math.min(...p.map(q=>q[1])), ()=>{
+          g.save(); g.beginPath(); p.forEach((q,j)=>j?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1])); g.closePath(); g.clip();
+          for(let yy=Math.min(...p.map(q=>q[1]));yy<Math.max(...p.map(q=>q[1]));yy+=7)
+            line(bx-w,yy,bx+2*w,yy+(P.roof==='hip'?0:0),'rgba(255,255,255,.13)',2);
+          g.restore();
+        });
+    });
+  };
+
+  // ---- front wall ----
+  if(P.roof==='aframe'){
+    // glass gable end
+    poly([[bx+w*.08,by],[bx+w/2,by-rise*1.02],[bx+w*.92,by]], GLASS, INK, 2.5);
+    line(bx+w/2,by,bx+w/2,by-rise*1.0,INK,2);
+    line(bx+w*.2,by-rise*.35,bx+w*.8,by-rise*.35,INK,2);
+    paintRoof();
+  } else {
+    paintSiding(bx,T,w,wallH,P.siding||'clapboard',base);
+    if(front){ // triangle gable above the wall on the facade
+      poly([[bx,T],[bx+w/2,T-rise],[bx+w,T]], sidingFill(P.siding,base), INK, 2.5);
+      if(P.siding==='shingle'||P.siding==='clapboard'){
+        clipRect(bx,T-rise,w,rise,()=>{ for(let i=T-rise+7;i<T;i+=7) line(bx,i,bx+w,i,'rgba(43,35,80,.16)',1.2); });
+        poly([[bx,T],[bx+w/2,T-rise],[bx+w,T]], null, INK, 2.5);
+      }
+      if(P.gableVent){ circ(bx+w/2,T-rise*.45,w*.045,'#4a3f6b',INK,2); }
+      if(P.gableWin){ win(bx+w/2-w*.06,T-rise*.62,w*.12,rise*.32,'tall',null); }
+    }
+    paintRoof();
+    if(front) poly([[bx-eave*.6,T],[bx+w/2,T-rise-eave*.5],[bx+w+eave*.6,T]], null, INK, 3); // eave line
+  }
+
+  // ---- exposed rafter tails / knee braces (Craftsman tell) ----
+  if(P.rafterTails){
+    for(let i=0;i<7;i++){ const xx=bx-eave*.6+i*(w+eave*1.2)/6; line(xx,T+1,xx,T+7,WOODDK,3); }
+    if(P.knee){ line(bx+w*.06,T,bx+w*.02,T+14,WOODDK,5); line(bx+w*.94,T,bx+w*.98,T+14,WOODDK,5); }
+  }
+  // ---- dormers ----
+  for(let i=0;i<(P.dormers||0);i++){
+    const n=P.dormers, dw=w*.16, dxx=bx+w*(i+1)/(n+1)-dw/2, dyy=T-rise*.42;
+    poly([[dxx-4,dyy+dw*.6],[dxx+dw/2,dyy],[dxx+dw+4,dyy+dw*.6]],roofC,INK,2.5);
+    box(dxx,dyy+dw*.6,dw,dw*.62,base,INK,2.5);
+    win(dxx+dw*.2,dyy+dw*.72,dw*.6,dw*.38,'sixover',null);
+  }
+  // ---- turret (Victorian tell) ----
+  if(P.turret){
+    const tw=w*.2, tx=bx+w-tw*.55, th=wallH+rise*.25;
+    box(tx,by-th,tw,th,shade(base,10),INK,2.5);
+    poly([[tx-5,by-th],[tx+tw/2,by-th-rise*.85],[tx+tw+5,by-th]],P.turretColor||'#8b4a6f',INK,2.5);
+    win(tx+tw*.22,by-th*.86,tw*.56,th*.24,'tall',trim);
+    win(tx+tw*.22,by-th*.5,tw*.56,th*.24,'tall',trim);
+  }
+  // ---- porch ----
+  const porch=P.porch||'none';
+  if(porch!=='none' && P.roof!=='aframe'){
+    const pw = porch==='deep'?w*.86 : porch==='wrap'?w*.98 : w*.3;
+    const px = porch==='stoop' ? bx+w/2-pw/2 : bx+(w-pw)/2;
+    const ph = 20*S, pd=14*S;
+    // deck
+    poly([[px,by],[px+pw,by],[px+pw+pd*.7,by-pd*.45],[px+pd*.7,by-pd*.45]],'#d9cdb4',INK,2.5);
+    // roof
+    poly([[px-4,by-ph],[px+pw+4,by-ph],[px+pw+4+pd*.7,by-ph-pd*.45],[px-4+pd*.7,by-ph-pd*.45]],roofD,INK,2.5);
+    // columns
+    const cn = porch==='stoop'?2:(porch==='wrap'?5:4);
+    for(let i=0;i<cn;i++){
+      const cx2=px+6+i*(pw-12)/(cn-1);
+      if(P.col==='taper'){ // Craftsman: stone pier + tapered post
+        poly([[cx2-7,by],[cx2+7,by],[cx2+5,by-ph*.45],[cx2-5,by-ph*.45]],'#b0a89a',INK,2);
+        poly([[cx2-5,by-ph*.45],[cx2+5,by-ph*.45],[cx2+3,by-ph],[cx2-3,by-ph]],'#f0e6d2',INK,2);
+      } else if(P.col==='turned'){ // Victorian spindle
+        box(cx2-3,by-ph,6,ph,WHITE,INK,2);
+        circ(cx2,by-ph*.55,5,WHITE,INK,2); circ(cx2,by-ph*.3,4,WHITE,INK,2);
+      } else { box(cx2-3.5,by-ph,7,ph,P.colColor||WHITE,INK,2); }
+    }
+    if(P.gingerbread){ for(let i=px;i<px+pw-8;i+=11){ poly([[i,by-ph+3],[i+9,by-ph+3],[i+4.5,by-ph+11]],WHITE,INK,1.5); } }
+    if(P.rail){ line(px+6,by-ph*.4,px+pw-6,by-ph*.4,WHITE,3); }
+  }
+  // ---- door + windows on the facade ----
+  const dW=w*.11, dH=wallH*(stor>=2?.42:.5), dX=bx+w/2-dW/2, dY=by-dH;
+  if(P.roof!=='aframe'){
+    if(P.arch){ g.beginPath(); g.moveTo(dX,by); g.lineTo(dX,dY+dW/2); g.arc(dX+dW/2,dY+dW/2,dW/2,Math.PI,0); g.lineTo(dX+dW,by); g.closePath();
+      g.fillStyle=P.doorColor||'#7a4a2f'; g.fill(); g.strokeStyle=INK; lw(2.5); g.stroke(); }
+    else box(dX,dY,dW,dH,P.doorColor||'#7a4a2f',INK,2.5);
+    circ(dX+dW*.78,dY+dH*.55,2.2,GOLD,INK,1.5);
+    const wk=P.windows||'sixover';
+    const rows = stor>=2?2:1, ww=w*.1, wh=wallH*(stor>=2?.2:.26);
+    const xs = P.roof==='gableFront'&&w<160 ? [bx+w*.2, bx+w*.8] :
+               (stor>=2? [bx+w*.12,bx+w*.31,bx+w*.5,bx+w*.69,bx+w*.88] : [bx+w*.18,bx+w*.82]);
+    for(let r=0;r<rows;r++){
+      xs.forEach((cx2,i)=>{
+        if(r===rows-1 && Math.abs(cx2-(bx+w/2))<w*.09) return; // door is here
+        const wy = r===0&&rows===2 ? T+wallH*.12 : by-dH*(stor>=2?1.06:1.0)-wh*.05;
+        const wx = cx2-ww/2;
+        if(wk==='picture' && r===rows-1 && i===0){ win(wx-ww*.6,wy,ww*2.2,wh*1.1,'picture',trim); return; }
+        win(wx,wy,ww,wh,wk,null);
+        if(P.shutters){ box(wx-ww*.26,wy,ww*.22,wh,trim,INK,1.5); box(wx+ww,wy,ww*.22,wh,trim,INK,1.5); }
+      });
+    }
+  }
+  // ---- garage (Ranch tell) ----
+  if(P.garage){
+    const gw=w*.3, gx=bx+w-gw-w*.03, gh=wallH*.62;
+    box(gx,by-gh,gw,gh,shade(base,-6),INK,2.5);
+    for(let i=1;i<5;i++) line(gx,by-gh+gh*i/5,gx+gw,by-gh+gh*i/5,'rgba(43,35,80,.25)',1.5);
+  }
+  // ---- chimney ----
+  for(let i=0;i<(P.chimney||0);i++){
+    const cw=w*(P.bigChimney?.085:.05);
+    const f=(P.chimney===1)?(front?0.76:0.30):(i?0.80:0.22);
+    let roofY;
+    if(P.roof==='flat'||P.roof==='shed') roofY=T;
+    else if(front) roofY=T-rise*Math.max(0.18,1-Math.abs(f-0.5)*2);
+    else if(P.roof==='hip') roofY=T-rise*0.45;
+    else roofY=T-rise*0.6;
+    const cx2=bx+w*f-cw/2, top=roofY-Math.max(14,w*0.13);
+    box(cx2,top,cw,roofY-top+w*0.05,P.chimneyColor||BRICK,INK,2.5);
+    box(cx2-2,top-4,cw+4,6,shade(P.chimneyColor||BRICK,-15),INK,2);
+  }
+  // ---- deck (A-frame) ----
+  if(P.deck){ poly([[bx-w*.1,by],[bx+w*1.1,by],[bx+w*1.1+8,by+9],[bx-w*.1+8,by+9]],'#c9a877',INK,2.5); }
+  return {peak, top:T, wallH, dx, dy};
+}
+function shade(hex,amt){
+  const c=hex.replace('#',''); const n=parseInt(c.length===3?c.split('').map(x=>x+x).join(''):c,16);
+  let r=(n>>16)+amt, gg=((n>>8)&255)+amt, b=(n&255)+amt;
+  r=clamp(r,0,255);gg=clamp(gg,0,255);b=clamp(b,0,255);
+  return '#'+((1<<24)+(r<<16)+(gg<<8)+b).toString(16).slice(1);
+}
+
+/* ---------------------------- the eight styles --------------------------- */
+const STYLES = [
+ { key:'colonial', name:'Colonial', years:'1600s – today', mid:1740, emoji:'🏛️',
+   tells:['Perfectly symmetrical — the door is dead center','Same number of windows on each side','Simple gable roof, chimney at the middle or the ends'],
+   story:'The first English settlers built these, and Americans have kept rebuilding them for 400 years. Balance is the whole idea: fold the front of the house in half and the two sides match.',
+   wide:1.0,
+   P:{stories:2,roof:'gable',pitch:.58,siding:'clapboard',color:'#fdf6e3',trim:'#37507a',windows:'sixover',shutters:true,chimney:1,porch:'stoop',col:'square',eave:.03,depth:1} },
+ { key:'cape', name:'Cape Cod', years:'1690s, big again 1930s–1950s', mid:1940, emoji:'⚓',
+   tells:['Steep roof — snow slides right off','Little dormer windows poking out of the roof','Low and small: one and a half stories, chimney in the middle'],
+   story:'Built by settlers on the windy, snowy coast of Massachusetts. Steep roof, low walls, a fat chimney in the middle to heat the whole house. After World War II, builders put up whole neighborhoods of them.',
+   wide:0.86,
+   P:{stories:1.5,roof:'gable',pitch:1.0,siding:'shingle',color:'#e9e0d2',trim:'#37507a',windows:'sixover',shutters:true,chimney:1,dormers:2,porch:'stoop',eave:.02,depth:1} },
+ { key:'victorian', name:'Victorian', years:'1860s – 1900', mid:1885, emoji:'👑',
+   tells:['A round tower, called a turret','A porch that wraps around the corner','Lacy wooden trim ("gingerbread") and lots of colors'],
+   story:'New machines could cut fancy wood trim cheaply, and new railroads could ship it anywhere. So houses got showy: towers, turrets, bay windows, and five or six paint colors on one house.',
+   wide:1.0,
+   P:{stories:2,roof:'gable',pitch:1.05,siding:'clapboard',color:'#d5aed2',trim:'#6b2d5c',windows:'tall',chimney:2,porch:'wrap',col:'turned',turret:true,gingerbread:true,rail:true,eave:.045,depth:1} },
+ { key:'craftsman', name:'Craftsman Bungalow', years:'1905 – 1930', mid:1918, emoji:'🔨',
+   tells:['Low roof with WIDE overhanging eaves','Little wooden rafter ends showing under the eaves','Fat porch posts that get skinnier at the top, on stone piers'],
+   story:'A push-back against all that Victorian frill: honest wood, made by hand, nothing fake. Sears sold Craftsman houses out of a catalog — the whole house arrived on a train.',
+   wide:0.98,
+   P:{stories:1.5,roof:'gableFront',pitch:.44,siding:'shingle',color:'#9aa86a',trim:'#5c4326',windows:'fourover',chimney:1,porch:'deep',col:'taper',rafterTails:true,knee:true,dormers:0,gableWin:true,eave:.11,depth:1} },
+ { key:'shotgun', name:'Shotgun House', years:'1860s – 1920s', mid:1890, emoji:'🚪',
+   tells:['Skinny! About 12 feet wide — as wide as a car is long','The narrow end and the gable face the street','One room behind another, no hallway'],
+   story:'A hot-weather house from New Orleans, with roots in Haiti and West Africa. Open the front and back doors and the breeze blows straight through. Skinny lots meant more families fit on a street.',
+   wide:0.56,
+   P:{stories:1,roof:'gableFront',pitch:.62,siding:'clapboard',color:'#f2d9a0',trim:'#2e6b6b',windows:'tall',porch:'stoop',col:'square',eave:.05,depth:.7,gableVent:true} },
+ { key:'tudor', name:'Tudor', years:'1890s – 1940', mid:1928, emoji:'🏰',
+   tells:['Very steep roof, and a pointy gable right at the front','Dark wooden stripes on light plaster ("half-timbering")','A big chimney and an arched front door'],
+   story:'A copy of old English cottages, built for American suburbs in the 1920s. The wooden stripes used to be the actual frame of the house showing through; on a Tudor Revival they are just glued on for looks.',
+   wide:0.95,
+   P:{stories:2,roof:'gableFront',pitch:1.30,siding:'halftimber',color:'#f2ead6',trim:'#6b4a2f',windows:'tall',chimney:1,bigChimney:true,chimneyColor:'#a8563c',arch:true,porch:'stoop',eave:.02,depth:1} },
+ { key:'ranch', name:'Ranch', years:'1945 – 1975', mid:1960, emoji:'🚗',
+   tells:['Long, low and all on one floor','Shallow roof with wide eaves — often a hip roof','A big picture window and a garage stuck on the front'],
+   story:'After World War II, families wanted a yard, a car and no stairs. Land was cheap, so houses stretched sideways instead of up. More Americans live in ranch houses than in any other style.',
+   wide:1.16,
+   P:{stories:1,roof:'hip',pitch:.3,siding:'brick',color:'#c9a37e',trim:'#4a6b4a',windows:'picture',porch:'none',garage:true,chimney:1,eave:.1,depth:1.1} },
+ { key:'aframe', name:'A-Frame', years:'1950s – 1970s', mid:1965, emoji:'⛺',
+   tells:['The roof IS the walls — a giant triangle down to the ground','A wall of glass in the front','Usually a cabin in the woods or the mountains'],
+   story:'A vacation-cabin shape that got popular when families started driving to the mountains. Snow can never pile up on it, and it is cheap and quick to build — two big triangles and a floor.',
+   wide:0.84,
+   P:{roof:'aframe',pitch:1.55,siding:'board',color:'#8a5a3c',trim:'#5c3a22',deck:true,eave:.03,depth:1} },
+];
+const STYLE_BY = {}; STYLES.forEach(s=>STYLE_BY[s.key]=s);
+
+/* ================================ engine ================================= */
+const CH = [];   // filled in by the scene files below
+let cur = 0, tStart = performance.now(), rafId = 0;
+const badgesWon = new Set();
+let transition = null;   // {from,to,t0}
+
+const el = id=>document.getElementById(id);
+const capEl=el('caption'), hudEl=el('hud'), ctlEl=el('controls'),
+      qTextEl=el('qtext'), qOptsEl=el('qopts'), qWhyEl=el('qwhy'),
+      qDotsEl=el('qdots'), qHeadEl=el('qhead'), questEl=el('quest');
+
+function setCaption(html){ capEl.innerHTML = html; }
+function setHud(html){ if(!html){hudEl.hidden=true;return;} hudEl.hidden=false; hudEl.innerHTML=html; }
+
+/* --- controls builder: tiny declarative helpers the scenes use --- */
+function ctlGroup(label){
+  const d=document.createElement('div'); d.className='ctl';
+  if(label){ const s=document.createElement('span'); s.className='lbl'; s.textContent=label; d.appendChild(s); }
+  ctlEl.appendChild(d); return d;
+}
+function segmented(parent, items, value, onPick){
+  const s=document.createElement('div'); s.className='seg'; parent.appendChild(s);
+  const btns=items.map(it=>{
+    const b=document.createElement('button'); b.textContent=it.label; b.dataset.v=it.v;
+    b.onclick=()=>{ value=it.v; btns.forEach(x=>x.classList.toggle('on',x.dataset.v===String(it.v))); onPick(it.v,b); };
+    s.appendChild(b); return b;
+  });
+  btns.forEach(x=>x.classList.toggle('on',x.dataset.v===String(value)));
+  return {btns, set(v){ btns.forEach(x=>x.classList.toggle('on',x.dataset.v===String(v))); }};
+}
+function slider(parent,min,max,step,value,onIn,fmt){
+  const i=document.createElement('input'); i.type='range'; i.min=min;i.max=max;i.step=step;i.value=value;
+  const out=document.createElement('span'); out.style.cssText='font-weight:800;min-width:56px;display:inline-block';
+  const upd=()=>{ out.textContent = fmt? fmt(+i.value) : i.value; };
+  i.oninput=()=>{ upd(); onIn(+i.value); }; upd();
+  parent.appendChild(i); parent.appendChild(out); return i;
+}
+function pill(parent,label,onClick,cls){
+  const b=document.createElement('button'); b.className='pill '+(cls||''); b.textContent=label;
+  b.onclick=()=>onClick(b); parent.appendChild(b); return b;
+}
+
+/* --- tap cards over the canvas --- */
+let cardEl=null;
+function showCard(title, body, px, py){
+  hideCard();
+  const d=document.createElement('div'); d.className='card';
+  d.innerHTML='<button class="x" aria-label="close">&times;</button><h4></h4><p></p>';
+  d.querySelector('h4').textContent=title; d.querySelector('p').textContent=body;
+  d.querySelector('.x').onclick=hideCard;
+  el('canvasbox').appendChild(d);
+  const bw=el('canvasbox').clientWidth, bh=el('canvasbox').clientHeight;
+  const cw=Math.min(290,bw-24), chh=d.offsetHeight||120;
+  d.style.left = clamp(px - cw/2, 12, bw-cw-12)+'px';
+  d.style.top  = clamp(py - chh - 18, 12, bh-chh-12)+'px';
+  cardEl=d;
+}
+function hideCard(){ if(cardEl){cardEl.remove();cardEl=null;} }
+
+/* --- badges --- */
+function renderBadges(){
+  const wrap=el('badges'); wrap.innerHTML='';
+  CH.forEach((c,i)=>{ const d=document.createElement('div');
+    d.className='badge'+(badgesWon.has(c.id)?' won':''); d.textContent=c.emoji;
+    d.title=c.title; wrap.appendChild(d); });
+  el('meter').classList.toggle('all', badgesWon.size===CH.length);
+}
+function award(id){
+  if(badgesWon.has(id)) return;
+  badgesWon.add(id); renderBadges();
+  if(badgesWon.size===CH.length) setTimeout(finale, 700);
+}
+
+/* --- challenge engine ------------------------------------------------------
+   Each chapter has steps of three kinds:
+     {type:'choice', q, opts:[{t,ok,why}]}
+     {type:'tap',    q, target:'id', why}
+     {type:'do',     q, watch:()=>bool, why}
+--------------------------------------------------------------------------- */
+let qStep = 0, qDone = false;
+function renderQuest(){
+  const ch=CH[cur], steps=ch.quest||[];
+  qWhyEl.hidden=true; qOptsEl.innerHTML='';
+  qDotsEl.innerHTML = steps.map((s,i)=>'<i class="'+(i<qStep||qDone?'on':'')+'"></i>').join('');
+  questEl.classList.toggle('done', qDone);
+  if(!steps.length){ qHeadEl.textContent='About this part'; qTextEl.textContent=ch.blurb||''; return; }
+  if(qDone){
+    qHeadEl.textContent='Badge earned '+ch.emoji;
+    qTextEl.textContent = ch.win || 'Nice work — badge earned!';
+    return;
+  }
+  const s=steps[qStep];
+  qHeadEl.textContent='Challenge · '+(qStep+1)+' of '+steps.length;
+  qTextEl.textContent=s.q;
+  if(s.type==='choice'){
+    s.opts.forEach(o=>{
+      const b=document.createElement('button'); b.textContent=o.t;
+      b.onclick=()=>{
+        if(o.ok){ b.classList.add('yes'); say(o.why||''); setTimeout(advance,650); }
+        else { b.classList.add('no'); say(o.why||'Not quite — try again.'); setTimeout(()=>b.classList.remove('no'),400); }
+      };
+      qOptsEl.appendChild(b);
+    });
+  }
+}
+function say(t){ if(!t){qWhyEl.hidden=true;return;} qWhyEl.hidden=false; qWhyEl.textContent=t; }
+function advance(){
+  const steps=CH[cur].quest||[];
+  qStep++;
+  if(qStep>=steps.length){ qDone=true; award(CH[cur].id); }
+  renderQuest();
+}
+/* scenes call these */
+function questIs(type,target){
+  const steps=CH[cur].quest||[]; if(qDone||!steps[qStep]) return false;
+  return steps[qStep].type===type && (target===undefined || steps[qStep].target===target);
+}
+function questTap(id){
+  const steps=CH[cur].quest||[]; if(qDone) return false;
+  const s=steps[qStep]; if(!s||s.type!=='tap') return false;
+  if(s.target===id){ say(s.why||''); advance(); return true; }
+  say(s.miss||'That is not it — look again.'); return false;
+}
+function questPoll(){
+  const steps=CH[cur].quest||[]; if(qDone) return;
+  const s=steps[qStep];
+  if(s && s.type==='do' && s.watch && s.watch()){ say(s.why||''); advance(); }
+}
+
+/* --- chapter rail + navigation ------------------------------------------- */
+function renderRail(){
+  const r=el('rail'); r.innerHTML='';
+  CH.forEach((c,i)=>{
+    const b=document.createElement('button'); b.className=(i===cur?'on':'');
+    b.innerHTML='<span class="n">'+c.emoji+'</span> '+c.short;
+    b.onclick=()=>goTo(i); r.appendChild(b);
+  });
+  const on=r.querySelector('.on'); if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
+function goTo(i, instant){
+  if(i<0||i>=CH.length) return;
+  hideCard();
+  const from=cur;
+  if(CH[cur].teardown) CH[cur].teardown();
+  cur=i; qStep=0; qDone=badgesWon.has(CH[i].id);
+  ctlEl.innerHTML=''; setHud(null); HITS=[];
+  CH[cur].init && CH[cur].init();
+  CH[cur].controls && CH[cur].controls();
+  renderRail(); renderQuest();
+  el('prev').disabled = cur===0; el('next').disabled = cur===CH.length-1;
+  if(!instant && !REDUCED && from!==i) transition={from,to:i,t0:performance.now()};
+  else transition=null;
+  tStart=performance.now();
+}
+el('prev').onclick=()=>goTo(cur-1);
+el('next').onclick=()=>goTo(cur+1);
+window.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight') goTo(cur+1);
+  if(e.key==='ArrowLeft') goTo(cur-1);
+  if(e.key==='Escape') hideCard();
+});
+
+/* --- the "you are here" house, used by the minimap and the transition ----- */
+const ANCHORS = { ground:[.5,.97], bones:[.5,.62], roof:[.5,.2], build:[.5,.6], style:[.5,.55], world:[.5,.55] };
+function siteHouse(ctx,cx,cy,s,ringAnchor,glow){
+  const G=g; g=ctx;
+  const w=60*s, bx=cx-w/2, by=cy+22*s;
+  // ground
+  line(cx-52*s,by,cx+52*s,by,GRASSDK,3*s);
+  drawStyleHouse(bx,by,w,{stories:1.5,roof:'gable',pitch:.7,siding:'clapboard',color:'#fdf6e3',
+    trim:'#37507a',windows:'sixover',chimney:1,porch:'stoop',dormers:1,eave:.05,depth:.9},{flat:true});
+  // foundation stripe
+  box(bx-2*s,by,w+4*s,5*s,CRETE,INK,2*s);
+  if(ringAnchor){
+    const a=ANCHORS[ringAnchor]||[.5,.5];
+    const rx=bx+w*a[0], ry=by-(1-a[1])*0 - (a[1]===.97? -2*s : (a[1]===.2? 44*s : 22*s));
+    g.save(); g.strokeStyle=GOLD; g.lineWidth=4*s; g.globalAlpha=glow===undefined?1:glow;
+    g.beginPath(); g.arc(rx,ry,17*s,0,7); g.stroke();
+    g.strokeStyle=INK; g.lineWidth=1.6*s; g.beginPath(); g.arc(rx,ry,17*s,0,7); g.stroke();
+    g.restore();
+  }
+  g=G;
+}
+const mm=el('minimap'), mmg=mm.getContext('2d');
+function drawMinimap(){
+  mmg.clearRect(0,0,mm.width,mm.height);
+  siteHouse(mmg, mm.width/2, mm.height/2-6, 1.05, CH[cur]&&CH[cur].id);
+}
+
+/* --- confetti ------------------------------------------------------------- */
+function finale(){
+  const d=document.createElement('div'); d.className='finale';
+  d.innerHTML='<div class="box"><h2>Master Builder!</h2><p>You dug the footings, framed the bones, picked the roof, '+
+    'built a whole house in the right order, and can name a Victorian from across the street. '+
+    'Six badges. Go look at your own house — you know how it stands up now.</p>'+
+    '<button class="pill go">Keep exploring</button></div>';
+  d.querySelector('button').onclick=()=>{d.remove(); stopConfetti();};
+  document.body.appendChild(d);
+  if(!REDUCED) startConfetti();
+}
+let confId=0;
+function startConfetti(){
+  const cc=el('confetti'); cc.hidden=false;
+  cc.width=innerWidth; cc.height=innerHeight;
+  const x=cc.getContext('2d');
+  const cols=[GOLD,ROCKET,SKY,GRASS,BRICK,'#ff77b0'];
+  const bits=Array.from({length:130},()=>({x:Math.random()*innerWidth,y:-Math.random()*innerHeight,
+    vy:2+Math.random()*4,vx:(Math.random()-.5)*2,s:5+Math.random()*8,a:Math.random()*7,
+    va:(Math.random()-.5)*.25,c:cols[(Math.random()*cols.length)|0]}));
+  (function loop(){
+    x.clearRect(0,0,cc.width,cc.height);
+    bits.forEach(b=>{ b.x+=b.vx;b.y+=b.vy;b.a+=b.va; if(b.y>cc.height+20){b.y=-20;b.x=Math.random()*cc.width;}
+      x.save();x.translate(b.x,b.y);x.rotate(b.a);x.fillStyle=b.c;x.fillRect(-b.s/2,-b.s/2,b.s,b.s*.6);x.restore(); });
+    confId=requestAnimationFrame(loop);
+  })();
+}
+function stopConfetti(){ cancelAnimationFrame(confId); const cc=el('confetti'); cc.hidden=true; }
+
+/* --- canvas sizing + main loop ------------------------------------------- */
+function fit(){
+  const b=el('canvasbox');
+  DPR=Math.min(2, window.devicePixelRatio||1);
+  W=b.clientWidth; H=b.clientHeight; PHONE = W<640;
+  cv.width=Math.round(W*DPR); cv.height=Math.round(H*DPR);
+  g.setTransform(DPR,0,0,DPR,0,0);
+  if(CH[cur] && CH[cur].resize) CH[cur].resize();
+}
+window.addEventListener('resize',()=>{ fit(); drawMinimap(); });
+
+function frame(now){
+  const t=(now-tStart)/1000;
+  g.setTransform(DPR,0,0,DPR,0,0);
+  g.clearRect(0,0,W,H);
+  HITS=[];
+  if(transition){
+    const p=clamp((now-transition.t0)/700,0,1);
+    const k=ease(p);
+    // zoom out to the whole house, slide the ring, zoom back in
+    const s = (1 - Math.sin(p*Math.PI)*0.55) * Math.min(W,H)/170;
+    g.fillStyle=SKYLT; g.fillRect(0,0,W,H);
+    const a1=ANCHORS[CH[transition.from].id]||[.5,.5], a2=ANCHORS[CH[transition.to].id]||[.5,.5];
+    siteHouse(g, W/2, H/2, s, null);
+    const G0=g; const w0=60*s, bx=W/2-w0/2, by=H/2+22*s;
+    const ay=v=> v===.97? by+2*s : (v===.2? by-44*s : by-22*s);
+    const rx=lerp(bx+w0*a1[0],bx+w0*a2[0],k), ry=lerp(ay(a1[1]),ay(a2[1]),k);
+    g.save(); g.strokeStyle=GOLD; g.lineWidth=5*s; g.beginPath(); g.arc(rx,ry,17*s,0,7); g.stroke();
+    g.strokeStyle=INK; g.lineWidth=2*s; g.beginPath(); g.arc(rx,ry,17*s,0,7); g.stroke(); g.restore();
+    dtxt(CH[transition.to].title, W/2, H-34, PHONE?20:28, INK);
+    if(p>=1){ transition=null; tStart=now; }
+  } else {
+    CH[cur] && CH[cur].draw && CH[cur].draw(t);
+    questPoll();
+  }
+  drawMinimap();
+  rafId=requestAnimationFrame(frame);
+}
+
+/* --- pointer --------------------------------------------------------------*/
+function canvasPt(e){
+  const r=cv.getBoundingClientRect();
+  const p = e.touches&&e.touches[0] ? e.touches[0] : e;
+  return {x:(p.clientX-r.left)*(W/r.width), y:(p.clientY-r.top)*(H/r.height)};
+}
+cv.addEventListener('pointerdown', e=>{
+  const p=canvasPt(e);
+  const h=hitAt(p.x,p.y);
+  hideCard();
+  if(CH[cur] && CH[cur].tap) CH[cur].tap(p.x,p.y,h);
+});
+
+/* ======================= 1 · GROUNDWORK ================================== */
+const SOILS = {
+  clay:  {name:'Clay',        cap:2000,  col:'#a5714f', col2:'#8a5c3e'},
+  sand:  {name:'Sand',        cap:3000,  col:'#dfc487', col2:'#c6a862'},
+  gravel:{name:'Gravel',      cap:5000,  col:'#b9b2a4', col2:'#948d80'},
+  rock:  {name:'Solid rock',  cap:12000, col:'#8d93a1', col2:'#6d7382'},
+};
+const CITIES = { stl:{name:'St. Louis',frost:30}, kc:{name:'Kansas City',frost:36}, mia:{name:'Miami',frost:0} };
+const G1 = { soil:'sand', wide:16, deep:24, city:'stl', winter:false, freeze:0, sink:0, tilt:0, shake:0 };
+const HOUSE_LB_PER_FT = 2400;      // a 2-storey house pushes down about this hard per foot of wall
+function g1press(){ return Math.round(HOUSE_LB_PER_FT / (G1.wide/12)); }
+function g1sinking(){ return g1press() > SOILS[G1.soil].cap; }
+function g1heaving(){ return G1.winter && G1.deep < CITIES[G1.city].frost && CITIES[G1.city].frost>0; }
+
+CH.push({
+  id:'ground', emoji:'🕳️', short:'Groundwork', title:'Groundwork',
+  blurb:'A house is heavy. Before anything else, you have to give that weight a place to land.',
+  win:'Grounded! You spread the weight out and got under the ice.',
+  init(){ G1.freeze=0; G1.sink=0; G1.tilt=0; },
+  controls(){
+    const a=ctlGroup('Dirt');
+    segmented(a,[{label:'Clay',v:'clay'},{label:'Sand',v:'sand'},{label:'Gravel',v:'gravel'},{label:'Rock',v:'rock'}],G1.soil,v=>G1.soil=v);
+    const b=ctlGroup('Footing width');
+    slider(b,8,36,2,G1.wide,v=>G1.wide=v,v=>v+'"');
+    const c=ctlGroup('Footing depth');
+    slider(c,12,48,6,G1.deep,v=>G1.deep=v,v=>v+'"');
+    const d=ctlGroup('Town');
+    segmented(d,[{label:'St. Louis',v:'stl'},{label:'Kansas City',v:'kc'},{label:'Miami',v:'mia'}],G1.city,v=>G1.city=v);
+    const e=ctlGroup('');
+    const btn=pill(e, G1.winter?'☀️ Summer':'❄️ Winter', b2=>{ G1.winter=!G1.winter; b2.textContent=G1.winter?'☀️ Summer':'❄️ Winter'; }, 'go');
+  },
+  draw(t){
+    const CH1=capH(), gy=H*0.40, PPI=(H-gy-CH1-46)/50;   // pixels per inch of depth
+    const S=SOILS[G1.soil], C=CITIES[G1.city];
+    // sky + soil
+    g.fillStyle=SKYLT; g.fillRect(0,0,W,gy);
+    g.fillStyle=S.col; g.fillRect(0,gy,W,H-gy);
+    for(let i=0;i<90;i++){ const px=(i*97)%W, py=gy+((i*53)%(H-gy));
+      circ(px,py,1.6+((i*7)%3),S.col2,false); }
+    line(0,gy,W,gy,GRASSDK,4);
+    for(let i=0;i<W;i+=9) line(i,gy,i+3,gy-6,GRASS,2.5);
+
+    // freeze layer
+    const target = G1.winter ? C.frost : 0;
+    G1.freeze += (target-G1.freeze)*(REDUCED?1:0.05);
+    if(G1.freeze>0.5){
+      g.fillStyle='rgba(150,220,255,.55)'; g.fillRect(0,gy,W,G1.freeze*PPI);
+      line(0,gy+G1.freeze*PPI,W,gy+G1.freeze*PPI,'#2f8fd0',3,[9,6]);
+      otxt('❄ frozen ground — '+C.frost+'" deep in '+C.name, 12, gy+G1.freeze*PPI-13, PHONE?12:14,'#1c5f8f','left',4);
+      hit('frost',0,gy,W,G1.freeze*PPI);
+    }
+    // failure states
+    const sinking=g1sinking(), heaving=g1heaving();
+    G1.sink += ((sinking? Math.min(26,(g1press()-S.cap)/90) :0) - G1.sink)*(REDUCED?1:.05);
+    G1.tilt += ((heaving? .055:0) - G1.tilt)*(REDUCED?1:.05);
+
+    // geometry — the foundation wall runs the whole length of the house, and the
+    // footing under it sticks out further on each side the wider you make it
+    const cx=W*0.5, hw=Math.min(W*0.30, 210), hbx=cx-hw/2;
+    // the house's axonometric depth, matched exactly by the foundation and footing below it
+    const HDEPTH=0.75, HS=hw/100, hdx=26*HS*HDEPTH, hdy=-17*HS*HDEPTH;
+    const WALL_IN=8;                                        // a foundation wall is about 8 inches thick
+    const over=Math.max(0,(G1.wide-WALL_IN)/2)*PPI*2.4;     // the footing's overhang on each side
+    const fw=hw+over*2, fh=9*PPI;
+    const bot=gy+G1.deep*PPI, fx=cx-fw/2, fy=bot-fh;
+    const wallW=hw, wx=hbx;
+    const stem=gy-12;
+
+    const press=g1press(), okc=press<=S.cap;
+    const cone=Math.min(fh*1.4, Math.max(12, H-CH1-8-(fy+fh)));
+
+    // everything that rides on the footing tips and sinks together
+    g.save();
+    g.translate(cx, bot); g.rotate(-G1.tilt); g.translate(-cx, -bot-(-G1.sink));
+    // the load spreading out at about 45 degrees, under the footing
+    g.save(); g.globalAlpha=.5;
+    poly([[fx,fy+fh+G1.sink],[fx+fw,fy+fh+G1.sink],[fx+fw+cone,fy+fh+cone+G1.sink],[fx-cone,fy+fh+cone+G1.sink]],
+      okc?'rgba(47,158,87,.35)':'rgba(214,53,59,.35)', okc?GOOD:BAD, 2);
+    g.restore();
+    // footing — the returning side first, then the face
+    poly([[fx+fw,fy+G1.sink],[fx+fw+hdx,fy+hdy+G1.sink],
+          [fx+fw+hdx,fy+fh+hdy+G1.sink],[fx+fw,fy+fh+G1.sink]], shade(CRETE,-20), INK, 2.5);
+    box(fx,fy+G1.sink,fw,fh,CRETE,INK,3);
+    hatch(fx,fy+G1.sink,fw,fh,'rgba(43,35,80,.14)',9);
+    hit('footing',fx,fy+G1.sink,fw,fh);
+    if(fh>13){   // how wide it is, written on the footing itself
+      const fy2=fy+fh/2+G1.sink;
+      line(fx+5,fy2,fx+fw-5,fy2,'rgba(43,35,80,.5)',1.5);
+      arrow(fx+16,fy2,fx+4,fy2,INK,2,7); arrow(fx+fw-16,fy2,fx+fw-4,fy2,INK,2,7);
+      otxt(G1.wide+'" wide',cx,fy2,PHONE?11:12.5,INK,'center',5);
+    }
+    // ice growing under the footing and shoving it up
+    if(heaving && G1.freeze>4){
+      g.save(); g.globalAlpha=.9;
+      for(let i=0;i<5;i++) rr(fx-6+i*fw/5, fy+fh+G1.sink-3+Math.sin(t*3+i)*2, fw/5-2, 10, 4, '#dff4ff', '#2f8fd0', 2);
+      g.restore();
+    }
+    // foundation wall — the whole length of the house, and around its corner
+    poly([[wx+wallW,stem+G1.sink],[wx+wallW+hdx,stem+hdy+G1.sink],
+          [wx+wallW+hdx,fy+hdy+G1.sink],[wx+wallW,fy+G1.sink]], shade(CRETE,-20), INK, 2.5);
+    for(let yy=stem+9;yy<fy;yy+=11)
+      line(wx+wallW,yy+G1.sink,wx+wallW+hdx,yy+hdy+G1.sink,'rgba(43,35,80,.13)',1.5);
+    box(wx,stem+G1.sink,wallW,fy-stem,CRETE,INK,3);
+    for(let yy=stem+9;yy<fy;yy+=11){ line(wx,yy+G1.sink,wx+wallW,yy+G1.sink,'rgba(43,35,80,.13)',1.5); }
+    hit('wall',wx,stem+G1.sink,wallW,fy-stem);
+    // the weight coming down through the wall
+    for(let i=0;i<4;i++){ const ax=hbx+hw*(0.14+i*0.24);
+      arrow(ax, stem+7+G1.sink, ax, fy-5+G1.sink, 'rgba(214,53,59,.9)', 3, 9); }
+    // the house on top
+    const hby=stem+G1.sink;
+    drawStyleHouse(hbx,hby,hw,{stories:2,roof:'gable',pitch:.55,siding:'clapboard',color:'#fdf6e3',
+      trim:'#37507a',windows:'sixover',shutters:true,chimney:1,porch:'stoop',eave:.04,depth:HDEPTH});
+    hit('house',hbx,hby-hw*0.9,hw,hw*0.9);
+    // cracks when it fails
+    if(G1.sink>4||G1.tilt>.012){
+      const k=Math.min(1,Math.max(G1.sink/10,G1.tilt*40));
+      g.save(); g.globalAlpha=k;
+      line(hbx+hw*.3,hby-6,hbx+hw*.36,hby-40*k,BAD,3);
+      line(hbx+hw*.36,hby-40*k,hbx+hw*.3,hby-70*k,BAD,3);
+      line(wx+wallW*.5,fy-4+G1.sink,wx+wallW*.2,stem+22+G1.sink,BAD,3);
+      g.restore();
+    }
+    g.restore();
+
+    // labels, which stay upright whatever the house is doing
+    otxt(HOUSE_LB_PER_FT.toLocaleString()+(PHONE?' lb per foot':' lb on every foot of wall'),
+      PHONE?10:Math.min(cx+fw*0.55+10, W-232), gy+(PHONE?14:18), PHONE?11.5:13.5, BAD, 'left',4);
+    otxt(press.toLocaleString()+' lb on each square foot of '+S.name.toLowerCase(), 14, H-CH1-32, PHONE?11.5:13.5, okc?'#1c6b3a':BAD,'left',4);
+    otxt(S.name+' can hold '+S.cap.toLocaleString(), 14, H-CH1-14, PHONE?11.5:13.5, INK,'left',4);
+    hit('soil', 0, fy+fh, W, Math.min(H-(fy+fh), 90));
+    if(heaving && G1.freeze>4)
+      otxt('ice pushing up!', Math.min(cx+fw*.62, W-140), fy+fh+26, PHONE?12:14, '#1c5f8f','left',4);
+    setHud('Footing: <span class="v">'+G1.wide+'&quot; wide</span> · bottom <span class="v">'+G1.deep+'&quot; down</span>'+
+      '<br>Frost line here: <span class="v">'+C.frost+'&quot;</span>');
+    if(sinking) setCaption('<b>It is sinking.</b> '+g1press().toLocaleString()+' lb is landing on every square foot, and '+S.name.toLowerCase()+' can only hold '+S.cap.toLocaleString()+'. Make the footing wider — or find better dirt.');
+    else if(heaving) setCaption('<b>Frost heave!</b> The footing is sitting inside ground that freezes. Water turns to ice, ice takes up more room, and it lifts one corner of the house.');
+    else if(G1.winter) setCaption('<b>Solid all winter.</b> The bottom of the footing is below the frozen layer, so ice can never get underneath it and lift.');
+    else setCaption('The <b>footing</b> is a wide concrete foot. It takes the weight of the whole house and spreads it out so the dirt can carry it. <i>Tap the picture to look at a part.</i>');
+  },
+  tap(x,y,h){
+    if(!h) return;
+    if(questTap(h.id)) return;
+    const info={
+      footing:['Footing','A wide concrete foot poured at the bottom of the hole. The wall above is only 8 inches thick, but the footing is twice as wide — so the same weight lands on twice as much dirt.'],
+      wall:['Foundation wall','Concrete or block, holding the house up out of the mud and keeping the basement dry. It carries the weight straight down to the footing.'],
+      soil:['The dirt','Different ground holds different weight. Clay holds about 2,000 pounds per square foot, sand 3,000, gravel 5,000, and solid rock 12,000. Weak dirt just needs a wider foot.'],
+      frost:['Frost line','How deep the ground freezes in the coldest part of winter. 24 inches in Springfield, 30 in St. Louis, 36 in Kansas City, 60 in Minneapolis, and basically zero in Miami. Footings must go below it.'],
+      house:['The load','Roof, walls, floors, furniture, people and snow. All of it adds up to roughly 2,400 pounds on every single foot of the outside walls.'],
+    }[h.id];
+    if(info) showCard(info[0],info[1],x,y);
+  },
+  quest:[
+    {type:'do', q:'Set the dirt to CLAY, then make the footing wide enough that the clay can hold the house.',
+     watch:()=> G1.soil==='clay' && !g1sinking(),
+     why:'Clay holds 2,000 lb per square foot. A footing 16 inches wide or more spreads 2,400 lb across enough clay to be safe.'},
+    {type:'tap', q:'Tap the part of the house whose whole job is spreading weight out over the dirt.', target:'footing',
+     why:'The footing. Same weight, more dirt underneath it, so less pressure on any one spot.',
+     miss:'Close — look at the widest concrete part, at the very bottom.'},
+    {type:'do', q:'You are building in St. Louis, where the ground freezes 30 inches down. Get the footing below that, pick St. Louis, and turn on winter.',
+     watch:()=> G1.city==='stl' && G1.deep>=30 && G1.winter && !g1heaving(),
+     why:'Below the frost line, the ground under your footing never freezes — so it can never swell up and shove your house sideways.'},
+    {type:'choice', q:'Why does freezing ground lift a house?',
+     opts:[{t:'Ice is heavier than water',ok:false,why:'Nope — ice actually floats, so it is lighter.'},
+           {t:'Water gets BIGGER when it freezes',ok:true,why:'Right. Water swells about 9% turning into ice, and it has to push something. If your footing is in the way, up it goes.'},
+           {t:'Cold concrete shrinks',ok:false,why:'Concrete barely changes. It is the water in the soil that does the damage.'}]},
+  ],
+});
+
+/* ======================= 2 · BONES (framing) ============================== */
+const G2 = { step:0, brace:'none', push:false, rack:0, fallen:false, load:false, wind:false,
+             straps:true, sawCollapse:false, sawHold:0, lift:0, loadP:0 };
+const G2STEPS = ['Bare foundation','Sill plate bolted down','Floor joists, 16 inches apart','Subfloor glued and nailed',
+                 'Wall studs, plates and a header','Roof trusses — triangles','Sheathing all over'];
+function g2geo(){
+  const L=W*0.16, R=W*0.84, GY=H*0.76;
+  const joistH=Math.max(16,H*0.045), sub=6;
+  const floorTop=GY-10-joistH-sub;
+  const wallH=Math.min(H*0.30, 175);
+  const TY=floorTop-wallH;
+  const rise=Math.min(H*0.19, (R-L)*0.24);
+  return {L,R,GY,joistH,sub,floorTop,wallH,TY,rise, mid:(L+R)/2};
+}
+CH.push({
+  id:'bones', emoji:'🪵', short:'Bones', title:'Bones: the frame',
+  blurb:'Under the paint, a house is a cage of sticks. Where they go, and which way they lean, is the whole trick.',
+  win:'Framer! You built it in order, racked a wall flat, and fixed it with one diagonal stick.',
+  init(){ G2.step=0; G2.push=false; G2.rack=0; G2.fallen=false; G2.load=false; G2.wind=false; G2.lift=0; },
+  controls(){
+    const a=ctlGroup('');
+    pill(a,'＋ Add the next piece',()=>{ G2.step=Math.min(G2STEPS.length-1,G2.step+1); },'go');
+    pill(a,'↺ Start over',()=>{ G2.step=0; G2.rack=0; G2.fallen=false; G2.push=false; });
+    const b=ctlGroup('Bracing');
+    segmented(b,[{label:'None',v:'none'},{label:'Diagonal brace',v:'brace'},{label:'Sheathing',v:'sheet'}],G2.brace,v=>{G2.brace=v;G2.fallen=false;});
+    const c=ctlGroup('');
+    const p=pill(c,'👉 PUSH the wall',b2=>{ G2.push=!G2.push; b2.textContent=G2.push?'✋ Stop pushing':'👉 PUSH the wall'; if(!G2.push)G2.fallen=false; });
+    pill(c,'⬇ Where the weight goes',b2=>{ G2.load=!G2.load; b2.classList.toggle('dim',!G2.load); });
+    pill(c,'💨 Wind',b2=>{ G2.wind=!G2.wind; b2.classList.toggle('dim',!G2.wind); });
+    const d=ctlGroup('Roof straps');
+    segmented(d,[{label:'On',v:'1'},{label:'Off',v:'0'}],G2.straps?'1':'0',v=>G2.straps=(v==='1'));
+  },
+  draw(t){
+    const G=g2geo(), S=G2.step;
+    g.fillStyle=SKYLT; g.fillRect(0,0,W,H);
+    g.fillStyle='#e5f6d8'; g.fillRect(0,G.GY+H*0.06,W,H);
+    line(0,G.GY+H*0.06,W,G.GY+H*0.06,GRASSDK,4);
+
+    // racking physics
+    const target = G2.push ? (G2.brace==='none' ? 1.0 : 0.035) : 0;
+    if(S>=4){
+      G2.rack += (target-G2.rack)*(REDUCED?0.4:0.028);
+      if(G2.rack>0.72 && G2.brace==='none'){ G2.fallen=true; G2.sawCollapse=true; }
+      if(G2.push && G2.brace!=='none' && G2.rack>0.02) G2.sawHold++;
+    } else { G2.rack += (0-G2.rack)*0.2; }
+    const rk = G2.fallen ? 1.35 : G2.rack;
+    // uplift physics
+    const upT = (G2.wind && !G2.straps) ? 1 : 0;
+    G2.lift += (upT-G2.lift)*(REDUCED?0.5:0.04);
+
+    // ---- foundation ----
+    box(G.L-10,G.GY,G.R-G.L+20,H*0.06,CRETE,INK,3);
+    hatch(G.L-10,G.GY,G.R-G.L+20,H*0.06,'rgba(43,35,80,.12)',10);
+    hit('foundation',G.L-10,G.GY,G.R-G.L+20,H*0.06);
+
+    const skew=(x,y)=>{ const h=G.GY-y; return [x + h*Math.sin(rk)*0.9, y + h*(1-Math.cos(rk))*0.35]; };
+    const P=(x,y)=>skew(x,y);
+    function bd(x,y,w2,h2,col,dk){ // a board, skewed with the wall
+      const a=P(x,y),b=P(x+w2,y),c=P(x+w2,y+h2),d=P(x,y+h2);
+      poly([a,b,c,d],col||WOOD,INK,2.2);
+      if(dk!==false){ g.save(); g.globalAlpha=.25; line(a[0]+2,a[1],d[0]+2,d[1],WOODDK,2); g.restore(); }
+    }
+    // ---- 1 sill plate ----
+    if(S>=1){ bd(G.L,G.GY-10,G.R-G.L,10,'#c98b45'); hit('sill',G.L,G.GY-14,G.R-G.L,14);
+      for(let i=0;i<5;i++){ const bx2=G.L+18+i*(G.R-G.L-36)/4; const a=P(bx2,G.GY-10);
+        circ(a[0],a[1]+5,3.4,'#7a7f8c',INK,1.6); } }
+    // ---- 2 floor joists (seen end-on) ----
+    if(S>=2){
+      const n=Math.max(6,Math.round((G.R-G.L)/34));
+      for(let i=0;i<=n;i++){ const jx=G.L+i*(G.R-G.L)/n; bd(jx-6,G.floorTop+G.sub,12,G.joistH,WOOD); }
+      hit('joist',G.L,G.floorTop,G.R-G.L,G.joistH+G.sub);
+    }
+    // ---- 3 subfloor ----
+    if(S>=3){ bd(G.L,G.floorTop,G.R-G.L,G.sub+2,'#cf9d5e'); hit('subfloor',G.L,G.floorTop-4,G.R-G.L,10); }
+    // ---- 4 studs, plates, header ----
+    const winL=G.L+(G.R-G.L)*0.20, winR=winL+(G.R-G.L)*0.20, hdrY=G.TY+G.wallH*0.20, sillY=G.TY+G.wallH*0.72;
+    if(S>=4){
+      bd(G.L,G.floorTop-8,G.R-G.L,8,'#c98b45');                 // bottom plate
+      const n=Math.max(8,Math.round((G.R-G.L)/38));
+      for(let i=0;i<=n;i++){ const sx=G.L+i*(G.R-G.L)/n-5;
+        const inWin = sx+5>winL-4 && sx+5<winR+4;
+        if(inWin){ bd(sx,G.TY+10,10,hdrY-G.TY-10,'#d7a35f');    // cripples above the header
+                   bd(sx,sillY,10,G.floorTop-8-sillY,'#d7a35f'); }
+        else bd(sx,G.TY+10,10,G.floorTop-8-G.TY-10,WOOD);
+      }
+      bd(winL-12,G.TY+10,12,G.floorTop-8-G.TY-10,'#b9803c');    // king studs
+      bd(winR,G.TY+10,12,G.floorTop-8-G.TY-10,'#b9803c');
+      bd(winL-12,hdrY,winR-winL+24,26,'#a9682c');               // the header
+      hit('header',...(()=>{const a=P(winL-12,hdrY);return [a[0],a[1],winR-winL+24,26];})());
+      bd(winL-12,sillY,winR-winL+24,9,'#c98b45');               // window sill
+      const wa=P(winL,hdrY+26), wb=P(winR,sillY);
+      poly([wa,[wb[0],wa[1]],wb,[wa[0],wb[1]]],'rgba(191,230,255,.6)',INK,2);
+      bd(G.L,G.TY,G.R-G.L,10,'#c98b45'); bd(G.L,G.TY-9,G.R-G.L,9,'#c98b45');  // double top plate
+      hit('stud',G.L,G.TY,26,G.floorTop-G.TY);
+      hit('topplate',G.L+40,G.TY-12,G.R-G.L-80,24);
+      // measurement
+      const m1=P(G.L,G.floorTop+22), m2=P(G.L+(G.R-G.L)/n,G.floorTop+22);
+      if(!PHONE&&S<6){ arrow(m1[0],m1[1],m2[0],m2[1],INK,2,7); arrow(m2[0],m2[1],m1[0],m1[1],INK,2,7);
+        otxt('16 in.',(m1[0]+m2[0])/2,m1[1]+13,12,INK,'center',4); }
+    }
+    // ---- bracing ----
+    if(S>=4 && G2.brace==='brace'){
+      const a=P(G.L+6,G.floorTop-10), b=P(G.L+(G.R-G.L)*0.46,G.TY+12);
+      line(a[0],a[1],b[0],b[1],'#7d4f22',12); line(a[0],a[1],b[0],b[1],INK,2);
+      const a2=P(G.R-6,G.floorTop-10), b2=P(G.R-(G.R-G.L)*0.46,G.TY+12);
+      line(a2[0],a2[1],b2[0],b2[1],'#7d4f22',12); line(a2[0],a2[1],b2[0],b2[1],INK,2);
+      hit('brace',...(()=>{const p1=P(G.L+6,G.TY+12);return [p1[0],p1[1],(G.R-G.L)*0.42,G.floorTop-G.TY];})());
+    }
+    // ---- 5 roof trusses ----
+    if(S>=5){
+      const ridgeY=G.TY-9-G.rise - G2.lift*70;
+      const A=P(G.L-14,G.TY-9), B=P(G.R+14,G.TY-9), Rg=P(G.mid,ridgeY);
+      const A2=[A[0],A[1]-G2.lift*70], B2=[B[0],B[1]-G2.lift*70];
+      g.save(); if(G2.lift>0.02) g.globalAlpha=1;
+      line(A2[0],A2[1],Rg[0],Rg[1],WOOD,13); line(A2[0],A2[1],Rg[0],Rg[1],INK,2.2);
+      line(B2[0],B2[1],Rg[0],Rg[1],WOOD,13); line(B2[0],B2[1],Rg[0],Rg[1],INK,2.2);
+      line(A2[0],A2[1],B2[0],B2[1],'#c98b45',11); line(A2[0],A2[1],B2[0],B2[1],INK,2.2);
+      // webs — the little triangles inside the big triangle
+      for(const f of [0.25,0.5,0.75]){
+        const bx2=lerp(A2[0],B2[0],f), by2=lerp(A2[1],B2[1],f);
+        const top = f<=0.5 ? [lerp(A2[0],Rg[0],f*2), lerp(A2[1],Rg[1],f*2)]
+                           : [lerp(Rg[0],B2[0],(f-0.5)*2), lerp(Rg[1],B2[1],(f-0.5)*2)];
+        line(bx2,by2,top[0],top[1],'#d7a35f',7); line(bx2,by2,top[0],top[1],INK,1.6);
+      }
+      g.restore();
+      hit('rafter',Math.min(A2[0],Rg[0]),Rg[1]-8,Math.abs(Rg[0]-A2[0]),A2[1]-Rg[1]);
+      hit('ceilingjoist',A2[0]+30,A2[1]-9,B2[0]-A2[0]-60,18);
+      if(G2.straps && S>=5){ [A2,B2].forEach(pp=>{ box(pp[0]-7,pp[1]-3,14,16,'#9aa2b0',INK,2); });
+        if(G2.wind) otxt('straps holding',(A2[0]+B2[0])/2, A2[1]+26, PHONE?11.5:13, '#1c6b3a','center',4); }
+      if(G2.wind){ for(let i=0;i<4;i++){ const yy=Rg[1]+20+i*26;
+          arrow(8, yy, 60+Math.sin(t*4+i)*10, yy-6, 'rgba(79,179,246,.9)',3,9); }
+        if(!G2.straps) otxt('the roof is lifting off!', W/2, Rg[1]-24, PHONE?13:16, BAD,'center',4); }
+    }
+    // ---- 6 sheathing ----
+    if(S>=4 && (S>=6 || G2.brace==='sheet')){
+      const a=P(G.L,G.TY-9), b=P(G.R,G.TY-9), c=P(G.R,G.floorTop), d=P(G.L,G.floorTop);
+      g.save(); g.globalAlpha=S>=6?0.82:0.5;
+      poly([a,b,c,d],'#d8b877',INK,2.5);
+      g.restore();
+      for(let i=1;i<5;i++){ const p1=P(lerp(G.L,G.R,i/5),G.TY-9), p2=P(lerp(G.L,G.R,i/5),G.floorTop);
+        line(p1[0],p1[1],p2[0],p2[1],'rgba(43,35,80,.45)',2.5); }
+      const mp=P((G.L+G.R)/2,(G.TY+G.floorTop)/2);
+      if(S>=6) otxt('plywood sheathing', mp[0], mp[1], PHONE?11.5:13.5, '#6b4a22','center',4);
+      hit('sheathing',Math.min(a[0],d[0]),a[1],G.R-G.L,G.floorTop-G.TY);
+    }
+    // ---- load path ----
+    if(G2.load && S>=5){
+      G2.loadP=(G2.loadP+0.006)%1;
+      const pts=[[G.mid,G.TY-9-G.rise],[G.L-10,G.TY-8],[G.L+30,G.TY-4],[G.L+30,G.floorTop-6],[G.L+30,G.GY-6],[G.L+10,G.GY+H*0.06]];
+      g.save(); g.strokeStyle='rgba(214,53,59,.35)'; lw(5); g.beginPath();
+      pts.forEach((p,i)=>{const q=P(p[0],p[1]); i?g.lineTo(q[0],q[1]):g.moveTo(q[0],q[1]);}); g.stroke(); g.restore();
+      for(let k=0;k<4;k++){
+        let u=(G2.loadP+k/4)%1, seg=Math.min(pts.length-2,Math.floor(u*(pts.length-1))), f=u*(pts.length-1)-seg;
+        const p1=P(pts[seg][0],pts[seg][1]), p2=P(pts[seg+1][0],pts[seg+1][1]);
+        circ(lerp(p1[0],p2[0],f),lerp(p1[1],p2[1],f),6,BAD,INK,2);
+      }
+      otxt('roof → truss → top plate → studs → sill → foundation → footing → dirt', W/2, 22, PHONE?11.5:14.5, BAD,'center',5);
+    }
+    setHud('Building step <span class="v">'+(S+1)+' of '+G2STEPS.length+'</span><br>'+G2STEPS[S]);
+    if(G2.fallen) setCaption('<b>Flat.</b> A rectangle of sticks can fold over into a squashed shape — engineers call that <b>racking</b>. Nothing in a plain stud wall stops it.');
+    else if(G2.push && G2.brace!=='none') setCaption('<b>It holds.</b> A diagonal turns each rectangle into two triangles, and a triangle cannot change shape without a stick bending or breaking. Sheathing does the same job with one big panel.');
+    else if(G2.wind && !G2.straps) setCaption('<b>Wind pulls UP.</b> Air racing over a roof lifts it like an airplane wing. Metal straps nail the trusses to the walls so the roof cannot leave.');
+    else if(S<G2STEPS.length-1) setCaption('<b>'+G2STEPS[S]+'.</b> Tap ＋ to add the next piece. <i>Tap any board to find out its name and its job.</i>');
+    else setCaption('<b>The frame is done.</b> Every pound of roof, floor, furniture and snow now has a path of wood to travel down. <i>Tap a board to learn its job.</i>');
+  },
+  tap(x,y,h){
+    if(!h) return; if(questTap(h.id)) return;
+    const info={
+      foundation:['Foundation','Concrete walls on concrete footings. Everything above is wood; everything below is stone-hard, so the wood never touches wet dirt.'],
+      sill:['Sill plate','The first board of the whole house, bolted down to the concrete with steel anchor bolts. In a storm those bolts are what keeps the house on its foundation.'],
+      joist:['Floor joists','Boards on edge, 16 inches apart, carrying the floor across empty space. On edge they are many times stiffer than lying flat — try it with a ruler.'],
+      subfloor:['Subfloor','Big glued-and-nailed panels over the joists. It makes a floor you can walk on and ties every joist together so they bend as a team.'],
+      stud:['Studs','The vertical wall boards, 16 inches apart. Sixteen inches is not magic — it just divides evenly into a 4-foot-wide sheet of plywood or drywall.'],
+      header:['Header','A doubled-up beam over a window or door. The studs it replaced were carrying weight, so the header catches that weight and hands it to the two fat "king" studs at each end.'],
+      topplate:['Top plate','Two boards stacked on top of the wall. It ties every stud together and gives the roof one flat, strong line to land on.'],
+      rafter:['Truss / rafter','The sloped roof boards. Notice they make a triangle — the one shape that cannot be pushed out of shape.'],
+      ceilingjoist:['The bottom of the triangle','This board is being PULLED, not squeezed. A roof wants to spread its walls apart; the bottom chord holds the two sides together like a rope.'],
+      brace:['Diagonal brace','One board on a slant turns a floppy rectangle into two stiff triangles. Old barns did this; modern houses mostly use sheathing instead.'],
+      sheathing:['Sheathing','Plywood or OSB panels nailed all over the frame. It braces the wall, stiffens it, and gives siding something to grab.'],
+    }[h.id];
+    if(info) showCard(info[0],info[1],x,y);
+  },
+  quest:[
+    {type:'do', q:'Frame the house: keep tapping "Add the next piece" until the trusses are up.',
+     watch:()=> G2.step>=5, why:'Sill, joists, subfloor, walls, roof. Always bottom to top — you cannot nail a wall to a floor that is not there yet.'},
+    {type:'do', q:'Set bracing to NONE and push the wall. Push until something gives.',
+     watch:()=> G2.sawCollapse, why:'That is racking. Four sticks in a rectangle can fold flat without a single one breaking.'},
+    {type:'do', q:'Now stop it happening: add a diagonal brace or sheathing, and push again.',
+     watch:()=> G2.sawHold>40, why:'Triangles. A triangle cannot change shape unless a stick stretches or snaps — so the wall stands there and takes it.'},
+    {type:'tap', q:'Tap the fat beam that carries the weight ACROSS the top of the window opening.', target:'header',
+     why:'The header. Cutting a hole in a wall means some studs are gone, so the header catches their load and passes it around the window.',
+     miss:'Look right above the window hole for a thicker, darker board.'},
+    {type:'choice', q:'Weight lands on the roof. Where does it finally end up?',
+     opts:[{t:'In the dirt under the footings',ok:true,why:'Every single pound ends up in the ground. The whole frame is just a path for weight to walk down.'},
+           {t:'It disappears into the walls',ok:false,why:'Weight never disappears. Follow it — tap "Where the weight goes".'},
+           {t:'The roof holds it all',ok:false,why:'The roof only passes it along. Keep following it down.'}]},
+  ],
+});
+
+/* ========================= 3 · THE ROOF ================================== */
+const ROOFS = {
+  flat:  {name:'Flat',    wind:1.15, note:'Cheap and easy, but water and snow have nowhere to go. Good in the desert, bad in Missouri.'},
+  shed:  {name:'Shed',    wind:1.00, note:'One slope, like half a gable. Modern houses and sheds love it.'},
+  gable: {name:'Gable',   wind:1.00, note:'Two slopes meeting at a ridge. The most common roof in America — cheap, simple, sheds snow.'},
+  hip:   {name:'Hip',     wind:0.62, note:'Slopes on all four sides. More work to build, but wind has no flat wall to shove.'},
+  gambrel:{name:'Gambrel',wind:1.10, note:'The barn roof: shallow up top, steep on the sides, so the attic is a whole extra room.'},
+  aframe:{name:'A-frame', wind:0.45, note:'The roof goes all the way to the ground. Snow cannot even sit on it.'},
+};
+const G3 = { roof:'gable', pitch:6, weather:'snow', R:19, snow:0, gust:0, sunT:0 };
+function g3angle(){
+  const p=G3.pitch;
+  if(G3.roof==='flat') return 2;
+  if(G3.roof==='aframe') return 68;
+  if(G3.roof==='shed') return Math.atan2(p,24)*180/Math.PI;
+  if(G3.roof==='gambrel') return Math.max(Math.atan2(p,12)*180/Math.PI, 55);
+  return Math.atan2(p,12)*180/Math.PI;
+}
+function g3load(){ return Math.round(G3.snow*0.5*10)/10; }
+function g3wind(){ return Math.round(ROOFS[G3.roof].wind*(G3.roof==='gable'?(0.85+G3.pitch/40):1)*100); }
+CH.push({
+  id:'roof', emoji:'🏠', short:'The Roof', title:'The Roof',
+  blurb:'A roof is a machine for getting water, snow and sun off your house. Its shape is an answer to the weather outside.',
+  win:'Roofer! Steep for snow, hipped for wind, R-49 for a Missouri winter.',
+  init(){ G3.snow=0; },
+  controls(){
+    const a=ctlGroup('Roof shape');
+    segmented(a,[{label:'Flat',v:'flat'},{label:'Shed',v:'shed'},{label:'Gable',v:'gable'},{label:'Hip',v:'hip'},{label:'Gambrel',v:'gambrel'},{label:'A-frame',v:'aframe'}],G3.roof,v=>{G3.roof=v;G3.snow=0;});
+    const b=ctlGroup('Pitch');
+    slider(b,2,14,1,G3.pitch,v=>{G3.pitch=v;},v=>v+' in 12');
+    const c=ctlGroup('Weather');
+    segmented(c,[{label:'❄️ Snow',v:'snow'},{label:'🌧️ Rain',v:'rain'},{label:'💨 Wind',v:'wind'},{label:'☀️ Sun',v:'sun'}],G3.weather,v=>{G3.weather=v;G3.snow=0;});
+    const d=ctlGroup('Attic insulation');
+    slider(d,0,60,1,G3.R,v=>G3.R=v,v=>'R-'+v);
+  },
+  draw(t){
+    const CH3=capH();
+    const w=Math.min(W*0.52,380), L=W*0.5-w/2, R=L+w, mid=W*0.5;
+    const GY=H-CH3-Math.max(18,H*0.045);
+    const wallTop=GY-Math.min(H*0.28,150);
+    const rise=(G3.roof==='flat')?0:Math.min(wallTop-34, G3.roof==='aframe'? w*0.86 : (G3.pitch/12)*(w/2));
+    g.fillStyle=SKYLT; g.fillRect(0,0,W,GY);
+    g.fillStyle='#dff0cf'; g.fillRect(0,GY,W,H-GY);
+    line(0,GY,W,GY,GRASSDK,4);
+
+    // ---- roof outline points (left eave -> ... -> right eave) ----
+    const EO=Math.min(34, w*0.09)*(G3.roof==='gambrel'||G3.roof==='aframe'?0.5:1);   // eave overhang
+    let pts, isA=(G3.roof==='aframe');
+    if(G3.roof==='flat')        pts=[[L-EO,wallTop],[R+EO,wallTop]];
+    else if(G3.roof==='shed')   pts=[[L-EO,wallTop],[R+EO,wallTop-rise*1.4]];
+    else if(G3.roof==='hip')    pts=[[L-EO,wallTop],[L+w*0.26,wallTop-rise*0.8],[R-w*0.26,wallTop-rise*0.8],[R+EO,wallTop]];
+    else if(G3.roof==='gambrel')pts=[[L-EO,wallTop],[L+w*0.16,wallTop-rise*0.55],[mid,wallTop-rise],[R-w*0.16,wallTop-rise*0.55],[R+EO,wallTop]];
+    else if(isA)                pts=[[L-EO,GY],[mid,GY-rise],[R+EO,GY]];
+    else                        pts=[[L-EO,wallTop],[mid,wallTop-rise],[R+EO,wallTop]];
+
+    // ---- the attic, its insulation, and the walls ----
+    if(!isA){
+      const solid = (G3.roof!=='flat' && G3.roof!=='shed');
+      // the gable/hip end, painted behind the roof so the attic reads as a room
+      if(solid) poly([[L,wallTop]].concat(pts.slice(1,-1)).concat([[R,wallTop]]),'#f2e4cc',INK,2.5);
+      const af=wallTop-2, insD=Math.min((GY-wallTop)*0.42, G3.R*1.1+2);
+      if(G3.R>0 && solid){
+        g.save(); g.beginPath();
+        g.moveTo(L,af); pts.slice(1,-1).forEach(q=>g.lineTo(q[0],q[1])); g.lineTo(R,af); g.closePath(); g.clip();
+        g.fillStyle='#ffd9e6'; g.fillRect(L,af-insD,w,insD);
+        for(let i=L;i<R;i+=10) circ(i+5,af-insD+4+Math.sin(i)*2,4,'#ffc2d6','#e88fae',1.5);
+        line(L,af-insD,R,af-insD,'#c76b90',2.5);
+        g.restore();
+      }
+      line(L,af,R,af,INK,2.5,[7,5]);
+      hit('insulation',L,Math.max(0,af-insD-6),w,insD+12);
+      // the walls
+      box(L,wallTop,w,GY-wallTop,'#f2e4cc',INK,3);
+      clipRect(L,wallTop,w,GY-wallTop,()=>{ for(let i=wallTop+8;i<GY;i+=8) line(L,i,R,i,'rgba(43,35,80,.13)',1.2); });
+      box(L,wallTop,w,GY-wallTop,null,INK,3);
+      win(L+w*0.12,wallTop+(GY-wallTop)*0.28,w*0.16,(GY-wallTop)*0.34,'sixover',null);
+      win(L+w*0.70,wallTop+(GY-wallTop)*0.28,w*0.16,(GY-wallTop)*0.34,'sixover',null);
+      box(mid-w*0.06,GY-(GY-wallTop)*0.55,w*0.12,(GY-wallTop)*0.55,'#7a4a2f',INK,2.5);
+      hit('wall',L,wallTop,w,GY-wallTop);
+    }
+    // ---- the roof itself: a slab that follows the roof line ----
+    const TH=Math.max(11, w*0.035);
+    const roofPoly = isA ? pts.slice() : pts.concat(pts.map(q=>[q[0],q[1]+TH]).reverse());
+    poly(roofPoly, SHINGLE, INK, 3);
+    for(let i=0;i<pts.length-1;i++){ // shingle courses
+      const a=pts[i],b=pts[i+1];
+      for(let k=0.12;k<1;k+=0.16){
+        const x1=lerp(a[0],b[0],k), y1=lerp(a[1],b[1],k);
+        line(x1,y1,x1+ (b[0]-a[0])*0.001, y1+13,'rgba(255,255,255,.14)',2);
+      }
+      line(a[0],a[1],b[0],b[1],SHINGLEDK,3);
+    }
+    if(isA){   // the glass gable end sits on top of the roof triangle
+      poly([[L+w*0.12,GY],[mid,GY-rise*0.84],[R-w*0.12,GY]],GLASS,INK,2.5);
+      line(mid,GY,mid,GY-rise*0.80,INK,2);
+      line(L+w*0.24,GY-rise*0.30,R-w*0.24,GY-rise*0.30,INK,2);
+      box(mid-w*0.05,GY-w*0.18,w*0.10,w*0.18,'#7a4a2f',INK,2.5);
+    }
+    hit('roof',Math.min(...pts.map(p=>p[0])),Math.min(...pts.map(p=>p[1]))-4,
+        Math.max(...pts.map(p=>p[0]))-Math.min(...pts.map(p=>p[0])),
+        Math.max(...pts.map(p=>p[1]))-Math.min(...pts.map(p=>p[1]))+18);
+    if(!isA){ hit('eave',L-EO-6,wallTop-2,EO+14,22); hit('eave2',R-6,wallTop-2,EO+14,22); }
+
+    // ---- pitch marker ----
+    if(!PHONE && G3.roof!=='flat' && !isA){
+      const run=64, dyy=run*(G3.pitch/12);
+      const sx=Math.max(14, L-run-40), sy=wallTop-rise*0.30;
+      line(sx,sy,sx+run,sy,INK,2.5); line(sx+run,sy,sx+run,sy-dyy,INK,2.5);
+      line(sx,sy,sx+run,sy-dyy,'rgba(43,35,80,.55)',2.5);
+      otxt('12',sx+run/2,sy+12,12.5,INK,'center',4);
+      otxt(String(G3.pitch),sx+run+14,sy-dyy/2,12.5,INK,'center',4);
+      otxt('the pitch',sx+run/2,sy-dyy-14,12,'#6b5b8a','center',4);
+    }
+    // ================= weather =================
+    if(G3.weather==='snow'){
+      const ang=g3angle();
+      const grow = 0.14, slide = G3.snow*Math.max(0,(ang-22))/900;
+      G3.snow = REDUCED ? clamp(108/Math.max(0.6,ang-22),0,90) : clamp(G3.snow+grow-slide,0,90);
+      const th=Math.min(30,G3.snow*0.55);
+      // snow on the roof
+      for(let i=0;i<pts.length-1;i++){
+        const a=pts[i],b=pts[i+1];
+        const segAng=Math.abs(Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI);
+        const st=th*clamp(1-(segAng-18)/45,0,1);
+        if(st>0.6) poly([[a[0],a[1]],[b[0],b[1]],[b[0],b[1]-st],[a[0],a[1]-st]],'#f4fbff',INK,2);
+      }
+      // sliding pile at the eaves
+      if(ang>26 && G3.snow>1){ circ(L-EO-8,GY-8,10+Math.min(16,G3.snow*0.3),'#f4fbff',INK,2);
+        circ(R+EO+8,GY-8,10+Math.min(16,G3.snow*0.3),'#f4fbff',INK,2); }
+      for(let i=0;i<40;i++){ const fx=(i*137+t*20*(1+i%3))%W, fy=((i*91)+t*70*(0.5+(i%4)/4))%GY;
+        circ(fx,fy,2.2,'#ffffff','rgba(43,35,80,.25)',1); }
+      const load=g3load(), heavy=load>20;
+      otxt('snow on the roof: '+load.toFixed(1)+' lb per square foot'+(heavy?'  ⚠️':''),W/2,26,PHONE?12.5:15.5,heavy?BAD:INK,'center',5);
+      setCaption(heavy?'<b>That is a lot of snow.</b> Missouri roofs are built for about 20 lb per square foot. A shallow roof lets it pile up; a steep one dumps it in the yard.'
+        : (load<6?'<b>It slides off.</b> Once a roof is steeper than about 25 degrees, gravity beats the friction holding the snow on.':'<b>Some sticks, some slides.</b> Try a steeper pitch and watch the number fall.'));
+    }
+    else if(G3.weather==='rain'){
+      for(let i=0;i<70;i++){ const rx=(i*173+t*40)%W, ry=((i*67)+t*620*(0.6+(i%5)/5))%GY;
+        line(rx,ry,rx-2,ry+11,'rgba(79,179,246,.8)',2); }
+      const flat=G3.roof==='flat';
+      if(flat){ box(L-EO,wallTop-7,w+EO*2,7,'rgba(79,179,246,.6)',SKY,2);
+        otxt('puddles!',mid,wallTop-16,PHONE?13:16,'#1c5f8f','center',4); }
+      else { for(let s=0;s<2;s++){ const ex=s?R+EO:L-EO;
+          for(let i=0;i<7;i++) line(ex,wallTop+6+i*9+((t*160+i*13)%9), ex+(s?4:-4), wallTop+13+i*9,'rgba(79,179,246,.85)',2.5); }
+        box(L-EO-3,wallTop+2,10,8,'#e6e2d8',INK,2); box(R+EO-7,wallTop+2,10,8,'#e6e2d8',INK,2); }
+      setCaption(flat?'<b>Flat roofs leak.</b> With nowhere to run, water sits, finds the tiniest gap, and gets in. Flat roofs need special rubber sheets, not shingles.'
+        :'<b>Downhill, always.</b> Shingles overlap like fish scales, each one covering the seam below it, so water only ever runs over the top. Gutters catch it at the eave and carry it away from the footings.');
+    }
+    else if(G3.weather==='wind'){
+      G3.gust=(G3.gust+0.02)%1;
+      for(let i=0;i<7;i++){ const yy=40+i*(GY-60)/7, ph=(G3.gust+i/7)%1;
+        arrow(-40+ph*(W+80), yy, 60+ph*(W+80), yy-4,'rgba(79,179,246,.75)',3,10); }
+      const risk=g3wind();
+      const bw=Math.min(260,W*0.55), bx=W/2-bw/2, by=PHONE?58:30;
+      rr(bx,by,bw,16,8,WHITE,INK,2.5);
+      rr(bx,by,bw*clamp(risk/130,0.05,1),16,8, risk>95?BAD:(risk>75?'#e8a33d':GOOD), INK,2.5);
+      otxt('wind risk: '+(risk>95?'high':risk>75?'medium':'low'), W/2, by+30, PHONE?12.5:15,INK,'center',5);
+      if(risk>95 && !REDUCED){ // shingles peeling
+        for(let i=0;i<4;i++){ const px=lerp(pts[0][0],pts[1][0],0.3+i*0.12), py=lerp(pts[0][1],pts[1][1],0.3+i*0.12);
+          poly([[px,py],[px+16,py-4],[px+16,py+5],[px,py+9]],SHINGLEDK,INK,1.5); }
+      }
+      setCaption(G3.roof==='hip'?'<b>A hip roof is a wind roof.</b> Every side is a slope, so wind slides over it instead of slamming into a flat triangle. That is why you see them along hurricane coasts.'
+        :(G3.roof==='aframe'?'<b>Nothing to grab.</b> The A-frame is almost all slope, so the wind just goes over the top.'
+        :'<b>The flat end is the problem.</b> A gable end is a big triangular wall for the wind to shove, and the fast air over the ridge tries to suck the roof upward at the same time.'));
+    }
+    else { // sun
+      G3.sunT+=0.004; const summer=(Math.sin(G3.sunT*2)>0);
+      const alt = summer? 1.16 : 0.40;                       // how high the sun sits, in radians
+      const dir = [Math.cos(alt), Math.sin(alt)];            // which way the light travels
+      const drop = isA ? 0 : clamp(EO/Math.tan(alt), 0, GY-wallTop);   // how far the eave's shadow reaches down the wall
+      if(!isA){
+        g.save(); g.globalAlpha=.32; g.fillStyle=INK; g.fillRect(L,wallTop,w,drop); g.restore();
+        line(L,wallTop+drop,R,wallTop+drop,'rgba(43,35,80,.55)',2,[7,5]);
+      }
+      const targets=[];
+      for(let k=0;k<4;k++){
+        if(summer && !isA){ const f=0.10+k*0.17;
+          targets.push([lerp(pts[0][0],pts[1][0],f), lerp(pts[0][1],pts[1][1],f)]); }
+        else if(isA){ const f=0.15+k*0.16;
+          targets.push([lerp(pts[0][0],pts[1][0],f), lerp(pts[0][1],pts[1][1],f)]); }
+        else targets.push([L+w*0.10+k*w*0.05, wallTop+drop+16+k*7]);
+      }
+      const RL=Math.min(170, targets[0][0]/Math.max(0.2,dir[0]));
+      targets.forEach(tp=> arrow(tp[0]-dir[0]*RL, tp[1]-dir[1]*RL, tp[0], tp[1], 'rgba(255,190,40,.95)', 2.5, 8));
+      emo('☀️', targets[0][0]-dir[0]*(RL+22), targets[0][1]-dir[1]*(RL+22), PHONE?26:34);
+      otxt(summer?'summer sun — high overhead':'winter sun — low in the sky', W/2, 26, PHONE?12.5:15.5, INK,'center',5);
+      setCaption(isA ? '<b>An A-frame is all roof and one big window.</b> Sun pours straight in, which is lovely in a cold mountain winter and roasting anywhere hot. Shape follows climate.'
+        : (summer?'<b>Summer:</b> the sun is high, so a wide roof overhang throws a shadow right over the windows and the house stays cooler — no electricity required.'
+        :'<b>Winter:</b> the same sun is low, so it ducks under the overhang, comes through the glass and warms the room. One roof edge, two jobs.'));
+    }
+    // heat loss through the ceiling (always shown, quiet)
+    const leak = G3.R<1 ? 1 : clamp(13/G3.R,0.06,1);
+    if(!isA){
+      const n=Math.max(1,Math.round(leak*8));
+      const ridgeY=Math.min(...pts.map(q=>q[1]));
+      for(let i=0;i<n;i++){ const hx=lerp(L+w*0.18, R-w*0.18, n===1?0.5:i/(n-1)); const ph=((t*0.45)+i/n)%1;
+        g.save(); g.globalAlpha=(1-ph)*0.85;
+        arrow(hx, ridgeY-6-ph*46, hx, ridgeY-20-ph*46,'#ff6b35',2.5,7); g.restore(); }
+      otxt(G3.R>=49?'barely any heat getting out':'heat escaping through the ceiling',
+        W-12, H-capH()-22, PHONE?11:13, G3.R>=49?'#1c6b3a':'#c2431a','right',4);
+    }
+    setHud('Roof: <span class="v">'+ROOFS[G3.roof].name+'</span>'+(G3.roof==='flat'?'':' at <span class="v">'+G3.pitch+' in 12</span> ('+Math.round(g3angle())+'°)')+
+      '<br>Attic: <span class="v">R-'+G3.R+'</span>'+(G3.R>=49?' ✔ Missouri':' — Missouri needs R-49'));
+  },
+  tap(x,y,h){
+    if(!h) return; if(questTap(h.id)) return;
+    const info={
+      roof:['Shingles','Little overlapping rectangles, each one covering the seam of the row below. Water can only ever run over the top of them. Most last 20–30 years.'],
+      eave:['Eave and overhang','The part of the roof that hangs out past the wall. It keeps rain off the siding, shades the windows from high summer sun, and lets low winter sun in.'],
+      eave2:['Eave and overhang','The part of the roof that hangs out past the wall. It keeps rain off the siding, shades the windows from high summer sun, and lets low winter sun in.'],
+      insulation:['Attic insulation','Fluff that traps still air. Heat escapes through the ceiling faster than anywhere else, because hot air rises. R-value is how hard it is for heat to get through — bigger is better.'],
+      wall:['Wall','From outside in: siding, house wrap, sheathing, studs with insulation between them, then drywall. Missouri walls want about R-13 in the cavity plus R-5 on the outside.'],
+    }[h.id];
+    if(info) showCard(info[0],info[1],x,y);
+  },
+  quest:[
+    {type:'choice', q:'You are building a cabin in the snowy mountains. Which roof?',
+     opts:[{t:'A steep one',ok:true,why:'Steep. Past about 25 degrees, snow slides off on its own instead of piling up.'},
+           {t:'A flat one',ok:false,why:'Flat roofs collect snow. Wet snow weighs a lot — that is how roofs come down.'},
+           {t:'Does not matter',ok:false,why:'It matters a lot. Watch the snow number change when you move the pitch slider.'}]},
+    {type:'do', q:'Prove it: switch to snow, pick the gable roof, and raise the pitch until less than 10 lb of snow can stay on it.',
+     watch:()=> G3.weather==='snow' && G3.roof==='gable' && G3.pitch>=8 && g3load()<10,
+     why:'At 8 in 12 the roof is 34 degrees and snow keeps sliding off. Steeper roofs also give you an attic you can stand up in.'},
+    {type:'choice', q:'Now a house on a hurricane coast. Which roof shape does best in wind?',
+     opts:[{t:'Hip — sloped on all four sides',ok:true,why:'Right. There is no flat triangular end for the wind to shove, so hip roofs survive storms better in wind-tunnel tests.'},
+           {t:'Gable — two big slopes',ok:false,why:'A gable end is a flat wall facing the storm. Try the wind test with each shape and watch the risk bar.'},
+           {t:'Gambrel — the barn roof',ok:false,why:'Lots of surface and a flat end. Try the wind test on each shape.'}]},
+    {type:'do', q:'A Missouri attic is supposed to have R-49 insulation. Slide it up and watch the orange heat arrows.',
+     watch:()=> G3.R>=49,
+     why:'R-49. Twice the R-value means about half the heat escaping — and the ceiling matters most, because heat rises.'},
+    {type:'choice', q:'What is a wide roof overhang doing for the house in July?',
+     opts:[{t:'Shading the windows from the high sun',ok:true,why:'Exactly. In summer the sun is high and the overhang blocks it; in winter the sun is low and slips underneath to warm the room.'},
+           {t:'Making the house look bigger',ok:false,why:'It does look good — but it is doing a real job. Try the ☀️ Sun weather and watch the shadow.'},
+           {t:'Holding up the walls',ok:false,why:'The walls hold up the roof, not the other way round.'}]},
+  ],
+});
+
+/* ======================= 4 · BUILD IT! (sandbox) ========================= */
+const B_STEPS = [
+ {id:'dig',   em:'🚜', label:'Dig & level the lot', days:7,  needs:null,
+  why:'', done:'Bulldozers scrape off the topsoil and make the ground flat and solid.'},
+ {id:'foot',  em:'🕳️', label:'Pour the footings', days:7,  needs:'dig',
+  why:'Concrete poured on lumpy, sloping dirt cracks the first winter. Flatten and pack the ground first.',
+  done:'Wide concrete feet, below the frost line, waiting for the walls.'},
+ {id:'found', em:'🧱', label:'Foundation walls', days:21, needs:'foot',
+  why:'Walls with no footing under them punch straight down into the dirt. Feet first.',
+  done:'Concrete walls up out of the mud. First inspection passed.'},
+ {id:'floor', em:'🪵', label:'Floor joists & subfloor', days:7, needs:'found',
+  why:'There is nothing to rest a floor on yet. You need the foundation walls first.',
+  done:'A big flat deck to stand on — and to build the walls on top of.'},
+ {id:'walls', em:'🔨', label:'Frame the walls', days:21, needs:'floor',
+  why:'You cannot nail the bottom of a wall to a floor that does not exist.',
+  done:'Studs, plates and headers. You can walk through the rooms now.'},
+ {id:'roof',  em:'📐', label:'Set the roof trusses', days:7, needs:'walls',
+  why:'A roof with no walls under it is just a very expensive pile of triangles on the ground.',
+  done:'Triangles craned up and nailed down with steel straps.'},
+ {id:'dry',   em:'☔', label:'Sheathing, shingles, windows', days:14, needs:'roof',
+  why:'Shingles and windows need a roof frame and walls to attach to.',
+  done:'The house is "dried in" — rain stays outside from now on. Framing inspection passed.'},
+ {id:'rough', em:'🔌', label:'Pipes, wires & ducts', days:21, needs:'dry',
+  why:'Rain would soak brand-new wiring and warp the ducts. Get the roof and windows on first — builders call that drying it in.',
+  done:'Water in, water out, electricity everywhere, air ducts to every room.'},
+ {id:'insul', em:'🧣', label:'Insulation', days:7, needs:'rough',
+  why:'Stuff the walls now and you will just be pulling it all back out to run the pipes and wires.',
+  done:'Fluffy batts between every stud, R-49 blown into the attic.'},
+ {id:'board', em:'⬜', label:'Hang the drywall', days:21, needs:'insul',
+  why:'Cover the wires and the inspector makes you tear it all back off to look at them. Wires, then insulation, THEN drywall.',
+  done:'The guts disappear behind flat white walls. Rough-in inspection passed.'},
+ {id:'fin',   em:'🎨', label:'Siding, paint, trim, floors', days:60, needs:'board',
+  why:'Paint and trim go on finished walls, not on bare studs.',
+  done:'Cabinets, doors, floors, and colour at last. This is the slowest part of the whole job.'},
+ {id:'yard',  em:'🌳', label:'Grade the yard, move in', days:7, needs:'fin',
+  why:'Cement trucks and lumber deliveries are still driving over that yard. Grass goes last.',
+  done:'Dirt sloped away from the house so rain runs off, grass planted, keys handed over.'},
+];
+const G4 = { done:new Set(), days:0, shake:0, shakeId:null, last:null, flash:0 };
+function b4has(id){ return G4.done.has(id); }
+CH.push({
+  id:'build', emoji:'🔨', short:'Build It!', title:'Build It! — the right order',
+  blurb:'Twelve jobs. Do them out of order and you tear your own work back apart.',
+  win:'Site Boss! Twelve steps, no do-overs, about seven months.',
+  init(){},
+  controls(){
+    const a=ctlGroup('');
+    pill(a,'↺ Start over',()=>{ G4.done.clear(); G4.days=0; G4.last=null; });
+  },
+  draw(t){
+    const phone=PHONE, CH4=capH();
+    const lotW = phone? W : W*0.56, lotH = phone? H*0.46 : H;
+    // ---------------- the lot ----------------
+    const gy=lotH*0.68, L=lotW*0.24, R=lotW*0.76, w=R-L;
+    g.fillStyle=SKYLT; g.fillRect(0,0,lotW,lotH);
+    if(b4has('yard')){ g.fillStyle='#cdeeb0'; } else { g.fillStyle=b4has('dig')?'#c9a97f':'#b78f63'; }
+    g.fillRect(0,gy,lotW,lotH-gy);
+    line(0,gy,lotW,gy,b4has('yard')?GRASSDK:'#8a6a45',4);
+    if(b4has('yard')){ for(let i=0;i<lotW;i+=9) line(i,gy,i+3,gy-6,GRASS,2.5);
+      emo('🌳',lotW*0.08,gy-26,30); emo('🌳',lotW*0.93,gy-22,24); }
+    if(!b4has('dig')){ for(let i=0;i<24;i++) circ((i*83)%lotW,gy+((i*37)%(lotH-gy)),3+(i%3),'#a07f56',false);
+      emo('🚧',lotW*0.5,gy-32,26); otxt('an empty lot',lotW*0.5,gy-10,phone?12:14,'#5e3b1a','center',4); }
+    else if(!b4has('foot')) { box(L-16,gy-4,w+32,10,'#8a6a45',INK,2); otxt('flat, packed, level',lotW*0.5,gy-22,phone?12:14,'#5e3b1a','center',4); }
+
+    const found=gy-14, floorY=found-10, wallH=Math.min(lotH*0.24,118), wallTop=floorY-wallH;
+    const rise=w*0.24;
+    // footings
+    if(b4has('foot')){ box(L-14,gy+2,w+28,12,CRETE,INK,2.5); hatch(L-14,gy+2,w+28,12,'rgba(43,35,80,.12)',9); }
+    // foundation
+    if(b4has('found')){ box(L-6,found,w+12,gy+2-found,CRETE,INK,2.5);
+      for(let yy=found+8;yy<gy;yy+=9) line(L-6,yy,L+w+6,yy,'rgba(43,35,80,.12)',1.4); }
+    // floor
+    if(b4has('floor')){ box(L,floorY,w,found-floorY,WOOD,INK,2.5);
+      for(let i=L+8;i<R;i+=16) line(i,floorY+2,i,found-2,WOODDK,2); box(L-3,floorY-5,w+6,6,'#cf9d5e',INK,2); }
+    // walls
+    if(b4has('walls')){
+      const n=Math.max(6,Math.round(w/30));
+      if(b4has('board')){ box(L,wallTop,w,floorY-wallTop,'#f6f3ec',INK,2.5); }
+      else box(L,wallTop,w,floorY-wallTop,'#f6ecd6',INK,2.5);
+      if(!b4has('board')){
+        for(let i=0;i<=n;i++){ const sx=L+i*w/n-4; box(sx,wallTop,8,floorY-wallTop,WOOD,INK,1.8); }
+        if(b4has('insul')) for(let i=0;i<n;i++){ const sx=L+i*w/n+4;
+          box(sx,wallTop+3,w/n-8,floorY-wallTop-6,'#ffd0e0','#e88fae',1.5); }
+        if(b4has('rough')){
+          line(L+w*0.2,wallTop+8,L+w*0.2,floorY-8,'#e8b53d',3); line(L+w*0.2,floorY-24,L+w*0.62,floorY-24,'#e8b53d',3);
+          line(L+w*0.72,wallTop+14,L+w*0.72,floorY-6,'#4fb3f6',4);
+          box(L+w*0.36,wallTop+16,w*0.16,10,'#b9bec9',INK,1.8);
+          circ(L+w*0.2,floorY-24,4,'#e8b53d',INK,1.5);
+        }
+      }
+      box(L,wallTop-9,w,9,'#c98b45',INK,2);
+    }
+    // roof frame
+    if(b4has('roof')){
+      const A=[L-12,wallTop-9], B=[R+12,wallTop-9], Rg=[(L+R)/2, wallTop-9-rise];
+      if(b4has('dry')){ poly([A,Rg,B,[B[0],B[1]+14],[A[0],A[1]+14]],SHINGLE,INK,3);
+        for(let k=0.1;k<1;k+=0.14){ line(lerp(A[0],Rg[0],k),lerp(A[1],Rg[1],k),lerp(A[0],Rg[0],k)+1,lerp(A[1],Rg[1],k)+12,'rgba(255,255,255,.15)',2);
+          line(lerp(B[0],Rg[0],k),lerp(B[1],Rg[1],k),lerp(B[0],Rg[0],k)+1,lerp(B[1],Rg[1],k)+12,'rgba(255,255,255,.15)',2); } }
+      else { line(A[0],A[1],Rg[0],Rg[1],WOOD,11); line(A[0],A[1],Rg[0],Rg[1],INK,2);
+        line(B[0],B[1],Rg[0],Rg[1],WOOD,11); line(B[0],B[1],Rg[0],Rg[1],INK,2);
+        line(A[0],A[1],B[0],B[1],'#c98b45',9); line(A[0],A[1],B[0],B[1],INK,2);
+        for(const f of [0.3,0.5,0.7]){ const bx2=lerp(A[0],B[0],f);
+          line(bx2,A[1],lerp(A[0],Rg[0],f<0.5?f/0.5:1)*(f<0.5?1:0)+ (f<0.5?0:lerp(Rg[0],B[0],(f-0.5)/0.5)),
+               f<0.5?lerp(A[1],Rg[1],f/0.5):lerp(Rg[1],B[1],(f-0.5)/0.5),'#d7a35f',7); } }
+    }
+    // dry-in extras: windows and door
+    if(b4has('dry')&&b4has('walls')){
+      win(L+w*0.08,wallTop+(floorY-wallTop)*0.24,w*0.17,(floorY-wallTop)*0.36,'sixover',null);
+      win(L+w*0.75,wallTop+(floorY-wallTop)*0.24,w*0.17,(floorY-wallTop)*0.36,'sixover',null);
+      box((L+R)/2-w*0.07,floorY-(floorY-wallTop)*0.52,w*0.14,(floorY-wallTop)*0.52,b4has('fin')?'#2e6b6b':'#8a7a63',INK,2.5);
+    }
+    // finishes
+    if(b4has('fin')&&b4has('walls')){
+      clipRect(L,wallTop,w,floorY-wallTop,()=>{
+        g.fillStyle='#e9dcbf'; g.fillRect(L,wallTop,w,floorY-wallTop);
+        for(let i=wallTop+8;i<floorY;i+=8) line(L,i,R,i,'rgba(43,35,80,.13)',1.2);
+      });
+      box(L,wallTop,w,floorY-wallTop,null,INK,2.5);
+      win(L+w*0.08,wallTop+(floorY-wallTop)*0.24,w*0.17,(floorY-wallTop)*0.36,'sixover','#2e6b6b');
+      win(L+w*0.75,wallTop+(floorY-wallTop)*0.24,w*0.17,(floorY-wallTop)*0.36,'sixover','#2e6b6b');
+      box((L+R)/2-w*0.07,floorY-(floorY-wallTop)*0.52,w*0.14,(floorY-wallTop)*0.52,'#2e6b6b',INK,2.5);
+      circ((L+R)/2+w*0.04,floorY-(floorY-wallTop)*0.28,2.5,GOLD,INK,1.5);
+    }
+    if(b4has('yard')){ const wy=gy+(lotH-gy)*0.55;
+      poly([[(L+R)/2-14,gy],[(L+R)/2+14,gy],[(L+R)/2+22,wy],[(L+R)/2-22,wy]],'#d9d3c4',INK,2); }
+
+    // day counter
+    const months=(G4.days/30).toFixed(1);
+    const barW=Math.min(lotW-40, 300), bx=lotW/2-barW/2;
+    rr(bx,12,barW,18,9,WHITE,INK,2.5);
+    rr(bx,12,barW*clamp(G4.done.size/12,0,1),18,9,GOLD,INK,2.5);
+    otxt(G4.done.size+' of 12 jobs · day '+G4.days+(G4.days?' ('+months+' months)':''), lotW/2, 21, phone?11.5:13.5, INK,'center',4);
+
+    // ---------------- the palette ----------------
+    const px0 = phone? 8 : lotW+6, py0 = phone? lotH+6 : 12;
+    const pw = (phone? W-16 : W-lotW-18), ph = (phone? H-lotH-10-CH4 : H-12-CH4);
+    const cols = phone?3:2, rows=Math.ceil(12/cols);
+    const cw=(pw-8*(cols-1))/cols, chh=Math.max(30,Math.min(58,(ph-8*(rows-1))/rows));
+    B_STEPS.forEach((s,i)=>{
+      const c=i%cols, r=(i/cols)|0;
+      const x=px0+c*(cw+8), y=py0+r*(chh+8);
+      const isDone=b4has(s.id), ready = !isDone && (!s.needs || b4has(s.needs));
+      const sh = (G4.shakeId===s.id && G4.shake>0) ? Math.sin(G4.shake*1.2)*6 : 0;
+      rr(x+sh,y,cw,chh,12, isDone?GOLD:(ready?WHITE:'#efe9dd'), INK, 3);
+      g.save(); if(!isDone&&!ready) g.globalAlpha=.5;
+      emo(s.em, x+sh+20, y+chh/2, phone?17:20);
+      g.fillStyle=INK; g.font='700 '+(phone?11:12.5)+'px Fredoka, system-ui, sans-serif';
+      g.textAlign='left'; g.textBaseline='middle';
+      const words=s.label.split(' '); let ln=[''],li=0;
+      words.forEach(word=>{ const test=(ln[li]?ln[li]+' ':'')+word;
+        if(g.measureText(test).width>cw-42 && ln[li]){ li++; ln[li]=word; } else ln[li]=test; });
+      ln.slice(0,3).forEach((s2,j)=> g.fillText(s2, x+sh+36, y+chh/2 - (ln.length-1)*7 + j*14));
+      g.restore();
+      if(isDone) emo('✅', x+sh+cw-15, y+14, 15);
+      hit('step:'+s.id, x, y, cw, chh, s);
+    });
+    if(G4.shake>0) G4.shake-=1;
+    if(G4.flash>0) G4.flash-=1;
+
+    if(G4.done.size===12) setCaption('<b>Done — and nothing had to be torn back out.</b> About 200 days, which is close to the real average of seven months for a new American house.');
+    else if(G4.last) setCaption((G4.last.bad?'<b>❌ Too early.</b> ':'<b>✅ '+G4.last.s.label+'.</b> ')+(G4.last.bad? G4.last.s.why : G4.last.s.done));
+    else setCaption('<b>You are the builder.</b> Tap the jobs in the order you think they happen. Get it wrong and you will find out why builders never do.');
+    setHud(null);
+  },
+  tap(x,y,h){
+    if(!h || h.id.indexOf('step:')!==0) return;
+    const s=h.data;
+    if(b4has(s.id)) { showCard(s.label, s.done, x, y); return; }
+    if(s.needs && !b4has(s.needs)){
+      G4.shakeId=s.id; G4.shake=22; G4.last={s,bad:true};
+      showCard('Not yet — '+s.label, s.why, x, y);
+      return;
+    }
+    G4.done.add(s.id); G4.days+=s.days; G4.last={s,bad:false}; G4.flash=20;
+  },
+  quest:[
+    {type:'do', q:'Build the whole house. Twelve jobs, in the order a real crew does them.',
+     watch:()=> G4.done.size===12,
+     why:'Ground, bones, skin, guts, then beauty. Every trade waits for the one before it.'},
+    {type:'choice', q:'Why do the wires and pipes go in BEFORE the drywall?',
+     opts:[{t:'Because you cannot reach inside a finished wall',ok:true,why:'Right — and an inspector has to see every wire and pipe before it gets covered up. Cover them early and you tear the drywall back off.'},
+           {t:'Because wires are heavy',ok:false,why:'Wire weighs almost nothing. Think about who has to look at it, and who has to reach it.'},
+           {t:'Because drywall is waterproof',ok:false,why:'Drywall is the opposite of waterproof — it is basically pressed chalk in paper.'}]},
+    {type:'choice', q:'About how long does a whole new house take to build?',
+     opts:[{t:'About 7 months',ok:true,why:'The U.S. Census says about seven months on average — and your build came out around 200 days.'},
+           {t:'About 3 weeks',ok:false,why:'The concrete alone needs weeks to cure. Look at your day counter.'},
+           {t:'About 5 years',ok:false,why:'That is a cathedral, not a house.'}]},
+  ],
+});
+
+/* ===================== 5 · STYLE DETECTIVE =============================== */
+/* where the giveaway feature sits: x across the house, y up from the ground,
+   both as a fraction of the drawn house */
+const TELL_AT = { colonial:[0.50,0.11], cape:[0.34,0.56], victorian:[0.88,0.92], craftsman:[0.10,0.40],
+                  shotgun:[0.50,0.42], tudor:[0.50,0.30], ranch:[0.83,0.14], aframe:[0.50,0.82] };
+function tellPoint(hx,hy,hw,key){ const a=TELL_AT[key]||[0.5,0.4]; return [hx+hw*a[0], hy-hw*0.95*a[1]]; }
+const TELL_WHY = {
+  colonial:'Look at the middle: the door is dead centre and the windows match on both sides.',
+  cape:'Those little dormer windows poking out of a very steep roof are the Cape Cod giveaway.',
+  victorian:'That round tower — a turret — only ever shows up on a Victorian.',
+  craftsman:'Wide eaves with little wooden rafter ends showing under them: Craftsman, every time.',
+  shotgun:'It is only about 12 feet wide, and the pointy gable end faces the street. That is a shotgun house.',
+  tudor:'Dark wooden stripes on light plaster, and a very steep pointy gable: Tudor.',
+  ranch:'One floor, low roof, wide eaves and a garage right on the front — a post-war ranch.',
+  aframe:'The roof runs all the way to the ground. Nothing else does that.',
+};
+const G5 = { mode:'gallery', open:null, seen:new Set(), q:null, opts:[], score:0, wrong:null, msg:'' };
+function g5newQ(){
+  const pool=STYLES.slice();
+  const ans=pool[(Math.random()*pool.length)|0];
+  const others=pool.filter(s=>s!==ans).sort(()=>Math.random()-0.5).slice(0,3);
+  G5.q=ans; G5.opts=others.concat([ans]).sort(()=>Math.random()-0.5); G5.wrong=null; G5.msg='';
+}
+CH.push({
+  id:'style', emoji:'🔎', short:'Style Detective', title:'Style Detective',
+  blurb:'Every house on your street is wearing a costume from some other time. Learn three clues each and you can read the whole street.',
+  win:'Detective! You can name a Victorian from a moving car.',
+  init(){ if(!G5.q) g5newQ(); },
+  controls(){
+    const a=ctlGroup('Mode');
+    segmented(a,[{label:'🏘️ Gallery',v:'gallery'},{label:'🔎 Detective',v:'quiz'}],G5.mode,
+      v=>{ G5.mode=v; G5.open=null; if(v==='quiz') g5newQ(); });
+    const b=ctlGroup('');
+    pill(b,'🔀 Another house',()=>{ G5.mode='quiz'; G5.open=null; g5newQ(); });
+  },
+  draw(t){
+    g.fillStyle=SKYLT; g.fillRect(0,0,W,H);
+    // ---------- DETAIL ----------
+    if(G5.open){
+      const s=G5.open;
+      g.fillStyle='#eaf6de'; g.fillRect(0,H*0.74,W,H*0.26);
+      line(0,H*0.74,W,H*0.74,GRASSDK,4);
+      const hw=Math.min(W*0.42,320)*(s.wide||1), hx=W*0.5-hw/2, hy=H*0.74;
+      drawStyleHouse(hx,hy,hw,s.P);
+      const tp=tellPoint(hx,hy,hw,s.key);
+      g.save(); g.globalAlpha=REDUCED?1:(0.55+0.45*Math.sin(t*4));
+      circ(tp[0],tp[1],20,'rgba(255,210,63,.35)',GOLD,4); g.restore();
+      dtxt(s.emoji+'  '+s.name, W/2, 32, PHONE?21:29, INK);
+      otxt(s.years, W/2, PHONE?56:64, PHONE?13:16, '#6b5b8a','center',4);
+      const LX=PHONE?8:W*0.05, LW=W-2*LX, FS=PHONE?11.5:15, LH=PHONE?15:20;
+      let yy=PHONE?78:96;
+      s.tells.forEach(tl=>{ yy += wrapT('• '+tl, LX, yy, LW, FS, INK,'left',LH) + 3; });
+      setCaption('<b>'+s.name+'.</b> '+s.story);
+      hit('back',0,0,W,H);
+      setHud(null);
+      otxt('tap anywhere to go back', W-12, H-capH()-14, PHONE?11.5:13.5, '#6b5b8a','right',4);
+      return;
+    }
+    // ---------- QUIZ ----------
+    if(G5.mode==='quiz'){
+      const s=G5.q;
+      const CH5=capH(), optRows = PHONE?2:1, oh=40, optBlock = optRows*(oh+8);
+      const optTop = H-CH5-optBlock+8, groundY = optTop-12;
+      g.fillStyle='#eaf6de'; g.fillRect(0,groundY,W,H-groundY);
+      line(0,groundY,W,groundY,GRASSDK,4);
+      const hw=Math.min(W*0.40,290)*(s.wide||1), hx=W*0.5-hw/2, hy=groundY;
+      drawStyleHouse(hx,hy,hw,s.P);
+      dtxt('What style is this house?', W/2, 24, PHONE?16:22, INK);
+      otxt('correct so far: '+G5.score+'  ·  you need 4', W/2, PHONE?46:52, PHONE?12:14.5,'#6b5b8a','center',4);
+      if(G5.wrong){
+        const tp=tellPoint(hx,hy,hw,s.key);
+        const off = tp[0] > W/2 ? -1 : 1;
+        arrow(tp[0]+off*72, tp[1]-56, tp[0]+off*10, tp[1]-6, BAD, 3, 11);
+        otxt('look here', tp[0]+off*80, tp[1]-66, PHONE?12:14, BAD, off>0?'left':'right',4);
+      }
+      const cols=PHONE?2:4, ow=(W-24-(cols-1)*8)/cols;
+      G5.opts.forEach((o,i)=>{
+        const c=i%cols, r=(i/cols)|0;
+        const x=12+c*(ow+8), yy=optTop+r*(oh+8);
+        const st = G5.wrong===o.key ? '#ffd9d9' : (G5.msg==='right'&&o===s ? GRASS : WHITE);
+        rr(x,yy,ow,oh,14, st, INK, 3);
+        g.fillStyle=(G5.msg==='right'&&o===s)?WHITE:INK;
+        g.font='600 '+(PHONE?13:15)+'px Fredoka, system-ui, sans-serif';
+        g.textAlign='center'; g.textBaseline='middle'; g.fillText(o.name, x+ow/2, yy+oh/2);
+        hit('opt:'+o.key, x, yy, ow, oh, o);
+      });
+      setHud(null);
+      setCaption(G5.msg==='right' ? '<b>Got it — '+s.name+'.</b> '+s.tells[0]+'.'
+        : (G5.wrong ? '<b>Not that one.</b> '+TELL_WHY[s.key] : 'Read the roof, the porch, the windows and the trim. Three clues are usually enough.'));
+      return;
+    }
+    // ---------- GALLERY ----------
+    const CH5=capH(), cols=PHONE?2:4, rows=Math.ceil(STYLES.length/cols);
+    const showLine = !PHONE;                       // the timeline only fits on a big screen
+    const ty=H-CH5-10, pad=8;
+    const gridB = showLine ? ty-26 : H-CH5-4;
+    const cw=(W-pad*(cols+1))/cols, chh=(gridB-pad*(rows+1))/rows;
+    STYLES.forEach((s,i)=>{
+      const c=i%cols, r=(i/cols)|0;
+      const x=pad+c*(cw+pad), y=pad+r*(chh+pad);
+      rr(x,y,cw,chh,16, G5.seen.has(s.key)?'#fff6da':WHITE, INK, 3);
+      clipRect(x+3,y+3,cw-6,chh-6,()=>{
+        g.fillStyle='#eaf6de'; g.fillRect(x,y+chh*0.74,cw,chh*0.3);
+        const hw=Math.min(cw*0.60,(chh-30)/0.95)*(s.wide||1);
+        drawStyleHouse(x+cw/2-hw/2, y+chh-22, hw, s.P, {flat:true});
+      });
+      rr(x,y,cw,chh,16, null, INK, 3);
+      otxt(s.name, x+cw/2, y+chh-11, PHONE?11.5:14, INK, 'center', 5);
+      hit('sty:'+s.key, x, y, cw, chh, s);
+    });
+    if(showLine){
+      const x0=W*0.06, x1=W*0.94;
+      line(x0,ty,x1,ty,INK,3);
+      [1700,1800,1900,2000].forEach(yr=>{ const xx=lerp(x0,x1,(yr-1650)/370);
+        line(xx,ty-5,xx,ty+5,INK,2.5); otxt(String(yr),xx,ty-14,11.5,'#6b5b8a','center',3); });
+      STYLES.forEach(s=>{ const xx=lerp(x0,x1,(s.mid-1650)/370); circ(xx,ty,5,GOLD,INK,2); });
+    }
+    setHud(null);
+    setCaption('<b>Eight American houses, 350 years.</b> Tap one for the three clues that give it away &mdash; you have opened '+G5.seen.size+' of 8. Then switch to Detective mode and try to name them.');
+  },
+  tap(x,y,h){
+    if(G5.open){ G5.open=null; return; }
+    if(!h) return;
+    if(h.id.indexOf('sty:')===0){ G5.open=h.data; G5.seen.add(h.data.key); return; }
+    if(h.id.indexOf('opt:')===0){
+      if(G5.msg==='right') return;
+      if(h.data===G5.q){ G5.score++; G5.msg='right'; G5.wrong=null; setTimeout(g5newQ, 1100); }
+      else { G5.wrong=h.data.key; G5.msg='wrong'; }
+    }
+  },
+  quest:[
+    {type:'do', q:'Open at least four houses in the gallery and read their clues.',
+     watch:()=> G5.seen.size>=4, why:'Three clues per house is all you need: roof, porch, windows, trim.'},
+    {type:'do', q:'Now switch to Detective mode and name four houses correctly.',
+     watch:()=> G5.score>=4, why:'You are reading buildings now. Try it on the way home.'},
+    {type:'choice', q:'Wide eaves with little wooden rafter ends showing underneath. What style?',
+     opts:[{t:'Craftsman bungalow',ok:true,why:'Yes. Craftsman builders wanted you to SEE how the house was made, so they left the ends of the roof beams showing.'},
+           {t:'Colonial',ok:false,why:'A Colonial has almost no overhang at all, and it is perfectly symmetrical.'},
+           {t:'Ranch',ok:false,why:'A ranch has wide eaves too — but no exposed rafter tails, and it is long, low, with a garage on the front.'}]},
+    {type:'choice', q:'A round tower on the corner, a porch that wraps around, and five paint colours. What style?',
+     opts:[{t:'Victorian',ok:true,why:'Turret plus wraparound porch plus gingerbread trim — Victorian, built somewhere between 1860 and 1900.'},
+           {t:'Tudor',ok:false,why:'Tudors have steep gables and wooden stripes, but no round tower and usually no big porch.'},
+           {t:'Cape Cod',ok:false,why:'A Cape Cod is small, plain and steep-roofed. It could not be less showy.'}]},
+  ],
+});
+
+/* ============ 6 · WHY HOUSES LOOK DIFFERENT ============================== */
+const PLACES = {
+  rockies:{ name:'Rocky Mountains', emo:'🏔️', sky:'#d7ecfb', ground:'#f2f7fb',
+    weather:'Six feet of snow a winter, and it stays for months.',
+    made:'Whole forests of spruce and pine — so everything is wood.',
+    notes:['A very steep roof, so snow slides off instead of piling up','Small windows: every window is a hole in your coat','Footings dug 5 feet down, below where the ground freezes'],
+    P:{stories:1.5,roof:'gable',pitch:1.35,siding:'board',color:'#a5714f',trim:'#5c3a22',windows:'sixover',chimney:1,eave:.03,porch:'stoop',depth:1},
+    checks:[['Steep roof so snow slides off', d=> d.roof==='aframe'||(d.roof!=='flat'&&d.pitch>=8)],
+            ['Small roof overhang — heavy snow snaps wide eaves', d=> d.eave==='narrow'],
+            ['Wood siding, because the forest is right there', d=> d.siding==='board'||d.siding==='clapboard'||d.siding==='shingle']] },
+  desert:{ name:'Arizona desert', emo:'🌵', sky:'#ffe6b8', ground:'#e8c48d',
+    weather:'115°F in the shade, and barely any rain all year.',
+    made:'No forests. People built with mud brick — adobe — and later stucco over block.',
+    notes:['A flat or nearly flat roof: there is almost no rain to shed','Fat walls of mud brick that soak up heat all day and let it out at night','Deep overhangs and shaded porches — shade is the whole point'],
+    P:{stories:1,roof:'flat',pitch:.1,siding:'stucco',color:'#e8d3ae',trim:'#a8734a',windows:'tall',eave:.13,porch:'deep',col:'square',depth:1.1},
+    checks:[['A low or flat roof — there is nothing to shed', d=> d.roof==='flat'||d.pitch<=4],
+            ['Wide overhangs for shade', d=> d.eave==='wide'],
+            ['Stucco or adobe, because there is no lumber for miles', d=> d.siding==='stucco'||d.siding==='brick']] },
+  gulf:{ name:'Gulf Coast', emo:'🌀', sky:'#cfe8f5', ground:'#dbe7c8',
+    weather:'Hurricanes with 130 mph wind, and water that comes up the street.',
+    made:'Pine and cypress, bolted and strapped together much harder than usual.',
+    notes:['A hip roof — sloped on all four sides, so the wind has no flat wall to shove','Up on posts, so a storm surge runs underneath the house instead of through it','Short eaves: wind gets under a big overhang and peels the roof off'],
+    P:{stories:1,roof:'hip',pitch:.45,siding:'clapboard',color:'#eef2e6',trim:'#3a6b8a',windows:'sixover',eave:.03,porch:'stoop',stilts:true,depth:1},
+    checks:[['A hip roof, sloped on all four sides', d=> d.roof==='hip'],
+            ['Lifted up on posts, above the flood', d=> d.stilts],
+            ['Short overhangs the wind cannot grab', d=> d.eave==='narrow']] },
+  bayou:{ name:'New Orleans', emo:'🌴', sky:'#d8f0e8', ground:'#cfe6b6',
+    weather:'Hot and soaking wet nine months a year, and no air conditioning until the 1950s.',
+    made:'Cypress, which does not rot, on skinny city lots.',
+    notes:['A deep shady porch — the coolest room in the house','Raised off the wet ground on brick piers','Tall ceilings and doors front and back, so the breeze blows straight through'],
+    P:{stories:1,roof:'gableFront',pitch:.62,siding:'clapboard',color:'#f2d9a0',trim:'#2e6b6b',windows:'tall',eave:.05,porch:'deep',col:'turned',stilts:true,depth:.7,gableVent:true},
+    checks:[['A deep porch for shade and breeze', d=> d.porch==='deep'||d.porch==='wrap'],
+            ['Raised off the soggy ground', d=> d.stilts],
+            ['A roof steep enough for hard rain', d=> d.roof!=='flat'&&d.pitch>=6]] },
+  missouri:{ name:'Missouri', emo:'🌳', sky:'#cdeeff', ground:'#d7eec0',
+    weather:'Ice in January, 95° and sticky in July, and thunderstorms in between.',
+    made:'Oak and hickory forests, plus good clay for brick — so both.',
+    notes:['A middling roof, around 6 in 12: steep enough for snow, cheap enough to build','Wide eaves to shade the windows from the high summer sun','Footings 30 inches down, below the frost line, and R-49 in the attic'],
+    P:{stories:2,roof:'gable',pitch:.55,siding:'brick',color:'#c9a37e',trim:'#37507a',windows:'sixover',shutters:true,chimney:1,eave:.09,porch:'deep',col:'square',depth:1},
+    checks:[['A middling pitch, 4 to 10 in 12', d=> d.roof!=='flat'&&d.pitch>=4&&d.pitch<=10],
+            ['Wide eaves for the summer sun', d=> d.eave==='wide'],
+            ['Sitting on a real foundation, not posts', d=> !d.stilts]] },
+};
+const G6 = { mode:'climate', place:'missouri', seen:new Set(['missouri']),
+  d:{ roof:'gable', pitch:6, eave:'wide', porch:'deep', siding:'clapboard', stilts:false, stories:1 } };
+function g6score(){ let n=0; PLACES[G6.place].checks.forEach(c=>{ if(c[1](G6.d)) n++; }); return n; }
+function g6match(){
+  let best=null,bs=-1;
+  STYLES.forEach(s=>{
+    const P=s.P; let sc=0;
+    const rf = P.roof==='gableFront'?'gable':(P.roof==='cross'?'gable':P.roof);
+    if(rf===G6.d.roof) sc+=5;
+    const pp=Math.round((P.pitch||.5)*12);
+    sc += Math.max(0, 2.5-Math.abs(pp-G6.d.pitch)/2.5);
+    if((P.porch||'none')===G6.d.porch) sc+=2;
+    const sd = P.siding==='halftimber'?'stucco':P.siding;
+    if(sd===G6.d.siding) sc+=2;
+    if(((P.eave||0)>=.08?'wide':'narrow')===G6.d.eave) sc+=1.5;
+    if((P.stories||1)>=2 === (G6.d.stories>=2)) sc+=1.5;
+    if(sc>bs){bs=sc;best=s;}
+  });
+  return best;
+}
+function g6params(){
+  const d=G6.d;
+  return { stories:d.stories, roof:d.roof, pitch:d.pitch/12, siding:d.siding,
+    color: d.siding==='brick'?'#c9a37e':(d.siding==='stucco'?'#efe6d2':'#f2e8d2'),
+    trim:'#37507a', windows: d.stories>=2?'sixover':'picture', shutters:d.stories>=2,
+    chimney:1, porch:d.porch, col: d.porch==='wrap'?'turned':'square',
+    eave: d.eave==='wide'?.12:.02, stilts:d.stilts, depth:1 };
+}
+function rebuildControls(){ ctlEl.innerHTML=''; CH[cur].controls(); }
+CH.push({
+  id:'world', emoji:'🌍', short:'Why so different?', title:'Why houses look different',
+  blurb:'A house is an argument with the weather, made out of whatever is lying around nearby.',
+  win:'Architect! You can look at a house and read the climate it was built for.',
+  init(){},
+  controls(){
+    const m=ctlGroup('Mode');
+    segmented(m,[{label:'🌎 Places',v:'climate'},{label:'✏️ Design your own',v:'design'}],G6.mode,
+      v=>{ G6.mode=v; setTimeout(rebuildControls,0); });
+    if(G6.mode==='climate'){
+      const a=ctlGroup('Where');
+      segmented(a,[{label:'🌳 Missouri',v:'missouri'},{label:'🏔️ Mountains',v:'rockies'},{label:'🌵 Desert',v:'desert'},
+                   {label:'🌀 Gulf Coast',v:'gulf'},{label:'🌴 New Orleans',v:'bayou'}],G6.place,
+        v=>{ G6.place=v; G6.seen.add(v); });
+    } else {
+      const a=ctlGroup('Judge it for');
+      segmented(a,[{label:'🌳 Missouri',v:'missouri'},{label:'🏔️ Mountains',v:'rockies'},{label:'🌵 Desert',v:'desert'},
+                   {label:'🌀 Gulf Coast',v:'gulf'},{label:'🌴 New Orleans',v:'bayou'}],G6.place,v=>G6.place=v);
+      const b=ctlGroup('Roof');
+      segmented(b,[{label:'Gable',v:'gable'},{label:'Hip',v:'hip'},{label:'Flat',v:'flat'},{label:'A-frame',v:'aframe'}],G6.d.roof,v=>G6.d.roof=v);
+      const c=ctlGroup('Pitch'); slider(c,2,14,1,G6.d.pitch,v=>G6.d.pitch=v,v=>v+' in 12');
+      const d=ctlGroup('Eaves');
+      segmented(d,[{label:'Narrow',v:'narrow'},{label:'Wide',v:'wide'}],G6.d.eave,v=>G6.d.eave=v);
+      const e=ctlGroup('Porch');
+      segmented(e,[{label:'None',v:'none'},{label:'Stoop',v:'stoop'},{label:'Deep',v:'deep'},{label:'Wrap',v:'wrap'}],G6.d.porch,v=>G6.d.porch=v);
+      const f=ctlGroup('Walls');
+      segmented(f,[{label:'Clapboard',v:'clapboard'},{label:'Shingle',v:'shingle'},{label:'Brick',v:'brick'},{label:'Stucco',v:'stucco'}],G6.d.siding,v=>G6.d.siding=v);
+      const h=ctlGroup('Floors');
+      segmented(h,[{label:'One',v:1},{label:'Two',v:2}],G6.d.stories,v=>G6.d.stories=+v);
+      const i=ctlGroup('');
+      pill(i, G6.d.stilts?'🦵 On posts':'🧱 On the ground', b2=>{ G6.d.stilts=!G6.d.stilts;
+        b2.textContent=G6.d.stilts?'🦵 On posts':'🧱 On the ground'; });
+    }
+  },
+  draw(t){
+    const pl=PLACES[G6.place];
+    g.fillStyle=pl.sky; g.fillRect(0,0,W,H);
+    const gy=H*0.80;
+    g.fillStyle=pl.ground; g.fillRect(0,gy,W,H-gy);
+    line(0,gy,W,gy,'rgba(43,35,80,.35)',3);
+    // scenery
+    if(G6.place==='rockies'){ poly([[0,gy],[W*0.22,gy-H*0.42],[W*0.44,gy]],'#e7eef5','#b9c6d4',2);
+      poly([[W*0.56,gy],[W*0.8,gy-H*0.5],[W*1.04,gy]],'#dfe8f1','#b9c6d4',2);
+      for(let i=0;i<50;i++) circ((i*151+t*9)%W,((i*83)+t*45)%gy,2,'#fff','rgba(43,35,80,.15)',1); }
+    if(G6.place==='desert'){ emo('🌵',W*0.1,gy-24,34); emo('🌵',W*0.9,gy-18,26); emo('☀️',W*0.85,H*0.14,PHONE?30:42); }
+    if(G6.place==='bayou'){ emo('🌴',W*0.08,gy-28,36); emo('🌴',W*0.93,gy-24,30); }
+    if(G6.place==='gulf'){ for(let i=0;i<6;i++){ const yy=40+i*(gy-70)/6, ph=((t*0.5)+i/6)%1;
+      arrow(-40+ph*(W+80),yy,60+ph*(W+80),yy-5,'rgba(79,179,246,.6)',3,9);}
+      g.fillStyle='rgba(79,179,246,.35)'; g.fillRect(0,gy+8,W,H-gy-8); }
+    if(G6.place==='missouri'){ emo('🌳',W*0.07,gy-26,34); emo('🌳',W*0.94,gy-22,28); }
+
+    const P = G6.mode==='climate' ? pl.P : g6params();
+    const hw=Math.min(W*(PHONE?0.52:0.34), 300)*((G6.mode==='climate'&&pl.P.wide)||1), hx=W*0.5-hw/2;
+    let hy=gy;
+    if(P.stilts){ hy=gy-hw*0.20;
+      for(const f of [0.08,0.34,0.66,0.92]) box(hx+hw*f-6, hy, 12, gy-hy+5, '#b08050', INK, 2.5);
+      poly([[hx-6,hy],[hx+hw+6,hy],[hx+hw+2,hy+8],[hx-2,hy+8]],'#c9a877',INK,2.5);
+    }
+    drawStyleHouse(hx,hy,hw,P);
+
+    if(G6.mode==='climate'){
+      const LX=PHONE?8:W*0.04, LW=W-2*LX, FS=PHONE?11.5:14.5, LH=PHONE?15:19;
+      dtxt(pl.emo+'  '+pl.name, W/2, PHONE?22:28, PHONE?19:27, INK);
+      let yy = PHONE?44:56;
+      yy += wrapT(pl.weather, LX, yy, LW, FS, '#4a4270','left',LH) + 5;
+      pl.notes.forEach(n=>{ yy += wrapT('• '+n, LX, yy, LW, FS, INK,'left',LH) + 3; });
+      setHud(null);
+      setCaption('<b>Built from '+pl.made.charAt(0).toLowerCase()+pl.made.slice(1)+'</b> Same job, different answer &mdash; the weather and whatever grows nearby decide what a house looks like.');
+    } else {
+      const m=g6match(), sc=g6score();
+      dtxt('You designed: '+m.name+'-ish', W/2, PHONE?22:26, PHONE?16:23, INK);
+      otxt('closest match · '+m.years, W/2, PHONE?42:50, PHONE?11:14, '#6b5b8a','center',4);
+      const bx=PHONE?8:W*0.04, LW=W-2*bx, FS=PHONE?11.5:14.5, LH=PHONE?15:19;
+      let yy = PHONE?64:76;
+      otxt('How it would do in '+pl.name+':', bx, yy, PHONE?12:15, INK,'left',4); yy+=LH+2;
+      pl.checks.forEach(c=>{ const ok=c[1](G6.d);
+        yy += wrapT((ok?'✔ ':'✘ ')+c[0], bx, yy, LW, FS, ok?'#1c6b3a':BAD,'left',LH) + 3; });
+      const grade = sc===3?'A perfect fit.':sc===2?'It would survive.':sc===1?'It would struggle.':'It would not last a year.';
+      setHud(null);
+      otxt('Score for '+pl.name+': '+sc+' of 3', W-12, H-capH()-14, PHONE?12:14.5, sc===3?'#1c6b3a':INK,'right',4);
+      setCaption('<b>'+grade+'</b> Every knob you turned is a real decision a real architect makes — and the answer changes with the weather outside.');
+    }
+    hit('house',hx,hy-hw*1.1,hw,hw*1.1);
+  },
+  tap(x,y,h){
+    if(h&&h.id==='house'){
+      showCard('A house from a catalog',
+        'Between 1908 and 1942 you could order a whole house from the Sears catalog for $360 to $2,890. It came on a train in boxcars: about 25 tons and more than 30,000 pieces, every board stamped with a number to match the blueprints. Sears sold more than 70,000 of them, and thousands are still lived in today.', x, y);
+    }
+  },
+  quest:[
+    {type:'do', q:'Visit at least three places and see what the weather does to a house.',
+     watch:()=> G6.seen.size>=3, why:'Steep for snow, flat for desert, hipped and on posts for hurricanes. The weather draws the house.'},
+    {type:'choice', q:'Why is a desert roof nearly flat, and a mountain roof steep?',
+     opts:[{t:'A roof is shaped by what falls on it',ok:true,why:'Exactly. Snow has to slide off or it crushes you; in a desert almost nothing falls, so flat is cheaper and easier.'},
+           {t:'Deserts are hotter, and heat flattens things',ok:false,why:'Heat does not squash roofs. Think about what lands on top of them.'},
+           {t:'Mountain builders like triangles',ok:false,why:'They do use triangles — but the reason is what is sitting on the roof every January.'}]},
+    {type:'do', q:'Switch to "Design your own", pick the Gulf Coast, and design a house that scores 3 out of 3.',
+     watch:()=> G6.mode==='design' && G6.place==='gulf' && g6score()===3,
+     why:'Hip roof, short eaves, up on posts. That is a real coastal house, and it is that shape for three separate reasons.'},
+    {type:'choice', q:'In 1910 you really could order a whole house from a catalog. How did it show up?',
+     opts:[{t:'On a train, in 30,000 numbered pieces',ok:true,why:'Sears shipped about 25 tons in boxcars, every board stamped to match the blueprints. Over 70,000 families built one.'},
+           {t:'Already built, on a very big truck',ok:false,why:'There were no trucks that big in 1910 — and no roads for them. Tap the house for the real story.'},
+           {t:'It was a joke advertisement',ok:false,why:'It was completely real. Tap the house to read about it.'}]},
+  ],
+});
+
+/* =============================== boot ==================================== */
+renderBadges();
+renderRail();
+fit();
+goTo(0, true);
+drawMinimap();
+rafId = requestAnimationFrame(frame);
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(()=>{ fit(); drawMinimap(); });
+
+/* a small door for tinkering and for tests */
+window.buildAHouse = {
+  chapters: CH, goTo, award, badges: badgesWon,
+  state: { ground:G1, bones:G2, roof:G3, build:G4, style:G5, world:G6 },
+  quest: { get step(){ return qStep; }, get done(){ return qDone; } },
+  answer(i){ const b=qOptsEl.children[i]; if(b) b.click(); },
+  styles: STYLES,
+  get hits(){ return HITS.slice(); },
+  tapId(id){ const r=HITS.find(h=>h.id===id); if(!r) return false;
+    const ch=CH[cur]; if(ch.tap) ch.tap(r.x+r.w/2, r.y+r.h/2, r); return true; },
+  solve(){ // finish the current chapter's challenge (used by the test harness)
+    const ch=CH[cur]; if(!ch.quest) return; qDone=true; renderQuest(); award(ch.id);
+  }
+};
+</script>
+</body>
+</html>
