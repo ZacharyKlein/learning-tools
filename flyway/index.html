@@ -1328,7 +1328,14 @@ function goTo(i){
 }
 els.btnNext.addEventListener('click',()=>goTo(current===CH.length-1?0:current+1));
 els.btnBack.addEventListener('click',()=>goTo(current-1));
-addEventListener('keydown',e=>{ if(e.key==='ArrowRight') goTo(current+1); if(e.key==='ArrowLeft') goTo(current-1); });
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'){ e.preventDefault(); if(!els.btnBack.disabled) els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='6') goTo(+e.key-1);
+});
 
 /* ---------- tapping ---------- */
 function hit(px,py){

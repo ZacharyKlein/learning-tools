@@ -1225,6 +1225,8 @@ let trans=null;   // {from,to,t0,dur,c0,c1,curtain}
 function goTo(i){
   i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
   closeCard(); endQuest(); els.hint.hidden=true; rot=null;
+  setLog(false);            /* the log only stays lifted on the floor it belongs to,
+                               so `body.peeking` can never strand the caption */
   const from=current, curtain=CHAPTERS[i].grow||CHAPTERS[from].grow;
   if(REDUCED){ switchTo(i); return; }
   trans={from,to:i,t0:performance.now(),dur:curtain?1100:1500,c0:{...cam},c1:camFor(CHAPTERS[i]),curtain};

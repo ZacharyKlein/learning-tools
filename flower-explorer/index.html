@@ -980,14 +980,16 @@ const SPROUT=(()=>{
   return {S,plant,reset,update,draw,stat,get grow(){return S.grow;},get planted(){return S.planted;},plant2};
 })();
 function blowSeeds(){
-  if(P.seedMode<0.5){ toast('First come to the Seeds part! 🌻',2600); return; }
+  if(CHAPTERS[current].id!=='seeds'){ toast('First come to the Seeds part! 🌻',2600); return; }
+  /* the petals may still be falling — wait for the seed head rather than scold */
+  if(P.seedMode<0.5){ setTimeout(()=>{ if(CHAPTERS[current].id==='seeds') blowSeeds(); },300); return; }
   const H=headOf(P);
   for(let i=0;i<16;i++){
     if(flyingSeeds.some(s=>s.i===i)) continue;
     const a=i/16*TAU;
     flyingSeeds.push({i,x:H.x+Math.cos(a)*0.13,y:H.y+Math.sin(a)*0.13,r:a});
   }
-  windWant=1; setTimeout(()=>{ if(CHAPTERS[current].id==='seeds') windWant=0; },2600);
+  setWind(true,true); setTimeout(()=>{ if(CHAPTERS[current].id==='seeds') setWind(false); },2600);
   toast('💨 Off they go! Each one could be a new flower.',3600);
 }
 
@@ -1440,7 +1442,7 @@ function setSun(on){ P.sun=on?1:0; const b=$('togSun'); b.textContent='☀️ Su
 $('togWater').addEventListener('click',()=>{ setWater(P.water<0.5); toast(P.water>0.5?'💧 Ahh, a drink!':'🥵 No water… watch the flower droop.',3000); });
 $('togSun').addEventListener('click',()=>{ setSun(P.sun<0.5); toast(P.sun>0.5?'☀️ Sunshine!':'☁️ No sun… the leaves go pale.',3000); });
 $('togRain').addEventListener('click',e=>{ rainWant=rainWant?0:1; e.currentTarget.classList.toggle('on',!!rainWant); if(rainWant) setWater(true); toast(rainWant?'🌧️ Rain! Watch the roots drink it up.':'🌤️ The rain stops.',3000); });
-function setWind(on){ windWant=on?1:0; const b=$('togWind'); b.classList.toggle('on',on); refreshStat(); if(on) toast('💨 Hold on tight! Roots keep the plant standing.',3600); }
+function setWind(on,quiet){ windWant=on?1:0; const b=$('togWind'); b.classList.toggle('on',on); refreshStat(); if(on&&!quiet) toast('💨 Hold on tight! Roots keep the plant standing.',3600); }
 $('togWind').addEventListener('click',()=>setWind(!windWant));
 $('btnBee').addEventListener('click',()=>{ sendBee(); toast('🐝 Here she comes…',2000); });
 $('btnZoomPollen').addEventListener('click',e=>{ pollenZoomWant=pollenZoomWant?0:1; e.currentTarget.classList.toggle('on',!!pollenZoomWant); if(pollenZoomWant) toast('🔍 Real pollen grains are covered in spikes and hooks — that\'s how they hang on to a bee.',5000); });
@@ -1491,11 +1493,15 @@ function switchTo(i){
   const id=CHAPTERS[i].id;
   /* each part sets the scene it needs */
   soilSeeWant=(id==='roots')?1:0;
-  if(id!=='roots'){ setWind(false); rainWant=0; $('togRain').classList.remove('on'); }
+  setWind(false);                    /* the wind never follows you into another part */
+  if(id!=='roots'){ rainWant=0; $('togRain').classList.remove('on'); }
   if(id==='seeds'){ if(seedWant<0.5) dropPetals(); seedWant=1; }
   else{ seedWant=0; flyingSeeds.length=0; }
   if(id!=='pollen'){ pollenZoomWant=0; $('btnZoomPollen').classList.remove('on'); }
-  if(id==='stem'&&P.water<0.5){ /* leave it — the challenge turns it off on purpose */ }
+  /* the Stem challenge turns the water off on purpose, and that is fine while you are
+     still in the Stem part — but the water button lives only there, so never leave the
+     plant thirsty in a part where a child cannot give it a drink */
+  if(id!=='stem'&&P.water<0.5) setWater(true);
   setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
   els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;
 }
