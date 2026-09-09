@@ -15,7 +15,20 @@ Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 
 ## How it's organized
 
-Each tool lives in its own folder as a self-contained `index.html` (no build step, no dependencies), so it works from the site, from a local double-click, or from a USB stick in a classroom. The root `index.html` is the landing page — add a card there when you add a tool.
+Each tool lives in its own folder as a self-contained `index.html` (no build step, no dependencies), so it works from the site, from a local double-click, or from a USB stick in a classroom.
+
+The root `index.html` is the landing page. Its cards are rendered from a single `TOOLS` array near the bottom of that file, and the sort buttons (grade / A–Z / newest) and the grade and subject filters are all built from that same data. To add a tool, drop its folder in and add one entry:
+
+```js
+{
+  slug: "my-tool", title: "My Tool", added: "2026-09-09T12:00",
+  grades: [3, 4], subjects: ["Science"], tag: "Interactive", cta: "🔭 Explore",
+  blurb: "One or two sentences.",
+  art: [["🔭",34],["🌙",28],["⭐",44]]   // emoji + font size for the card banner
+}
+```
+
+`grades` is `[low, high]`, with `0` for kindergarten; it drives both the chip and the grade filter. A new value in `subjects` gets its own filter button automatically.
 
 ## Publishing
 

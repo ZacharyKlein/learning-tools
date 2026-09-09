@@ -4,22 +4,48 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Learning Tools</title>
+<meta name="description" content="Small, playful, single-file web pages for big ideas.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
 <style>
 :root{
   --ink:#2b2350; --paper:#fff8e7; --paper-2:#ffefc2; --rocket:#ff6b35; --rocket-dk:#c2431a;
-  --sky:#4fb3f6; --grass:#63c64d; --gold:#ffd23f; --space:#12103a; --white:#fffdf7;
+  --sky:#4fb3f6; --grass:#63c64d; --gold:#ffd23f; --white:#fffdf7;
   --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
   --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.4}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.45}
 a{color:inherit}
-.wrap{max-width:960px;margin:0 auto;padding:40px 20px 60px}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 20px 60px}
 h1{font-family:var(--display);font-weight:700;font-size:48px;line-height:1;margin:0;text-shadow:4px 4px 0 var(--gold)}
-.lede{font-weight:800;font-size:18px;margin:12px 0 36px;max-width:60ch}
+.lede{font-weight:800;font-size:18px;margin:12px 0 28px;max-width:60ch}
+
+/* ---- toolbar ---- */
+.bar{
+  background:var(--white);border:4px solid var(--ink);border-radius:20px;
+  box-shadow:6px 6px 0 var(--ink);padding:14px 16px;margin-bottom:26px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.row > .label{
+  font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;
+  opacity:.75;min-width:64px;
+}
+.btn{
+  font-family:var(--display);font-weight:600;font-size:14px;
+  background:var(--paper-2);color:var(--ink);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;cursor:pointer;line-height:1.2;
+  transition:transform .1s,background .1s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn:focus-visible{outline:3px solid var(--sky);outline-offset:3px}
+.btn[aria-pressed="true"]{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.btn.clear{background:transparent;border-style:dashed;font-weight:500}
+.count{font-weight:800;font-size:14px;opacity:.75;margin-left:auto}
+
+/* ---- grid ---- */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:22px}
 .tool{
   display:flex;flex-direction:column;gap:12px;
@@ -36,7 +62,7 @@ h1{font-family:var(--display);font-weight:700;font-size:48px;line-height:1;margi
 }
 .tool .art span{line-height:1;filter:drop-shadow(2px 2px 0 rgba(43,35,80,.35))}
 .tool h2{font-family:var(--display);font-weight:700;font-size:28px;margin:0;line-height:1.05}
-.tool p{margin:0;font-weight:700}
+.tool p{margin:0;font-weight:700;flex:1}
 .meta{display:flex;gap:8px;flex-wrap:wrap}
 .chip{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;background:var(--paper-2);border:2px solid var(--ink);border-radius:999px;padding:4px 10px}
 .go{
@@ -44,7 +70,15 @@ h1{font-family:var(--display);font-weight:700;font-size:48px;line-height:1;margi
   background:var(--rocket);color:var(--white);border:3px solid var(--ink);border-radius:999px;padding:8px 20px;
   box-shadow:0 5px 0 var(--rocket-dk),0 5px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
 }
+.empty{font-weight:800;padding:30px 0;grid-column:1/-1}
+noscript .empty{display:block}
 footer{margin-top:48px;font-weight:700;font-size:14px;opacity:.7}
+@media (max-width:560px){
+  h1{font-size:38px}
+  .row > .label{min-width:100%}
+  .count{margin-left:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
@@ -52,74 +86,181 @@ footer{margin-top:48px;font-weight:700;font-size:14px;opacity:.7}
   <h1>Learning Tools</h1>
   <p class="lede">Small, playful pages for big ideas. Each one is a single file — open it, project it, or send the link home.</p>
 
-  <div class="grid">
-    <!-- To add a tool: drop it in its own folder as index.html, then copy this card. -->
-    <a class="tool" href="zoom-out/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:26px">🔬</span><span style="font-size:20px">🐜</span><span style="font-size:30px">🧒</span><span style="font-size:44px">🌳</span><span style="font-size:62px">⛰️</span><span style="font-size:38px">🪐</span><span style="font-size:50px">⭐</span><span style="font-size:44px">🌌</span>
-      </div>
-      <h2>Zoom Out!</h2>
-      <p>Pond microbes, bugs, people, trees, mountains, planets, stars, galaxies. Start inside a drop of water, make a character your own size, then zoom out — every time, the "big" things from before shrink into one tiny dot. That's an order of magnitude. Eight scales, eight badges to earn.</p>
-      <div class="meta"><span class="chip">Grades 1–3</span><span class="chip">Math · Science</span><span class="chip">Interactive</span></div>
-      <span class="go">🚀 Play</span>
-    </a>
-    <a class="tool" href="inside-a-tree/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:36px">🍃</span><span style="font-size:30px">💧</span><span style="font-size:64px">🌳</span><span style="font-size:32px">🪵</span><span style="font-size:32px">🦉</span>
-      </div>
-      <h2>Inside a Tree</h2>
-      <p>Leaves that make sugar from sunlight, roots that drink, rings that count the years, wood for every job, and the animals that call an oak home. Five parts, five badges to earn.</p>
-      <div class="meta"><span class="chip">Grades 3–4</span><span class="chip">Science</span><span class="chip">Interactive</span></div>
-      <span class="go">🌳 Explore</span>
-    </a>
-    <a class="tool" href="forest-elevator/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:34px">🌳</span><span style="font-size:26px">🦉</span><span style="font-size:22px">🌿</span><span style="font-size:28px">🐢</span><span style="font-size:24px">🪱</span>
-      </div>
-      <h2>Forest Elevator</h2>
-      <p>Ride an elevator from the sunny canopy down to the roots. Six floors of a Missouri oak-hickory forest, each with residents to meet and a badge to earn — then grow a whole forest from acorns.</p>
-      <div class="meta"><span class="chip">Grades 1–3</span><span class="chip">Science</span><span class="chip">Interactive</span></div>
-      <span class="go">🌲 Ride down</span>
-    </a>
-    <a class="tool" href="flower-explorer/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:34px">🌸</span><span style="font-size:26px">🌿</span><span style="font-size:24px">🥕</span><span style="font-size:30px">🐝</span><span style="font-size:36px">🌻</span>
-      </div>
-      <h2>Flower Explorer</h2>
-      <p>Petals, stem, leaves, roots, pollen and seeds — five parts of one flower, each with something to press, poke and watch. A 🔊 button reads every word out loud, so a five-year-old can play it alone. Five badges to earn.</p>
-      <div class="meta"><span class="chip">Grades K–1</span><span class="chip">Science</span><span class="chip">Reads aloud</span></div>
-      <span class="go">🌷 Explore</span>
-    </a>
-    <a class="tool" href="how-a-car-works/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:30px">🔥</span><span style="font-size:28px">⚙️</span><span style="font-size:58px">🚗</span><span style="font-size:28px">🛞</span><span style="font-size:26px">⚡</span>
-      </div>
-      <h2>How a Car Works</h2>
-      <p>Bangs in the engine, gears that trade speed for muscle, a differential that lets two wheels disagree, brakes that turn motion into heat, rack-and-pinion steering — and gas against electric. Six parts, six badges.</p>
-      <div class="meta"><span class="chip">Grades 3–4</span><span class="chip">Science · Engineering</span><span class="chip">Interactive</span></div>
-      <span class="go">🔧 Open the hood</span>
-    </a>
-    <a class="tool" href="flyway/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:24px">🍂</span><span style="font-size:30px">🗺️</span><span style="font-size:44px">🐦</span><span style="font-size:26px">🧭</span><span style="font-size:30px">🦆</span>
-      </div>
-      <h2>Flyway</h2>
-      <p>Why birds leave (the food, not the cold), the bird highway that runs over Missouri, the fat a hummingbird burns to cross 500 miles of Gulf, the four compasses they steer by, a city with its lights on — and who is in Missouri each season. Six stops, six badges.</p>
-      <div class="meta"><span class="chip">Grades 3–4</span><span class="chip">Science</span><span class="chip">Interactive</span></div>
-      <span class="go">🪶 Take off</span>
-    </a>
-    <a class="tool" href="build-a-house/">
-      <div class="art" aria-hidden="true">
-        <span style="font-size:24px">🕳️</span><span style="font-size:28px">🪵</span><span style="font-size:46px">🏠</span><span style="font-size:26px">🔨</span><span style="font-size:24px">🔎</span>
-      </div>
-      <h2>Build a House</h2>
-      <p>Footings that spread a house’s weight over the dirt, a stud wall that folds flat until you brace it, roofs shaped by snow and wind and sun, twelve jobs in the only order that works — then eight American house styles and the three clues that give each one away. Six parts, six badges.</p>
-      <div class="meta"><span class="chip">Grades 3–4</span><span class="chip">Science · Engineering</span><span class="chip">Interactive</span></div>
-      <span class="go">🚧 Start digging</span>
-    </a>
+  <div class="bar">
+    <div class="row" role="group" aria-label="Sort">
+      <span class="label">Sort</span>
+      <button class="btn" type="button" data-sort="grade" aria-pressed="true">Grade</button>
+      <button class="btn" type="button" data-sort="name" aria-pressed="false">A–Z</button>
+      <button class="btn" type="button" data-sort="new" aria-pressed="false">Newest</button>
+    </div>
+    <div class="row" role="group" aria-label="Filter by grade">
+      <span class="label">Grades</span>
+      <span id="gradeFilters"></span>
+    </div>
+    <div class="row" role="group" aria-label="Filter by subject">
+      <span class="label">Subject</span>
+      <span id="subjectFilters"></span>
+      <button class="btn clear" type="button" id="clear" hidden>Clear filters</button>
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
   </div>
+
+  <div class="grid" id="grid"></div>
+  <noscript><p class="empty">This page needs JavaScript to list the tools. You can still open any of them directly: <a href="zoom-out/">zoom-out</a>, <a href="inside-a-tree/">inside-a-tree</a>, <a href="forest-elevator/">forest-elevator</a>, <a href="flower-explorer/">flower-explorer</a>, <a href="how-a-car-works/">how-a-car-works</a>, <a href="flyway/">flyway</a>, <a href="build-a-house/">build-a-house</a>.</p></noscript>
 
   <footer>Made by Zachary Klein. Everything here is a plain HTML file — view the source on <a href="https://github.com/ZacharyKlein/learning-tools">GitHub</a>.</footer>
 </div>
+
+<script>
+/* ------------------------------------------------------------------
+   To add a tool: drop it in its own folder as index.html, then add one
+   entry below. The card, the chips and the filters all come from here.
+   grades: [low, high] — 0 means kindergarten. added: ISO date, drives "Newest".
+   ------------------------------------------------------------------ */
+const TOOLS = [
+  {
+    slug: "zoom-out", title: "Zoom Out!", added: "2026-09-07T19:29",
+    grades: [1, 3], subjects: ["Math", "Science"], tag: "Interactive", cta: "🚀 Play",
+    blurb: "Start inside a drop of pond water, build a character your own size, then zoom out — bugs, trees, mountains, planets, galaxies. Every jump shrinks the last “big” thing to a single dot. Eight scales, eight badges.",
+    art: [["🔬",26],["🐜",20],["🧒",30],["🌳",44],["⛰️",62],["🪐",38],["⭐",50],["🌌",44]]
+  },
+  {
+    slug: "inside-a-tree", title: "Inside a Tree", added: "2026-09-07T20:51",
+    grades: [3, 4], subjects: ["Science"], tag: "Interactive", cta: "🌳 Explore",
+    blurb: "Leaves that make sugar out of sunlight, roots that drink, rings that count the years, wood for every job, and the animals that call an oak home. Five parts, five badges.",
+    art: [["🍃",36],["💧",30],["🌳",64],["🪵",32],["🦉",32]]
+  },
+  {
+    slug: "forest-elevator", title: "Forest Elevator", added: "2026-09-07T22:44",
+    grades: [1, 3], subjects: ["Science"], tag: "Interactive", cta: "🌲 Ride down",
+    blurb: "Ride an elevator from the sunny canopy down to the roots of a Missouri oak-hickory forest. Six floors, residents to meet on each one — then grow a whole forest from acorns.",
+    art: [["🌳",34],["🦉",26],["🌿",22],["🐢",28],["🪱",24]]
+  },
+  {
+    slug: "how-a-car-works", title: "How a Car Works", added: "2026-09-07T22:45",
+    grades: [3, 4], subjects: ["Science", "Engineering"], tag: "Interactive", cta: "🔧 Open the hood",
+    blurb: "Bangs in the engine, gears trading speed for muscle, a differential that lets two wheels disagree, brakes that turn motion into heat — and gas against electric. Six parts, six badges.",
+    art: [["🔥",30],["⚙️",28],["🚗",58],["🛞",28],["⚡",26]]
+  },
+  {
+    slug: "flower-explorer", title: "Flower Explorer", added: "2026-09-08T16:34",
+    grades: [0, 1], subjects: ["Science"], tag: "Reads aloud", cta: "🌷 Explore",
+    blurb: "Petals, stem, leaves, roots, pollen and seeds — five parts of one flower, each with something to press, poke and watch. A 🔊 button reads every word out loud, so a five-year-old can play it alone.",
+    art: [["🌸",34],["🌿",26],["🥕",24],["🐝",30],["🌻",36]]
+  },
+  {
+    slug: "flyway", title: "Flyway", added: "2026-09-08T23:52",
+    grades: [3, 4], subjects: ["Science"], tag: "Interactive", cta: "🪶 Take off",
+    blurb: "Why birds really leave (the food, not the cold), the bird highway that runs over Missouri, the fat a hummingbird burns crossing the Gulf, and the four compasses they steer by. Six stops, six badges.",
+    art: [["🍂",24],["🗺️",30],["🐦",44],["🧭",26],["🦆",30]]
+  },
+  {
+    slug: "build-a-house", title: "Build a House", added: "2026-09-09T00:37",
+    grades: [3, 4], subjects: ["Science", "Engineering"], tag: "Interactive", cta: "🚧 Start digging",
+    blurb: "Footings that spread a house’s weight over the dirt, a stud wall braced into triangles, roofs shaped by snow and wind, twelve jobs in the only order that works — then eight American house styles. Six parts, six badges.",
+    art: [["🕳️",24],["🪵",28],["🏠",46],["🔨",26],["🔎",24]]
+  }
+];
+
+const gradeLabel = t => "Grades " + (t.grades[0] === 0 ? "K" : t.grades[0]) + "–" + t.grades[1];
+
+const state = { sort: "grade", grades: new Set(), subjects: new Set() };
+
+const grid = document.getElementById("grid");
+const countEl = document.getElementById("count");
+const clearBtn = document.getElementById("clear");
+
+/* build the filter buttons from the data itself */
+function makeFilters(hostId, values, key) {
+  const host = document.getElementById(hostId);
+  values.forEach(v => {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "btn";
+    b.textContent = v;
+    b.setAttribute("aria-pressed", "false");
+    b.addEventListener("click", () => {
+      state[key].has(v) ? state[key].delete(v) : state[key].add(v);
+      b.setAttribute("aria-pressed", String(state[key].has(v)));
+      render();
+    });
+    host.appendChild(b);
+  });
+}
+
+const gradeBands = [...new Set(TOOLS.map(gradeLabel))]
+  .sort((a, b) => a.replace("K", "0").localeCompare(b.replace("K", "0")));
+const subjects = [...new Set(TOOLS.flatMap(t => t.subjects))].sort();
+
+makeFilters("gradeFilters", gradeBands, "grades");
+makeFilters("subjectFilters", subjects, "subjects");
+
+document.querySelectorAll("[data-sort]").forEach(b => {
+  b.addEventListener("click", () => {
+    state.sort = b.dataset.sort;
+    document.querySelectorAll("[data-sort]").forEach(o =>
+      o.setAttribute("aria-pressed", String(o === b)));
+    render();
+  });
+});
+
+clearBtn.addEventListener("click", () => {
+  state.grades.clear();
+  state.subjects.clear();
+  document.querySelectorAll("#gradeFilters .btn, #subjectFilters .btn")
+    .forEach(b => b.setAttribute("aria-pressed", "false"));
+  render();
+});
+
+const sorters = {
+  grade: (a, b) => a.grades[0] - b.grades[0] || a.grades[1] - b.grades[1] || a.title.localeCompare(b.title),
+  name:  (a, b) => a.title.localeCompare(b.title),
+  new:   (a, b) => b.added.localeCompare(a.added) || a.title.localeCompare(b.title)
+};
+
+function card(t) {
+  const a = document.createElement("a");
+  a.className = "tool";
+  a.href = t.slug + "/";
+  const chips = [gradeLabel(t), t.subjects.join(" · "), t.tag];
+  a.innerHTML =
+    '<div class="art" aria-hidden="true">' +
+      t.art.map(([e, s]) => '<span style="font-size:' + s + 'px">' + e + '</span>').join("") +
+    '</div>' +
+    '<h2></h2><p></p>' +
+    '<div class="meta">' + chips.map(() => '<span class="chip"></span>').join("") + '</div>' +
+    '<span class="go"></span>';
+  a.querySelector("h2").textContent = t.title;
+  a.querySelector("p").textContent = t.blurb;
+  a.querySelectorAll(".chip").forEach((c, i) => c.textContent = chips[i]);
+  a.querySelector(".go").textContent = t.cta;
+  return a;
+}
+
+function render() {
+  const list = TOOLS
+    .filter(t => !state.grades.size || state.grades.has(gradeLabel(t)))
+    .filter(t => !state.subjects.size || t.subjects.some(s => state.subjects.has(s)))
+    .sort(sorters[state.sort]);
+
+  grid.textContent = "";
+  if (!list.length) {
+    const p = document.createElement("p");
+    p.className = "empty";
+    p.textContent = "Nothing matches those filters yet.";
+    grid.appendChild(p);
+  } else {
+    list.forEach(t => grid.appendChild(card(t)));
+  }
+
+  const filtering = state.grades.size || state.subjects.size;
+  clearBtn.hidden = !filtering;
+  countEl.textContent = filtering
+    ? list.length + " of " + TOOLS.length + " tools"
+    : TOOLS.length + " tools";
+}
+
+render();
+</script>
 </body>
 </html>
