@@ -278,34 +278,61 @@ body.nospeech .btn.read{display:none}
   .meter-label{display:none}
   .badge{width:29px;height:29px;font-size:14px;border-width:2px}
   .badges{gap:4px}
-  .btn.read{padding:7px 9px;font-size:15px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
+  .btn.read{padding:7px 9px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
   .btn.read .rd-word{display:none}
   .top{min-width:0}
   .brand{min-width:0;flex:1}
   .brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"parts buttons" "ctl ctl";gap:8px}
-  .parts{grid-area:parts;gap:4px}
-  .prt{width:36px;height:36px;font-size:19px;box-shadow:2px 2px 0 var(--ink)}
-  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
-  #btnBack{display:none}
+  /* one row per job, and every target at least 44px for a five-year-old's finger */
+  .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "parts" "ctl";gap:8px}
+  .parts{grid-area:parts;gap:6px;justify-content:center;flex-wrap:wrap}
+  .prt{width:44px;height:44px;font-size:22px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:center;gap:8px}
+  #btnBack .bl{display:none}     /* Back keeps its arrow and drops the word */
+  #btnBack{min-width:44px}
   .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
   .ctl-group{justify-content:center;gap:6px}
   .btn.big{font-size:17px;padding:10px 14px}
-  .btn{padding:8px 11px;font-size:15px}
-  .tog{font-size:14px;padding:7px 11px}
-  .swatch{width:32px;height:32px}
+  .btn{padding:8px 12px;font-size:15px;min-height:44px}
+  .tog{font-size:14px;padding:7px 12px;min-height:44px}
+  .swatch{width:44px;height:44px}
   .ctl-label{display:none}
   .caption{max-width:calc(100% - 28px);padding:6px 10px 8px;gap:7px}
   .cap-level{font-size:18px}.cap-text{font-size:13.5px}
-  .spk{width:34px;height:34px;font-size:16px}
-  .hint{display:none}
+  .spk{width:44px;height:44px;font-size:19px}
+  /* the tap prompt is the only thing that says the picture can be tapped,
+     and half the challenges ask for a tap — so it stays on every screen */
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:52px}
   .card{width:calc(100% - 28px)}
   .card-thumb{width:58px;height:58px;flex-basis:58px}
   .card-name{font-size:18px}.card-sub{font-size:13px}.card-fact{font-size:13.5px}.card-extra{display:none}
   .quest{width:calc(100% - 28px);padding:10px 12px}
-  .q-title{font-size:15px}.q-text{font-size:15px}.opt{font-size:15px;padding:7px 12px}
+  .q-title{font-size:15px}.q-text{font-size:15px}.opt{font-size:15px;padding:9px 14px;min-height:44px}
   body.carding .caption{display:none}
   .stat span{font-size:13px;padding:4px 10px}
+}
+/* a phone on its side is wide but short. It is too wide for the small-screen
+   rules above, so the compact dock has to be spelled out again here — a partial
+   override lands half a layout on top of the desktop one, and things overflow. */
+@media (max-width:900px) and (max-height:520px){
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"parts buttons" "ctl ctl";gap:8px}
+  .parts{grid-area:parts;justify-content:flex-start;gap:4px;flex-wrap:wrap}
+  .prt{width:38px;height:38px;font-size:19px}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .ctl{grid-area:ctl;justify-content:center}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:38px}
+  .btn,.tog{min-height:38px}
+  .btn{padding:8px 11px;font-size:14px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:46px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
@@ -376,7 +403,7 @@ body.nospeech .btn.read{display:none}
   <footer class="dock">
     <div class="parts" id="parts"></div>
     <div class="buttons">
-      <button class="btn" id="btnBack">◀ Back</button>
+      <button class="btn" id="btnBack" aria-label="Back">◀ <span class="bl">Back</span></button>
       <button class="btn big" id="btnNext">NEXT PART ▶</button>
       <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
     </div>
@@ -1117,7 +1144,7 @@ function distToPolyline(pts,x,y){
   return best;
 }
 function partHit(wx,wy){
-  const tol=26/K;
+  const tol=30/K;
   /* the bee often hovers right on the sticky middle: whichever the finger
      landed closer to wins, so both stay tappable */
   const beeD=dist(wx,wy,BEE.x,BEE.y);

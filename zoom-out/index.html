@@ -281,7 +281,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
   .badges{gap:3px}
   .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
   .quest.tr{top:12px}
-  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:8px 14px;min-height:44px}
   body.questing .caption{display:none}
   .brand h1{font-size:28px}
   .brand .tagline{display:none}
@@ -289,12 +289,15 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
   .meter-num{font-size:20px}.meter-num.long{font-size:13px}
   .pills{max-width:220px}
   .dock{grid-template-columns:1fr;gap:8px}
-  .levels{justify-content:center}
+  .levels{justify-content:center;flex-wrap:wrap;gap:6px}
+  .lvl{width:44px;height:44px;font-size:22px}
+  .btn{min-height:44px}
   .slider{min-width:0}
   .btn.big{font-size:22px;padding:12px 22px}
   .caption{max-width:calc(100% - 28px)}
   .cap-level{font-size:20px}.cap-text{font-size:14px}
-  .hint{display:none}
+  /* the tap prompt is the only thing that says the picture can be tapped */
+  .hint{left:14px;right:14px;text-align:center;bottom:10px;font-size:12.5px;padding:5px 10px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
@@ -418,7 +421,7 @@ const DISPLAY_FONT = '"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounde
 // w/h = drawn width/height as a fraction of size. lay = how much of the width the layout reserves.
 const LEVELS = [
   // `at` is how high each creature floats inside the drop, as a fraction of the drop's depth
-  { id:'drop', name:'In a Drop', icon:'🔬', ground:false, water:true,
+  { id:'drop', name:'In a Drop', icon:'🔬', hint:'👆 Tap a creature in the drop', ground:false, water:true,
     caption:'Way too small to see! But some are small and some are <b>BIG</b> — for a microbe.',
     objects:[
       {name:'Euglena',     draw:'euglena',    size:0.00015, w:1, h:.30, at:.72, mm:true, fact:'It swims with a tiny whip and eats sunlight like a plant.'},
@@ -428,7 +431,7 @@ const LEVELS = [
       {name:'Water bear',  draw:'tardigrade', size:0.0007, w:1, h:.62, at:.70, mm:true, fact:'Eight stubby legs. It can even survive in outer space!'},
       {name:'Water flea',  draw:'daphnia',    size:0.0015, w:1, h:.62, at:.46, mm:true, fact:'Big enough to see as a speck. Watch it hop through the water.'},
     ]},
-  { id:'bugs', name:'Bugs', icon:'🐜', ground:true,
+  { id:'bugs', name:'Bugs', icon:'🐜', hint:'👆 Tap a bug', ground:true,
     caption:'Some bugs are small. Some bugs are <b>BIG!</b>',
     objects:[
       {name:'Ant',            emoji:'🐜', size:0.01,  fact:'Tiny, but it can carry 50 ants!'},
@@ -437,7 +440,7 @@ const LEVELS = [
       {name:'Goliath beetle', emoji:'🪲', size:0.10,  fact:'As long as your hand!'},
       {name:'Atlas moth',     emoji:'🦋', size:0.25,  fact:'Wings as wide as a dinner plate!'},
     ]},
-  { id:'people', name:'Me & You', icon:'🧒', ground:true,
+  { id:'people', name:'Me & You', icon:'🧒', hint:'👆 Tap a person — or tap YOU to change', ground:true,
     caption:'A baby is tiny. A grown-up is <b>BIG!</b> You grow taller every year.',
     objects:[
       {name:'Newborn baby', draw:'person', size:0.5,  w:.42, cm:true, look:{sex:'girl',skin:0,hair:1,outfit:5}, fact:'You were this tiny once!'},
@@ -446,7 +449,7 @@ const LEVELS = [
       {name:'A grown-up',   draw:'person', size:1.75, w:.42, cm:true, look:{sex:'girl',skin:2,hair:3,outfit:1}, fact:'About as tall as a door.'},
       {name:'Tallest ever', draw:'person', size:2.72, w:.42, cm:true, look:{sex:'boy', skin:1,hair:2,outfit:4}, fact:'Robert Wadlow, the tallest person ever measured.'},
     ]},
-  { id:'trees', name:'Trees', icon:'🌳', ground:true,
+  { id:'trees', name:'Trees', icon:'🌳', hint:'👆 Tap a tree', ground:true,
     caption:'Some trees are small. Some trees are <b>BIG!</b>',
     objects:[
       {name:'You!',          draw:'person',   size:ME.h, w:.42, cm:true, me:true, fact:'Even a small tree is way taller than you.'},
@@ -455,7 +458,7 @@ const LEVELS = [
       {name:'Pine tree',     draw:'pine',     size:25,  w:.45, fact:'20 kids stacked up!'},
       {name:'Giant redwood', draw:'redwood',  size:110, w:.28, fact:'As tall as a 30-story building!'},
     ]},
-  { id:'mountains', name:'Mountains', icon:'⛰️', ground:true,
+  { id:'mountains', name:'Mountains', icon:'⛰️', hint:'👆 Tap a hill or a mountain', ground:true,
     caption:'Some mountains are small. Some are <b>BIG!</b>',
     objects:[
       {name:'A big hill',     draw:'hill',     size:500,  w:2.4, lay:.8, fact:'Roll all the way down!'},
@@ -463,7 +466,7 @@ const LEVELS = [
       {name:'Mount Fuji',     draw:'fuji',     size:3776, w:2.2, lay:.75, fact:'A volcano in Japan!'},
       {name:'Mount Everest',  draw:'everest',  size:8849, w:1.6, lay:.8, fact:'The tallest mountain on Earth!'},
     ]},
-  { id:'planets', name:'Planets', icon:'🪐', ground:false,
+  { id:'planets', name:'Planets', icon:'🪐', hint:'👆 Tap a planet or the Moon', ground:false,
     caption:'Some planets are small. Some are <b>BIG!</b>',
     objects:[
       {name:'The Moon', draw:'moon',    size:3475e3,   fact:"Earth's best buddy!"},
@@ -472,7 +475,7 @@ const LEVELS = [
       {name:'Neptune',  draw:'neptune', size:49244e3,  fact:'Windy, cold and blue!'},
       {name:'Jupiter',  draw:'jupiter', size:139820e3, fact:'1,300 Earths could fit inside!'},
     ]},
-  { id:'stars', name:'Stars', icon:'⭐', ground:false,
+  { id:'stars', name:'Stars', icon:'⭐', hint:'👆 Tap a star', ground:false,
     caption:'Some stars are small. Some are <b>BIG!</b>',
     objects:[
       {name:'The Sun',   draw:'star', color:'#ffd23f', size:1.39e9, fact:'Our star! 109 Earths wide.'},
@@ -481,7 +484,7 @@ const LEVELS = [
       {name:'Arcturus',  draw:'star', color:'#ff8c42', size:3.5e10, fact:'A red giant, 25 Suns wide!'},
       {name:'Aldebaran', draw:'star', color:'#ff6b4a', size:6.1e10, fact:'The eye of the bull. 44 Suns wide!'},
     ]},
-  { id:'galaxies', name:'Galaxies', icon:'🌌', ground:false,
+  { id:'galaxies', name:'Galaxies', icon:'🌌', hint:'👆 Tap a galaxy', ground:false,
     caption:'Some galaxies are small. Some are <b>BIG!</b>',
     objects:[
       {name:'Small Magellanic Cloud', draw:'blob',   size:7000*LY,   h:.7,  fact:'A little cloud of stars.'},
@@ -1229,6 +1232,7 @@ function goTo(i,opts){
 function arrive(i,fromLevel){
   tween=null; cam.z=LEVELS[i].z; current=i;
   setCaption(i); updateChips(i); updateButtons(); syncSlider(); updateMeter();
+  els.hint.textContent=LEVELS[i].hint; els.hint.hidden=false;   /* every scale says what to tap */
   if(pendingMaker&&i===PEOPLE){ pendingMaker=false; openMaker(); }
   else if(i===PEOPLE&&!metMe&&!playing) openMaker();
   if(i===LAST){ burstConfetti(); toast('WOW! You zoomed out ×'+bigRound(zoomFactor(cam.z))+'!'); }

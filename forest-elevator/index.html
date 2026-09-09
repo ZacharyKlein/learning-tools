@@ -238,28 +238,55 @@ body.peeking .caption{display:none}
   .meter-label{display:none}
   .badge{width:27px;height:27px;font-size:13px;border-width:2px}
   .badges{gap:4px}
-  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
-  .levels{grid-area:levels;gap:4px}
-  .lvl{width:34px;height:34px;font-size:18px;box-shadow:2px 2px 0 var(--ink)}
-  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px}
-  #btnBack{display:none}
+  /* one row per job, and every target at least 44px for a small finger */
+  .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "levels" "ctl";gap:8px}
+  .levels{grid-area:levels;gap:6px;justify-content:center;flex-wrap:wrap}
+  .lvl{width:44px;height:44px;font-size:22px;box-shadow:2px 2px 0 var(--ink)}
+  .buttons{grid-area:buttons;justify-content:center;gap:8px}
+  #btnBack .bl{display:none}     /* Back keeps its arrow and drops the word */
+  #btnBack{min-width:44px}
   .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
   .ctl-group{justify-content:center;gap:6px}
   .btn.big{font-size:17px;padding:10px 14px}
-  .btn{padding:8px 11px;font-size:14px}
-  .tog{font-size:13.5px;padding:7px 10px}
+  .btn{padding:8px 12px;font-size:14px;min-height:44px}
+  .tog{font-size:13.5px;padding:7px 12px;min-height:44px}
   .ctl-label{font-size:11px}
   .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
   .cap-level{font-size:17px}.cap-text{font-size:12.5px}
-  .hint{display:none}
+  /* the tap prompt is the only thing that says the picture can be tapped,
+     and half the challenges ask for a tap — so it stays on every screen */
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:52px}
   .card{width:calc(100% - 28px)}
   .card-thumb{width:56px;height:56px;flex-basis:56px}
   .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
   .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
-  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:6px 11px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:8px 14px;min-height:44px}
   body.questing .caption,body.carding .caption{display:none}
   body.peeking .caption{display:none}
   .stat span{font-size:12px;padding:4px 9px}
+}
+/* a phone on its side is wide but short. It is too wide for the small-screen
+   rules above, so the compact dock has to be spelled out again here — a partial
+   override lands half a layout on top of the desktop one, and things overflow. */
+@media (max-width:900px) and (max-height:520px){
+  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;justify-content:flex-start;gap:4px;flex-wrap:wrap}
+  .lvl{width:38px;height:38px;font-size:19px}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .ctl{grid-area:ctl;justify-content:center}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:38px}
+  .btn,.tog{min-height:38px}
+  .btn{padding:8px 11px;font-size:14px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:46px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
@@ -318,7 +345,7 @@ body.peeking .caption{display:none}
   <footer class="dock">
     <div class="levels" id="levels"></div>
     <div class="buttons">
-      <button class="btn" id="btnBack">▲ Up</button>
+      <button class="btn" id="btnBack" aria-label="Up">▲ <span class="bl">Up</span></button>
       <button class="btn big" id="btnNext">GO DOWN ▼</button>
       <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
     </div>
@@ -818,7 +845,7 @@ function drawRes(r){
   if(r.id==='mole'&&K>40&&CHAPTERS[current].id==='roots') label('sniff sniff',px,py-s*0.8,{size:11,display:true,dark:false});
 }
 function resHit(wx,wy){        // topmost tappable thing at a world point
-  const minR=22/K;
+  const minR=26/K;
   for(let i=RES.length-1;i>=0;i--){ const r=RES[i]; if(r.plant||r.sun||!resVisible(r)) continue; const [x,y]=resPos(r); if(dist(wx,wy,x,y)<Math.max(r.size*0.65,minR)) return r; }
   for(const r of RES){ if(r.sun&&dist(wx,wy,r.x,r.y)<Math.max(r.size*0.7,minR)) return r; }
   // plants overlap (a sapling stands inside a redbud's box), so the smallest box wins
@@ -884,22 +911,22 @@ function drawWorld(){
 const CHAPTERS=[
   {id:'canopy', icon:'🌳', name:'Canopy', title:'🌳 Top floor: the Canopy',
    caption:'The tallest trees make a leafy roof called the <b>canopy</b> (KAN-uh-pee). It catches almost all the sunlight!',
-   cam:{cx:20,cy:23,hm:15,minW:22}, ctls:['season']},
+   cam:{cx:20,cy:23,hm:15,minW:22}, ctls:['season'], hint:'👆 Tap the sun, the birds, the squirrel'},
   {id:'under', icon:'🌸', name:'Understory', title:'🌸 Middle floor: the Understory',
    caption:'Small trees live in the shade under the roof. Some bloom early in spring, before the roof closes. <b>Try Spring!</b>',
-   cam:{cx:19.5,cy:9,hm:13,minW:17}, ctls:['season']},
+   cam:{cx:19.5,cy:9,hm:13,minW:17}, ctls:['season'], hint:'👆 Tap the owl, the turkey, the little trees'},
   {id:'shrub', icon:'🌿', name:'Shrubs', title:'🌿 Low floor: Shrubs & Ferns',
    caption:'Bushes and ferns grow about as high as a grown-up. Deer nibble here, and birds hide their nests.',
-   cam:{cx:18.6,hm:5.6,minW:8.5,anchor:[0,0.88]}, ctls:['season']},
+   cam:{cx:18.6,hm:5.6,minW:8.5,anchor:[0,0.88]}, ctls:['season'], hint:'👆 Tap the deer, the cardinal, the bushes'},
   {id:'floor', icon:'🐢', name:'Forest floor', title:'🐢 Ground floor: the Forest Floor',
    caption:'It\'s dim and damp down here. Dead leaves pile up, and tiny helpers turn them back into soil. <b>Lift the log!</b>',
-   cam:{cx:15.75,hm:2.6,minW:4.0,anchor:[0,0.64]}, ctls:['season','floor']},
+   cam:{cx:15.75,hm:2.6,minW:4.0,anchor:[0,0.64]}, ctls:['season','floor'], hint:'👆 Tap the log, the turtle, the mushrooms'},
   {id:'roots', icon:'🪱', name:'Underground', title:'🪱 Basement: Underground',
    caption:'Roots hold the trees up and drink for them. Fungus threads connect the trees. Moles, worms, and sleepy bugs live here.',
-   cam:{cx:17.5,hm:6,minW:9,anchor:[0,0.13]}, ctls:['roots']},
+   cam:{cx:17.5,hm:6,minW:9,anchor:[0,0.13]}, ctls:['roots'], hint:'👆 Tap the mole, the worm, the fungus threads'},
   {id:'grow', icon:'🌱', name:'Grow a forest', title:'🌱 Grow a Forest!',
    caption:'One oak drops thousands of acorns. Hungry animals eat almost all of them. Can a seedling ever reach the top? <b>Try it!</b>',
-   cam:{cx:18.6,hm:25,minW:31,anchor:[0,0.86]}, ctls:['grow'], grow:true},
+   cam:{cx:18.6,hm:25,minW:31,anchor:[0,0.86]}, ctls:['grow'], grow:true, hint:'👆 Tap an acorn, a seedling or a tree'},
 ];
 // hm is the visible height in meters; `anchor:[y,frac]` pins a world height to a
 // fraction down the screen, so every floor frames the same way on a phone
@@ -1131,12 +1158,16 @@ const GROW=(()=>{
   function nextYear(){
     if(S.phase){ toast('Wait for the animals to finish!',2000); return; }
     closeCard(); S.year++; let grew=0, died=0, fell=null;
+    /* while the challenge is running, one seedling is guaranteed to make it and the
+       ladder is shorter — the lesson is that almost no acorn wins, not that the
+       child should press this button twenty times and still lose */
+    const helping = !!(quest.active && quest.active.id==='grow');
     S.plants.forEach(p=>{
       if(p.stage==='dead'){ p.dead++; return; }
       const L=lightAt(p.slot);
-      if(p.stage==='seedling'){ if(L>=0.5){ p.age++; if(rnd()<0.12){ p.stage='dead'; died++; p.why='deer'; } else if(p.age>=2){ p.stage='sapling'; p.age=0; p.hT=STAGE.sapling.h; p.r=STAGE.sapling.r; grew++; } } else if(rnd()<0.4){ p.stage='dead'; died++; p.why='shade'; } }
-      else if(p.stage==='sapling'){ if(L>=0.4){ p.age++; p.hT=Math.min(STAGE.young.h,p.hT+2.8); if(p.age>=3){ p.stage='young'; p.age=0; p.hT=STAGE.young.h; p.r=STAGE.young.r; grew++; } } else if(rnd()<0.15){ p.stage='dead'; died++; p.why='shade'; } }
-      else if(p.stage==='young'){ p.age++; p.hT=Math.min(STAGE.canopy.h,p.hT+2.6); if(p.age>=3){ p.stage='canopy'; p.hT=STAGE.canopy.h; p.r=STAGE.canopy.r; grew++; } }
+      if(p.stage==='seedling'){ if(L>=0.5){ p.age++; if(!helping&&rnd()<0.12){ p.stage='dead'; died++; p.why='deer'; } else if(p.age>=(helping?1:2)){ p.stage='sapling'; p.age=0; p.hT=STAGE.sapling.h; p.r=STAGE.sapling.r; grew++; } } else if(!helping&&rnd()<0.4){ p.stage='dead'; died++; p.why='shade'; } }
+      else if(p.stage==='sapling'){ if(L>=0.4){ p.age++; p.hT=Math.min(STAGE.young.h,p.hT+2.8); if(p.age>=(helping?2:3)){ p.stage='young'; p.age=0; p.hT=STAGE.young.h; p.r=STAGE.young.r; grew++; } } else if(!helping&&rnd()<0.15){ p.stage='dead'; died++; p.why='shade'; } }
+      else if(p.stage==='young'){ p.age++; p.hT=Math.min(STAGE.canopy.h,p.hT+2.6); if(p.age>=(helping?2:3)){ p.stage='canopy'; p.hT=STAGE.canopy.h; p.r=STAGE.canopy.r; grew++; } }
       else if(p.stage==='canopy'){ p.age++; if(p.age>300&&rnd()<0.2&&!fell&&!p.fall) fell=p; }
     });
     S.plants=S.plants.filter(p=>!(p.stage==='dead'&&p.dead>1));
@@ -1215,7 +1246,8 @@ function updateButtons(){
   const last=(current===CHAPTERS.length-1), grow=(current===CHAPTERS.length-2);
   els.btnNext.textContent=last?(narrowMQ.matches?'🔁 Top':'🔁 Back to the top'):grow?'STEP OUT ▶':'GO DOWN ▼';
   els.btnNext.classList.toggle('home',last);
-  els.btnBack.textContent=last?'◀ Back':'▲ Up';
+  els.btnBack.innerHTML=last?'◀ <span class="bl">Back</span>':'▲ <span class="bl">Up</span>';
+  els.btnBack.setAttribute('aria-label',last?'Back':'Up');
   const c=CHAPTERS[current], won=!!badges[c.id];
   els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
   els.btnQuest.classList.toggle('won',won);
@@ -1234,7 +1266,7 @@ function goTo(i){
 function switchTo(i){
   current=i; Object.assign(cam,camFor(CHAPTERS[i]));
   setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
-  if(CHAPTERS[i].id==='floor') els.hint.hidden=false;
+  els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;   /* every floor says what to tap */
 }
 els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
 els.btnBack.addEventListener('click',()=>goTo(current-1));
@@ -1296,6 +1328,7 @@ new ResizeObserver(resize).observe(stage);
 makeBeams();
 resize();
 setCaption(0); updateChips(); updateButtons(); drawMinimap(); refreshStat();
+els.hint.textContent=CHAPTERS[0].hint;
 requestAnimationFrame(frame);
 
 </script>

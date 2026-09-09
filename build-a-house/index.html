@@ -75,7 +75,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .rail::-webkit-scrollbar{display:none}
 .rail button{
   flex:0 0 auto;background:var(--white);border:3px solid var(--ink);border-radius:999px;
-  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:13px;
+  padding:9px 12px;min-height:44px;font-family:var(--display);font-weight:600;font-size:13px;
   box-shadow:3px 3px 0 var(--ink);display:flex;align-items:center;gap:6px;white-space:nowrap;
 }
 .rail button.on{background:var(--gold);transform:translate(1px,1px);box-shadow:2px 2px 0 var(--ink)}
@@ -123,6 +123,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .seg button, .pill{
   background:var(--white);border:3px solid var(--ink);border-radius:999px;padding:3px 11px;
   font-family:var(--display);font-weight:600;font-size:14px;box-shadow:2px 2px 0 var(--ink);
+  min-height:44px;
 }
 .seg button.on{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 rgba(43,35,80,.6)}
 .pill.go{background:var(--rocket);color:var(--white);box-shadow:0 4px 0 var(--rocket-dk),0 4px 0 3px var(--ink);
@@ -157,6 +158,7 @@ input[type=range]{accent-color:#ff6b35;width:130px}
 .nav button{
   background:var(--white);border:3px solid var(--ink);border-radius:16px;padding:6px 14px;
   font-family:var(--display);font-weight:700;font-size:16px;box-shadow:4px 4px 0 var(--ink);white-space:nowrap;
+  min-height:44px;
 }
 .nav button.next{background:var(--rocket);color:var(--white);text-shadow:2px 2px 0 var(--rocket-dk)}
 .nav button:disabled{opacity:.35;box-shadow:2px 2px 0 var(--ink)}
@@ -173,10 +175,29 @@ input[type=range]{accent-color:#ff6b35;width:130px}
 .finale p{font-weight:800;margin:0 0 16px}
 #confetti{position:fixed;inset:0;pointer-events:none;z-index:41}
 
+/* the footing, pitch and insulation sliders are the main control in this tool,
+   so give them a track and a thumb sized for a finger, not a mouse */
+.ctl input[type=range]{
+  -webkit-appearance:none;appearance:none;background:transparent;height:36px;width:140px;margin:0;
+}
+.ctl input[type=range]:focus-visible{outline:3px solid var(--sky);outline-offset:2px;border-radius:999px}
+.ctl input[type=range]::-webkit-slider-runnable-track{
+  height:10px;border-radius:999px;background:var(--paper-2);border:2.5px solid var(--ink);
+}
+.ctl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;
+  background:var(--rocket);border:3px solid var(--ink);cursor:pointer;
+}
+.ctl input[type=range]::-moz-range-track{
+  height:10px;border-radius:999px;background:var(--paper-2);border:2.5px solid var(--ink);
+}
+.ctl input[type=range]::-moz-range-thumb{
+  width:26px;height:26px;border-radius:50%;background:var(--rocket);border:3px solid var(--ink);cursor:pointer;
+}
 @media (max-width:760px){
   body{font-size:16px;overflow-x:hidden;overflow-y:auto}
   .app{padding:6px 8px 12px;gap:6px;height:auto;min-height:100dvh;grid-template-rows:auto auto auto auto}
-  .canvasbox{height:min(56vh,430px);min-height:290px}
+  .canvasbox{height:min(46vh,360px);min-height:250px}
   .quest{padding:6px 10px 8px}
   .quest .qhead{font-size:11px;letter-spacing:1.2px}
   .qopts button{border-radius:12px}
@@ -193,10 +214,20 @@ input[type=range]{accent-color:#ff6b35;width:130px}
   .caption{font-size:12.5px;line-height:1.25;padding:6px 9px;left:6px;right:6px;bottom:6px}
   .hud{font-size:11.5px;padding:4px 8px;left:6px;top:6px}
   .quest .q{font-size:14px;margin:2px 0 6px}
-  .qopts button{font-size:13px;padding:3px 9px}
+  .qopts button{font-size:13px;padding:8px 12px;min-height:44px}
+  /* the page scrolls on a phone, so pin the challenge where it cannot be missed */
+  .bottom{position:sticky;bottom:0;z-index:5;background:var(--paper);padding-block:6px}
   .nav{flex-direction:row}
-  .nav button{font-size:14px;padding:5px 11px}
+  .nav button{font-size:14px;padding:9px 12px;min-height:44px}
   input[type=range]{width:96px}
+}
+/* a phone on its side is only ~390px tall: the fixed-height layout squeezes the
+   picture down to nothing, so scroll here as well and pin the challenge */
+@media (max-height:560px){
+  body{overflow-x:hidden;overflow-y:auto}
+  .app{padding:6px 8px 12px;gap:6px;height:auto;min-height:100dvh;grid-template-rows:auto auto auto auto}
+  .canvasbox{height:min(74vh,320px);min-height:210px}
+  .bottom{position:sticky;bottom:0;z-index:5;background:var(--paper);padding-block:6px}
 }
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.01ms !important;transition-duration:.01ms !important}
@@ -645,7 +676,7 @@ function segmented(parent, items, value, onPick){
   btns.forEach(x=>x.classList.toggle('on',x.dataset.v===String(value)));
   return {btns, set(v){ btns.forEach(x=>x.classList.toggle('on',x.dataset.v===String(v))); }};
 }
-function slider(parent,min,max,step,value,onIn,fmt){
+function slider(parent,min,max,step,value,onIn,fmt){   /* styled in .ctl input[type=range] */
   const i=document.createElement('input'); i.type='range'; i.min=min;i.max=max;i.step=step;i.value=value;
   const out=document.createElement('span'); out.style.cssText='font-weight:800;min-width:56px;display:inline-block';
   const upd=()=>{ out.textContent = fmt? fmt(+i.value) : i.value; };
