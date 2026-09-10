@@ -391,7 +391,7 @@ body.nospeech .btn.read{display:none}
       <p class="tagline">Ride from the treetops down to the roots — and meet who lives on every floor.</p>
     </div>
     <div class="right">
-      <button class="btn read" id="btnRead" type="button" aria-pressed="true"><span class="rd-icon">🔊</span><span class="rd-word">Reading</span></button>
+      <button class="btn read off" id="btnRead" type="button" aria-pressed="false"><span class="rd-icon">🔇</span><span class="rd-word">Quiet</span></button>
       <div class="meter" id="meter" aria-live="polite">
         <div class="meter-label">Floor<br>badges</div>
         <div class="badges" id="badges" aria-label="one badge for each floor of the forest"></div>
@@ -1073,7 +1073,11 @@ function drawMinimap(){
 const Speech=(()=>{
   const has=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
   if(!has) document.body.classList.add('nospeech');
-  let on=true, voice=null, btn=null, current=null, pending=null, unlocked=false;
+  /* Starts quiet. A voice that begins talking the moment a page opens is a
+     surprise in a classroom or a car, and it talks over whoever is already
+     helping the child. The 🔊 switch is right there in the header, and each
+     panel has its own speaker button for reading one thing on demand. */
+  let on=false, voice=null, btn=null, current=null, pending=null, unlocked=false;
   function pickVoice(){
     if(!has) return;
     const vs=speechSynthesis.getVoices(); if(!vs.length) return;
