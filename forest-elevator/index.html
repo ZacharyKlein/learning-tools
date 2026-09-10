@@ -181,14 +181,24 @@ body.peeking .caption{display:none}
 
 /* ---------- dock ---------- */
 .dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
-.levels{display:flex;gap:5px}
+/* The chapter rail: an emoji AND a word, the one clearly better idea in
+   Build a House. A child should not have to guess that 🥕 means Roots, and on a
+   touch screen there is no hover to reveal a title attribute. It scrolls
+   sideways when the words do not fit, and the current chapter scrolls itself
+   into view. */
+.levels{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.levels::-webkit-scrollbar{display:none}
 .lvl{
-  width:42px;height:42px;border-radius:50%;border:3px solid var(--ink);
-  background:var(--white);font-size:22px;font-family:var(--emoji);line-height:1;padding:0;
-  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
 }
+.lvl .ic{font-size:20px;font-family:var(--emoji);line-height:1}
 .lvl:hover{transform:translateY(-2px)}
-.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.on{background:var(--gold)}
 .lvl.done{background:var(--paper-2)}
 .lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
 
@@ -240,8 +250,9 @@ body.peeking .caption{display:none}
   .badges{gap:4px}
   /* one row per job, and every target at least 44px for a small finger */
   .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "levels" "ctl";gap:8px}
-  .levels{grid-area:levels;gap:6px;justify-content:center;flex-wrap:wrap}
-  .lvl{width:44px;height:44px;font-size:22px;box-shadow:2px 2px 0 var(--ink)}
+  .levels{grid-area:levels;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+  .lvl{font-size:12px;padding:5px 11px 5px 8px;box-shadow:2px 2px 0 var(--ink)}
+  .lvl .ic{font-size:18px}
   .buttons{grid-area:buttons;justify-content:center;gap:8px}
   #btnBack .bl{display:none}     /* Back keeps its arrow and drops the word */
   #btnBack{min-width:44px}
@@ -272,8 +283,9 @@ body.peeking .caption{display:none}
    override lands half a layout on top of the desktop one, and things overflow. */
 @media (max-width:900px) and (max-height:520px){
   .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
-  .levels{grid-area:levels;justify-content:flex-start;gap:4px;flex-wrap:wrap}
-  .lvl{width:38px;height:38px;font-size:19px}
+  .levels{grid-area:levels;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
+  .lvl{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .lvl .ic{font-size:16px}
   .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
   .ctl{grid-area:ctl;justify-content:center}
   #btnBack .bl{display:none}
@@ -367,7 +379,7 @@ body.peeking .caption{display:none}
         <button class="tog acorn" id="btnAcorns">🌰 Drop 100 acorns!</button>
         <button class="tog grow" id="btnYear">⏩ Next year</button>
         <button class="tog storm" id="btnStorm">🌩️ Storm!</button>
-        <button class="tog" id="btnReset">↺ Start over</button>
+        <button class="tog" id="btnReset">↺ Reset the clearing</button>
       </div>
     </div>
   </footer>
@@ -1092,6 +1104,18 @@ function setSeason(s){ season=s; makeBeams(); ['sSpring','sSummer','sFall'].forE
 $('sSpring').addEventListener('click',()=>{ setSeason('spring'); toast('🌱 Spring! The roof is open — sun pours down. Dogwoods bloom!',3500); });
 $('sSummer').addEventListener('click',()=>{ setSeason('summer'); toast('☀️ Summer! The roof is closed. It\'s dim below.',3000); });
 $('sFall').addEventListener('click',()=>{ setSeason('fall'); toast('🍂 Fall! Leaves drop and pile up on the floor.',3000); });
+/* Everything a floor switches on is switched off again when the child leaves it.
+   Keeping this in one named function, rather than scattered through goTo, is what
+   stops a control from quietly following the child to the next floor — which is how
+   a lifted log ended up hiding the caption on every floor below it. Season and the
+   grown forest are deliberately NOT here: those are meant to persist. */
+function resetTransient(){
+  setLog(false);
+  rot=null;
+  fungusOn=false;
+  $('togFungus').classList.remove('on');
+  $('togFungus').textContent='🍄 Show the fungus web';
+}
 function setLog(v){ wantLog=v; $('btnLog').classList.toggle('on',v); $('btnLog').textContent=v?'🪵 Put the log back':'🪵 Lift the log'; document.body.classList.toggle('peeking',v); }
 $('btnLog').addEventListener('click',()=>setLog(!wantLog));
 $('btnRot').addEventListener('click',()=>{ rot={t0:now}; });
@@ -1116,7 +1140,7 @@ const GROW=(()=>{
   function lightAt(slot){ const x=SLOTS[slot]; let L=1; S.plants.forEach(p=>{ if(p.stage==='canopy'&&Math.abs(p.x-x)<=p.r+0.4) L*=0.12; else if(p.stage==='young'&&Math.abs(p.x-x)<=2.4) L*=0.5; }); return L; }
   const at=slot=>S.plants.find(p=>p.slot===slot&&p.stage!=='log'&&p.stage!=='dead');
   function dropAcorns(){
-    if(S.phase) return; const trees=S.plants.filter(p=>p.stage==='canopy'&&p.kind==='oak'); if(!trees.length){ toast('No oaks left to drop acorns! Press ↺ Start over.',3500); return; }
+    if(S.phase) return; const trees=S.plants.filter(p=>p.stage==='canopy'&&p.kind==='oak'); if(!trees.length){ toast('No oaks left to drop acorns! Press ↺ Reset the clearing.',3500); return; }
     closeCard(); S.phase={name:'fall',t:0}; S.acorns=[]; S.stats.dropped=100; S.stats.eaten=0; S.stats.sprouted=0;
     const keep=4+Math.floor(rnd()*4); const empty=SLOTS.map((_,i)=>i).filter(i=>!at(i));
     for(let i=0;i<100;i++){ const t=trees[i%trees.length]; const lucky=i<keep; let lx=t.x+(rnd()-.5)*t.r*2.4; let far=false;
@@ -1237,28 +1261,33 @@ const GROW=(()=>{
    NAVIGATION: chips, buttons, the elevator ride between floors
    ===================================================================== */
 CHAPTERS.forEach((c,i)=>{
-  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.setAttribute('aria-label','Go to '+c.name);
+  b.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:c.icon}));
+  b.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
   b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b;
 });
-function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateChips(){
+  CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
+  const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
 function updateButtons(){
   els.btnBack.disabled=(current===0);
   const last=(current===CHAPTERS.length-1), grow=(current===CHAPTERS.length-2);
-  els.btnNext.textContent=last?(narrowMQ.matches?'🔁 Top':'🔁 Back to the top'):grow?'STEP OUT ▶':'GO DOWN ▼';
+  els.btnNext.textContent=last?'🔁 Back to the start':grow?'STEP OUT ▶':'GO DOWN ▼';
   els.btnNext.classList.toggle('home',last);
   els.btnBack.innerHTML=last?'◀ <span class="bl">Back</span>':'▲ <span class="bl">Up</span>';
   els.btnBack.setAttribute('aria-label',last?'Back':'Up');
   const c=CHAPTERS[current], won=!!badges[c.id];
-  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.textContent=won?'✅ Badge earned':'🎯 Challenge!';
   els.btnQuest.classList.toggle('won',won);
   ['season','floor','roots','grow'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
 }
 let trans=null;   // {from,to,t0,dur,c0,c1,curtain}
 function goTo(i){
   i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
-  closeCard(); endQuest(); els.hint.hidden=true; rot=null;
-  setLog(false);            /* the log only stays lifted on the floor it belongs to,
-                               so `body.peeking` can never strand the caption */
+  closeCard(); endQuest(); els.hint.hidden=true;
+  resetTransient();
   const from=current, curtain=CHAPTERS[i].grow||CHAPTERS[from].grow;
   if(REDUCED){ switchTo(i); return; }
   trans={from,to:i,t0:performance.now(),dur:curtain?1100:1500,c0:{...cam},c1:camFor(CHAPTERS[i]),curtain};

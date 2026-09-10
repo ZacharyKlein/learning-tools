@@ -190,16 +190,26 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 
 /* ---------- dock ---------- */
 .dock{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
-.levels{display:flex;gap:5px;flex-wrap:wrap}
+/* The chapter rail: an emoji AND a word, the one clearly better idea in
+   Build a House. A child should not have to guess that 🥕 means Roots, and on a
+   touch screen there is no hover to reveal a title attribute. It scrolls
+   sideways when the words do not fit, and the current chapter scrolls itself
+   into view. */
+.levels{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.levels::-webkit-scrollbar{display:none}
 .lvl{
-  width:40px;height:40px;border-radius:50%;border:3px solid var(--ink);
-  background:var(--white);font-size:20px;font-family:var(--emoji);line-height:1;padding:0;
-  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
 }
-.lvl.won::after{content:"✓";position:absolute;right:-6px;top:-6px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+.lvl .ic{font-size:19px;font-family:var(--emoji);line-height:1}
 .lvl:hover{transform:translateY(-2px)}
-.lvl.on{background:var(--gold);transform:scale(1.12)}
+.lvl.on{background:var(--gold)}
 .lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
 
 .buttons{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-width:0}
 .btn{
@@ -252,18 +262,30 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .row{display:flex;flex-direction:column;gap:5px}
 .lbl{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase;opacity:.7}
 .opts{display:flex;flex-wrap:wrap;gap:7px}
-.sw{width:30px;height:30px;border-radius:50%;border:3px solid var(--ink);padding:0;box-shadow:2px 2px 0 rgba(43,35,80,.3)}
+/* Make yourself! is the signature moment of this tool for a six-year-old, and its
+   swatches were the smallest targets anywhere in the collection. */
+.sw{width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);padding:0;box-shadow:2px 2px 0 rgba(43,35,80,.3)}
 .sw.on{box-shadow:0 0 0 4px var(--gold),2px 2px 0 rgba(43,35,80,.3)}
-.seg{font-family:var(--display);font-weight:700;font-size:16px;line-height:1;border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:8px 14px;box-shadow:0 4px 0 var(--ink)}
+.seg{font-family:var(--display);font-weight:700;font-size:16px;line-height:1;border:3px solid var(--ink);border-radius:999px;background:var(--white);padding:8px 14px;min-height:44px;box-shadow:0 4px 0 var(--ink)}
 .seg.on{background:var(--gold)}
 .tall{display:flex;align-items:center;gap:10px}
 .tall>span{font-family:var(--display);font-weight:700;font-size:22px;min-width:84px;font-variant-numeric:tabular-nums}
+/* the bar still LOOKS 14px, but the control itself is 44px tall so the thumb is
+   easy to grab — the track moved into the pseudo-elements to make room */
 .tall input{
-  -webkit-appearance:none;appearance:none;flex:1;min-width:0;height:14px;border-radius:999px;margin:0;
-  background:linear-gradient(90deg,var(--sky),var(--grass));border:3px solid var(--ink);outline-offset:4px;
+  -webkit-appearance:none;appearance:none;flex:1;min-width:0;height:44px;margin:0;
+  background:transparent;border:0;outline-offset:4px;
 }
-.tall input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:30px;height:30px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);cursor:grab}
-.tall input::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);cursor:grab}
+.tall input::-webkit-slider-runnable-track{
+  height:14px;border-radius:999px;border:3px solid var(--ink);
+  background:linear-gradient(90deg,var(--sky),var(--grass));
+}
+.tall input::-moz-range-track{
+  height:14px;border-radius:999px;border:3px solid var(--ink);
+  background:linear-gradient(90deg,var(--sky),var(--grass));
+}
+.tall input::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;margin-top:-5px;width:30px;height:30px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);box-shadow:2px 2px 0 var(--ink);cursor:grab}
+.tall input::-moz-range-thumb{width:30px;height:30px;border-radius:50%;background:var(--gold);border:3px solid var(--ink);cursor:grab}
 .agehint{font-weight:800;font-size:14px;opacity:.8;min-height:19px}
 .btn.done{align-self:flex-start;background:var(--gold);font-size:20px;padding:10px 22px}
 @media (max-width:600px){
@@ -289,8 +311,9 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
   .meter-num{font-size:20px}.meter-num.long{font-size:13px}
   .pills{max-width:220px}
   .dock{grid-template-columns:1fr;gap:8px}
-  .levels{justify-content:center;flex-wrap:wrap;gap:6px}
-  .lvl{width:44px;height:44px;font-size:22px}
+  .levels{justify-content:flex-start;flex-wrap:nowrap;gap:6px}
+  .lvl{font-size:12px;padding:5px 11px 5px 8px}
+  .lvl .ic{font-size:18px}
   .btn{min-height:44px}
   .slider{min-width:0}
   .btn.big{font-size:22px;padding:12px 22px}
@@ -380,7 +403,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <button class="btn big" id="btnOut">🚀 ZOOM OUT!</button>
       <button class="btn" id="btnPlay">▶ Play</button>
       <button class="btn" id="btnMe">✨ Make me</button>
-      <button class="btn quest-btn" id="btnQuest">🎯 Challenge</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
     </div>
     <label class="slider"><span>Slide to zoom</span><input type="range" id="zoom" min="0" max="1000" value="0" aria-label="Zoom"></label>
   </footer>
@@ -1179,7 +1202,9 @@ const els={ zoomNum:$('zoomNum'), pills:$('pills'), capLevel:$('capLevel'), capT
   toast:$('toast'), levels:$('levels'), btnIn:$('btnIn'), btnOut:$('btnOut'), btnPlay:$('btnPlay'), zoom:$('zoom') };
 
 LEVELS.forEach((L,i)=>{
-  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.textContent=L.icon; b.title=L.name; b.setAttribute('aria-label','Go to '+L.name);
+  const b=document.createElement('button'); b.className='lvl'; b.type='button'; b.setAttribute('aria-label','Go to '+L.name);
+  b.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:L.icon}));
+  b.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:L.name}));
   b.addEventListener('click',()=>{ stopPlay(); goTo(i); });
   els.levels.appendChild(b); L.chip=b;
 });
@@ -1208,14 +1233,18 @@ function setCaption(i){
 }
 let toastTimer=null;
 function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
-function updateChips(i){ LEVELS.forEach((L,k)=>{ L.chip.classList.toggle('on',k===i); L.chip.classList.toggle('done',k<i); L.chip.classList.toggle('won',!!badges[L.id]); }); }
+function updateChips(i){
+  LEVELS.forEach((L,k)=>{ L.chip.classList.toggle('on',k===i); L.chip.classList.toggle('done',k<i); L.chip.classList.toggle('won',!!badges[L.id]); });
+  const on=LEVELS[i]&&LEVELS[i].chip;              /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
 function updateButtons(){
   els.btnIn.disabled=(current===0);
   const atEnd=(current===LAST);
-  els.btnOut.textContent=atEnd?'🔁 Start over!':'🚀 ZOOM OUT!';
+  els.btnOut.textContent=atEnd?'🔁 Back to the start':'🚀 ZOOM OUT!';
   els.btnOut.classList.toggle('home',atEnd);
   const won=!!badges[LEVELS[current].id];
-  qEls.btn.textContent=won?'✅ Challenge done!':'🎯 Challenge';
+  qEls.btn.textContent=won?'✅ Badge earned':'🎯 Challenge!';
   qEls.btn.classList.toggle('won',won);
 }
 

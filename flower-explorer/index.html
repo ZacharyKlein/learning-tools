@@ -204,14 +204,24 @@ body.questing .caption{display:none}
 
 /* ---------- dock ---------- */
 .dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
-.parts{display:flex;gap:5px}
+/* The chapter rail: an emoji AND a word, the one clearly better idea in
+   Build a House. A child should not have to guess that 🥕 means Roots, and on a
+   touch screen there is no hover to reveal a title attribute. It scrolls
+   sideways when the words do not fit, and the current chapter scrolls itself
+   into view. */
+.parts{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.parts::-webkit-scrollbar{display:none}
 .prt{
-  width:46px;height:46px;border-radius:50%;border:3px solid var(--ink);
-  background:var(--white);font-size:24px;font-family:var(--emoji);line-height:1;padding:0;
-  box-shadow:3px 3px 0 var(--ink);transition:transform .15s;position:relative;
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
 }
+.prt .ic{font-size:21px;font-family:var(--emoji);line-height:1}
 .prt:hover{transform:translateY(-2px)}
-.prt.on{background:var(--gold);transform:scale(1.12)}
+.prt.on{background:var(--gold)}
 .prt.done{background:var(--paper-2)}
 .prt.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:19px;height:19px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 12px/15px var(--display)}
 
@@ -285,8 +295,9 @@ body.nospeech .btn.read{display:none}
   .brand h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   /* one row per job, and every target at least 44px for a five-year-old's finger */
   .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "parts" "ctl";gap:8px}
-  .parts{grid-area:parts;gap:6px;justify-content:center;flex-wrap:wrap}
-  .prt{width:44px;height:44px;font-size:22px;box-shadow:2px 2px 0 var(--ink)}
+  .parts{grid-area:parts;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+  .prt{font-size:12px;padding:5px 11px 5px 8px;box-shadow:2px 2px 0 var(--ink)}
+  .prt .ic{font-size:18px}
   .buttons{grid-area:buttons;justify-content:center;gap:8px}
   #btnBack .bl{display:none}     /* Back keeps its arrow and drops the word */
   #btnBack{min-width:44px}
@@ -318,8 +329,9 @@ body.nospeech .btn.read{display:none}
    override lands half a layout on top of the desktop one, and things overflow. */
 @media (max-width:900px) and (max-height:520px){
   .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"parts buttons" "ctl ctl";gap:8px}
-  .parts{grid-area:parts;justify-content:flex-start;gap:4px;flex-wrap:wrap}
-  .prt{width:38px;height:38px;font-size:19px}
+  .parts{grid-area:parts;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
+  .prt{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .prt .ic{font-size:16px}
   .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
   .ctl{grid-area:ctl;justify-content:center}
   #btnBack .bl{display:none}
@@ -431,7 +443,7 @@ body.nospeech .btn.read{display:none}
       <div class="ctl-group" id="ctl-seeds" hidden>
         <button class="tog seed" id="btnPlant">🌱 Plant a seed</button>
         <button class="tog wind" id="btnBlow">💨 Blow the seeds</button>
-        <button class="tog" id="btnReset">↺ Start over</button>
+        <button class="tog" id="btnReset">↺ Reset the seeds</button>
       </div>
     </div>
   </footer>
@@ -1223,16 +1235,21 @@ const CHAPTERS=[
    cam:{cx:0,cy:1.06,hm:0.90,minW:1.25}, ctls:['petals'], hint:'👆 Tap the petals'},
   {id:'stem', icon:'🌿', name:'Stem & leaves', title:'🌿 Stem and Leaves',
    caption:'The <b>stem</b> holds the flower up high. The <b>leaves</b> catch sunshine and make the plant\'s food.',
-   cam:{cx:0.02,cy:0.58,hm:1.35,minW:1.7}, ctls:['stem'], hint:'👆 Tap the stem and the leaves'},
+   cam:{cx:0.02,cy:0.58,hm:1.35,minW:1.7}, ctls:['stem'], hint:'👆 Tap the stem and the leaves',
+   /* the challenge here turns the water off so the flower visibly wilts. That is fine
+      while the water button is on screen — but it must not leave with the child. */
+   leave(){ if(P.water<0.5) setWater(true); }},
   {id:'roots', icon:'🥕', name:'Roots', title:'🥕 Roots',
    caption:'Under the ground the <b>roots</b> drink water — and hold the whole plant down tight.',
-   cam:{cx:0.16,cy:-0.04,hm:1.22,minW:1.9}, ctls:['roots'], hint:'👆 Tap the roots'},
+   cam:{cx:0.16,cy:-0.04,hm:1.22,minW:1.9}, ctls:['roots'], hint:'👆 Tap the roots',
+   enter(){ soilSeeWant=1; }},
   {id:'pollen', icon:'🐝', name:'Pollen', title:'🐝 Pollen and the Bee',
    caption:'Yellow <b>pollen</b> has to get from one flower to the sticky middle of another. A bee gives it a ride!',
    cam:{cx:0.56,cy:1.00,hm:1.15,minW:2.1}, ctls:['pollen'], hint:'👆 Tap the middle of the flower'},
   {id:'seeds', icon:'🌻', name:'Seeds', title:'🌻 Seeds',
    caption:'When the petals fall, <b>seeds</b> are left behind. Every seed can grow into a whole new plant.',
-   cam:{cx:-0.18,cy:0.50,hm:1.85,minW:2.4}, ctls:['seeds'], hint:'👆 Tap a seed'},
+   cam:{cx:-0.18,cy:0.50,hm:1.85,minW:2.4}, ctls:['seeds'], hint:'👆 Tap a seed',
+   enter(){ if(P.seedMode<0.5) dropPetals(); seedWant=1; }},
 ];
 function camFor(c){
   const a=V.w/V.h, hm=Math.max(c.cam.hm,c.cam.minW/a);
@@ -1494,17 +1511,23 @@ els.spkQuest.addEventListener('click',()=>Speech.say(questSpeech(),els.spkQuest)
    MOVING BETWEEN PARTS
    ===================================================================== */
 CHAPTERS.forEach((c,i)=>{
-  const b=document.createElement('button'); b.className='prt'; b.type='button'; b.textContent=c.icon; b.title=c.name; b.setAttribute('aria-label','Go to '+c.name);
+  const b=document.createElement('button'); b.className='prt'; b.type='button'; b.setAttribute('aria-label','Go to '+c.name);
+  b.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:c.icon}));
+  b.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
   b.addEventListener('click',()=>goTo(i)); els.parts.appendChild(b); c.chip=b;
 });
-function updateChips(){ CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); }); }
+function updateChips(){
+  CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
+  const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
 function updateButtons(){
   els.btnBack.disabled=(current===0);
   const last=(current===CHAPTERS.length-1);
-  els.btnNext.textContent=last?'🔁 Start again':'NEXT PART ▶';
+  els.btnNext.textContent=last?'🔁 Back to the start':'NEXT PART ▶';
   els.btnNext.classList.toggle('home',last);
   const c=CHAPTERS[current], won=!!badges[c.id];
-  els.btnQuest.textContent=won?'✅ Challenge done!':'🎯 Challenge!';
+  els.btnQuest.textContent=won?'✅ Badge earned':'🎯 Challenge!';
   els.btnQuest.classList.toggle('won',won);
   ['petals','stem','roots','pollen','seeds'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
 }
@@ -1515,22 +1538,31 @@ function goTo(i){
   if(REDUCED){ switchTo(i); return; }
   trans={from:current,to:i,t0:performance.now(),dur:1100,c0:{...cam},c1:camFor(CHAPTERS[i])};
 }
+/* Nothing a part switches on is allowed to follow the child into the next part.
+   This used to be a chain of `if (id !== 'roots')`, `if (id !== 'pollen')` … and
+   that chain is exactly where the stuck wind, the thirsty flower and the wrong
+   toast came from: every new control meant remembering to add another negative.
+   Now the rule is positive and local — wipe everything, then let the part we are
+   arriving at switch on the one thing it needs, and let the part we are leaving
+   put back anything it borrowed. (Inside a Tree and How a Car Works have used
+   this shape all along; this brings Flower Explorer in line.) */
+function resetTransient(){
+  setWind(false);
+  rainWant=0;         $('togRain').classList.remove('on');
+  pollenZoomWant=0;   $('btnZoomPollen').classList.remove('on');
+  beeEyes=false;      $('togBeeEyes').classList.remove('on');
+  soilSeeWant=0;
+  seedWant=0; flyingSeeds.length=0;
+}
 function switchTo(i){
+  const leaving=CHAPTERS[current];
+  if(leaving.leave) leaving.leave();
+  resetTransient();
   current=i; Object.assign(cam,camFor(CHAPTERS[i]));
-  const id=CHAPTERS[i].id;
-  /* each part sets the scene it needs */
-  soilSeeWant=(id==='roots')?1:0;
-  setWind(false);                    /* the wind never follows you into another part */
-  if(id!=='roots'){ rainWant=0; $('togRain').classList.remove('on'); }
-  if(id==='seeds'){ if(seedWant<0.5) dropPetals(); seedWant=1; }
-  else{ seedWant=0; flyingSeeds.length=0; }
-  if(id!=='pollen'){ pollenZoomWant=0; $('btnZoomPollen').classList.remove('on'); }
-  /* the Stem challenge turns the water off on purpose, and that is fine while you are
-     still in the Stem part — but the water button lives only there, so never leave the
-     plant thirsty in a part where a child cannot give it a drink */
-  if(id!=='stem'&&P.water<0.5) setWater(true);
+  const c=CHAPTERS[i];
+  if(c.enter) c.enter();
   setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
-  els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;
+  els.hint.textContent=c.hint; els.hint.hidden=false;
 }
 function dropPetals(){
   if(REDUCED) return;
