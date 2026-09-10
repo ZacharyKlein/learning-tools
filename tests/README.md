@@ -2,6 +2,12 @@
 
     npm i -D playwright
     node tests/layout-check.mjs
+    node tests/smoke-check.mjs
+
+`smoke-check.mjs` walks every chapter of every tool and checks the things that
+have actually broken here: a caption that vanished, a tap prompt that was
+hidden, a challenge with no right answer, badges that did not survive a reload,
+read-aloud that did not start quiet, and console errors nobody saw.
 
 `layout-check.mjs` opens every tool, walks every chapter, and checks that no
 interactive control overlaps another or sits off the edge of the screen — at

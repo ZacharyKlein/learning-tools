@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Build a House</title>
+<meta name="description" content="How a house stands up and why it looks the way it does. Grades 3-4.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏠%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
@@ -949,7 +951,7 @@ function g1heaving(){ return G1.winter && G1.deep < CITIES[G1.city].frost && CIT
 
 CH.push({
   id:'ground', emoji:'🕳️', short:'Groundwork', title:'Groundwork',
-  blurb:'A house is heavy. Before anything else, you have to give that weight a place to land.',
+  blurb:'A house is heavy - about as much as a car pressing down on every single foot of the outside walls. Before anything else, you have to give that weight a place to land.',
   win:'Grounded! You spread the weight out and got under the ice.',
   init(){ G1.freeze=0; G1.sink=0; G1.tilt=0; },
   controls(){
@@ -1061,13 +1063,13 @@ CH.push({
     otxt(HOUSE_LB_PER_FT.toLocaleString()+(PHONE?' lb per foot':' lb on every foot of wall'),
       PHONE?10:Math.min(cx+fw*0.55+10, W-232), gy+(PHONE?14:18), PHONE?11.5:13.5, BAD, 'left',4);
     otxt(press.toLocaleString()+' lb on each square foot of '+S.name.toLowerCase(), 14, H-CH1-32, PHONE?11.5:13.5, okc?'#1c6b3a':BAD,'left',4);
-    otxt(S.name+' can hold '+S.cap.toLocaleString(), 14, H-CH1-14, PHONE?11.5:13.5, INK,'left',4);
+    otxt(S.name+' can hold '+S.cap.toLocaleString()+(PHONE?'':' lb per square foot'), 14, H-CH1-14, PHONE?11.5:13.5, INK,'left',4);
     hit('soil', 0, fy+fh, W, Math.min(H-(fy+fh), 90));
     if(heaving && G1.freeze>4)
       otxt('ice pushing up!', Math.min(cx+fw*.62, W-140), fy+fh+26, PHONE?12:14, '#1c5f8f','left',4);
     setHud('Footing: <span class="v">'+G1.wide+'&quot; wide</span> · bottom <span class="v">'+G1.deep+'&quot; down</span>'+
       '<br>Frost line here: <span class="v">'+C.frost+'&quot;</span>');
-    if(sinking) setCaption('<b>It is sinking.</b> '+g1press().toLocaleString()+' lb is landing on every square foot, and '+S.name.toLowerCase()+' can only hold '+S.cap.toLocaleString()+'. Make the footing wider — or find better dirt.');
+    if(sinking) setCaption('<b>It is sinking.</b> '+g1press().toLocaleString()+' lb is landing on every square foot, and '+S.name.toLowerCase()+' can only hold '+S.cap.toLocaleString()+' lb. Make the footing wider — or find better dirt.');
     else if(heaving) setCaption('<b>Frost heave!</b> The footing is sitting inside ground that freezes. Water turns to ice, ice takes up more room, and it lifts one corner of the house.');
     else if(G1.winter) setCaption('<b>Solid all winter.</b> The bottom of the footing is below the frozen layer, so ice can never get underneath it and lift.');
     else setCaption('The <b>footing</b> is a wide concrete foot. It takes the weight of the whole house and spreads it out so the dirt can carry it. <i>Tap the picture to look at a part.</i>');

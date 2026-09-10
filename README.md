@@ -3,15 +3,20 @@
 Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 **https://zacharyklein.github.io/learning-tools/**
 
-| Tool | Audience | Link |
+| Tool | Grades | |
 |---|---|---|
-| **Zoom Out!** — orders of magnitude, from a drop of pond water to the galaxies. Build your own character at the *Me & You* level, then zoom out level by level and watch the "big" things from before shrink into one tiny dot. A challenge at every scale earns a badge. | Grades 1–3 | [zoom-out/](https://zacharyklein.github.io/learning-tools/zoom-out/) |
-| **Inside a Tree** — how a tree works: photosynthesis inside a leaf, water climbing up from the roots, growth rings, kinds of wood, and the Missouri animals that live in an oak. A small challenge in every part earns a badge. | Grades 3–4 | [inside-a-tree/](https://zacharyklein.github.io/learning-tools/inside-a-tree/) |
-| **Forest Elevator** — the layers of a Missouri forest, ridden like a building: canopy, understory, shrubs, forest floor, underground, and a clearing where you grow a forest from acorns. A challenge on every floor earns a badge. | Grades 1–3 | [forest-elevator/](https://zacharyklein.github.io/learning-tools/forest-elevator/) |
-| **Flower Explorer** — the parts of a flower and the job each one does: petals that call the bees, a stem that carries water, leaves that catch the sun, roots that drink and hold on, pollen that rides a bee, and seeds that start it all over. A 🔊 button reads every word aloud for pre-readers. | Grades K–1 | [flower-explorer/](https://zacharyklein.github.io/learning-tools/flower-explorer/) |
-| **How a Car Works** — the engine's four strokes, gears trading speed for twisting force, the differential in a turn, stopping distances and what a seat belt is for, rack-and-pinion steering, and where the energy goes in a gas car versus an electric one. | Grades 3–4 | [how-a-car-works/](https://zacharyklein.github.io/learning-tools/how-a-car-works/) |
-| **Flyway** — bird migration, from a Missouri backyard to the tropics and back: why birds really leave (the food, not the cold), the Mississippi Flyway that runs over Missouri, the fat a hummingbird burns to cross the Gulf, the four compasses birds steer by, the night sky they cross over a lit-up city, and who shows up in Missouri in each season. A challenge at every stop earns a badge. | Grades 3–4 | [flyway/](https://zacharyklein.github.io/learning-tools/flyway/) |
-| **Build a House** — how a house stands up and why it looks the way it does: footings spreading weight over clay or sand and reaching below the frost line, a stud wall that folds flat until a diagonal turns it into triangles, roof shapes argued out by snow, wind and sun, a twelve-step build that fails visibly when you take the jobs out of order, and eight American styles with the three clues that give each one away. Six parts, six badges. | Grades 3–4 | [build-a-house/](https://zacharyklein.github.io/learning-tools/build-a-house/) |
+| **Zoom Out!** | 1–3 | [zoom-out/](https://zacharyklein.github.io/learning-tools/zoom-out/) |
+| **Inside a Tree** | 3–4 | [inside-a-tree/](https://zacharyklein.github.io/learning-tools/inside-a-tree/) |
+| **Forest Elevator** | 1–3 | [forest-elevator/](https://zacharyklein.github.io/learning-tools/forest-elevator/) |
+| **How a Car Works** | 3–4 | [how-a-car-works/](https://zacharyklein.github.io/learning-tools/how-a-car-works/) |
+| **Flower Explorer** | K–1 | [flower-explorer/](https://zacharyklein.github.io/learning-tools/flower-explorer/) |
+| **Flyway** | 3–4 | [flyway/](https://zacharyklein.github.io/learning-tools/flyway/) |
+| **Build a House** | 3–4 | [build-a-house/](https://zacharyklein.github.io/learning-tools/build-a-house/) |
+
+What each one is about lives in the `TOOLS` array in the root `index.html`, and
+the landing page renders its cards from there. This table deliberately does not
+repeat those descriptions — it used to, and the two copies had already drifted
+apart in wording and order.
 
 ## How it's organized
 
@@ -29,6 +34,61 @@ The root `index.html` is the landing page. Its cards are rendered from a single 
 ```
 
 `grades` is `[low, high]`, with `0` for kindergarten; it drives both the chip and the grade filter. A new value in `subjects` gets its own filter button automatically.
+
+## House rules
+
+A child who has played one of these should already know how to play the next
+one. The eighth tool inherits these.
+
+**Words.** One label per action, everywhere: **Back** and **Next**;
+**🔁 Back to the start** on the last chapter (it wraps round — say so, don't
+say "start over", which sounds like it throws work away); **✅ Badge earned**
+for a finished challenge; **↺ Reset the &lt;thing&gt;** only for a control that
+genuinely resets a simulation, and name the thing it resets.
+
+Two deliberate exceptions, because they carry the metaphor the tool is built
+on: Forest Elevator says **GO DOWN / Up / STEP OUT**, and Zoom Out says
+**ZOOM OUT! / Zoom in**.
+
+**The picture.** Every chapter sets a hint naming what to tap there, and it
+stays visible at every screen size — it is the only thing that says the picture
+is tappable, and about half of all challenge steps require a tap.
+
+**Touch.** Every interactive target is at least 44px at phone and tablet width.
+Canvas hit radii too, not just DOM buttons.
+
+**The dock.** The chapter rail gets a row of its own and scrolls inside it; the
+buttons and the chapter controls share the row below. Never size the rail's grid
+column to its content — an `auto` track sizes to max-content and will shove the
+other columns into each other. `tests/layout-check.mjs` exists because that
+shipped once.
+
+**Chapter state.** Wipe all transient state on every move, then let the chapter
+being entered switch on what it needs and the chapter being left put back what
+it borrowed. No chains of `if (id !== 'roots')` — every new control means
+another negative to remember, and forgetting one is how a lifted log ended up
+hiding the caption on every floor below it.
+
+**Progress.** Badges persist to `localStorage` under
+`learningTools.<tool>.badges`, restored silently. The ↺ in the badge meter
+clears them so a second child can start fresh; it takes two taps.
+
+**Read-aloud** (Grades 1–3 and below: Flower Explorer, Forest Elevator, Zoom
+Out). Starts quiet — a voice talking as the page loads is a surprise in a
+classroom and talks over whoever is helping. The choice is remembered under
+`learningTools.<tool>.readAloud`. Each panel's own 🔊 reads that panel on demand
+even while quiet.
+
+**Announcements.** The badge meter, the challenge feedback line and the toast
+are all `aria-live` regions.
+
+**Keyboard.** Each chapter renders a list of buttons named for the things in the
+picture, off-screen until focused, wired to the same handler as a tap — so a
+"tap the ..." challenge step can be answered without a pointer. Done in Flower
+Explorer and Forest Elevator; the other five still need it.
+
+**Testing.** Every tool exposes `window.<toolName>` for the headless tests. Run
+`node tests/layout-check.mjs` before pushing.
 
 ## Publishing
 
