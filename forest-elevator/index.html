@@ -339,6 +339,23 @@ body.nospeech .btn.read{display:none}
   .btn.read{padding:7px 10px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
   .btn.read .rd-word{display:none}
 }
+/* ---------- a keyboard path to everything the picture lets you tap ----------
+   About half of every challenge is "tap the …", and a canvas is invisible to
+   the keyboard, so those badges simply could not be earned without a pointer.
+   These buttons carry the same names as the things in the picture. They are
+   off-screen until focused, then appear as a chip over the drawing, so Tab
+   walks the scene and Enter opens the card or answers the challenge. */
+.taplist{position:absolute;left:14px;bottom:58px;z-index:4;pointer-events:none}
+.taplist button{
+  position:absolute;width:1px;height:1px;padding:0;margin:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;
+}
+.taplist button:focus-visible{
+  position:static;width:auto;height:auto;clip:auto;overflow:visible;pointer-events:auto;
+  padding:8px 14px;min-height:44px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1;box-shadow:3px 3px 0 var(--ink);outline:3px solid var(--sky);outline-offset:3px;
+}
 </style>
 </head>
 <body>
@@ -394,6 +411,7 @@ body.nospeech .btn.read{display:none}
         <div class="q-opts" id="qOpts"></div>
         <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
       </div>
+      <div class="taplist" id="taplist" role="group" aria-label="Things you can tap on this floor"></div>
       <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
     </div>
   </main>
@@ -1238,7 +1256,7 @@ function resetTransient(){
   $('togFungus').classList.remove('on');
   $('togFungus').textContent='🍄 Show the fungus web';
 }
-function setLog(v){ wantLog=v; $('btnLog').classList.toggle('on',v); $('btnLog').textContent=v?'🪵 Put the log back':'🪵 Lift the log'; document.body.classList.toggle('peeking',v); }
+function setLog(v){ wantLog=v; buildTapList(); $('btnLog').classList.toggle('on',v); $('btnLog').textContent=v?'🪵 Put the log back':'🪵 Lift the log'; document.body.classList.toggle('peeking',v); }
 $('btnLog').addEventListener('click',()=>setLog(!wantLog));
 $('btnRot').addEventListener('click',()=>{ rot={t0:now}; });
 $('togFungus').addEventListener('click',()=>{ fungusOn=!fungusOn; $('togFungus').classList.toggle('on',fungusOn); $('togFungus').textContent=fungusOn?'🍄 Hide the fungus web':'🍄 Show the fungus web'; if(fungusOn) toast('🍄 Water and minerals go to the trees; sugar comes back!',4000); });
@@ -1388,6 +1406,22 @@ CHAPTERS.forEach((c,i)=>{
   b.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
   b.addEventListener('click',()=>goTo(i)); els.levels.appendChild(b); c.chip=b;
 });
+function buildTapList(){
+  const host=$('taplist'); if(!host) return;
+  host.innerHTML='';
+  const c=CHAPTERS[current];
+  if(c.grow) return;                       /* the clearing is built from acorns, not a fixed cast */
+  /* resVisible() waits for the log to finish rising; the keyboard list should
+     follow the intent, not the animation, or it rebuilds a beat too early */
+  RES.filter(r=>r.floor===c.id&&(r.underLog?wantLog:true)).forEach(r=>{
+    const b=document.createElement('button'); b.type='button'; b.textContent=r.name;
+    b.addEventListener('click',()=>{
+      if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(r)) return; }
+      showCard(r);
+    });
+    host.appendChild(b);
+  });
+}
 function updateChips(){
   CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
   const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
@@ -1418,6 +1452,7 @@ function switchTo(i){
   current=i; Object.assign(cam,camFor(CHAPTERS[i]));
   setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
   els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;   /* every floor says what to tap */
+  buildTapList();
 }
 els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
 els.btnBack.addEventListener('click',()=>goTo(current-1));
@@ -1528,6 +1563,7 @@ $('btnWipe').addEventListener('click',()=>{
 });
 setCaption(0); updateChips(); updateButtons(); drawMinimap(); refreshStat();
 els.hint.textContent=CHAPTERS[0].hint;
+buildTapList();
 restoreBadges();
 requestAnimationFrame(frame);
 

@@ -359,6 +359,23 @@ body.nospeech .btn.read{display:none}
    badges, so it should be hard to hit by accident and takes two taps anyway */
 .wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
 .wipe[hidden]{display:none}
+/* ---------- a keyboard path to everything the picture lets you tap ----------
+   About half of every challenge is "tap the …", and a canvas is invisible to
+   the keyboard, so those badges simply could not be earned without a pointer.
+   These buttons carry the same names as the things in the picture. They are
+   off-screen until focused, then appear as a chip over the drawing, so Tab
+   walks the scene and Enter opens the card or answers the challenge. */
+.taplist{position:absolute;left:14px;bottom:58px;z-index:4;pointer-events:none}
+.taplist button{
+  position:absolute;width:1px;height:1px;padding:0;margin:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;
+}
+.taplist button:focus-visible{
+  position:static;width:auto;height:auto;clip:auto;overflow:visible;pointer-events:auto;
+  padding:8px 14px;min-height:44px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1;box-shadow:3px 3px 0 var(--ink);outline:3px solid var(--sky);outline-offset:3px;
+}
 </style>
 </head>
 <body>
@@ -419,6 +436,7 @@ body.nospeech .btn.read{display:none}
         <div class="q-opts" id="qOpts"></div>
         <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
       </div>
+      <div class="taplist" id="taplist" role="group" aria-label="Things you can tap in this part"></div>
       <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
     </div>
   </main>
@@ -1542,6 +1560,27 @@ CHAPTERS.forEach((c,i)=>{
   b.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
   b.addEventListener('click',()=>goTo(i)); els.parts.appendChild(b); c.chip=b;
 });
+/* what the picture offers in each part, in the order a child would meet it */
+const TAPPABLE={
+  petals:['petal','pollen','stigma','leaf','stem'],
+  stem:  ['stem','leaf','petal','soil'],
+  roots: ['roots','roothair','soil','noroot','stem'],
+  pollen:['bee','pollen','stigma','petal'],
+  seeds: ['seed','sprout','soil','stem'],
+};
+function buildTapList(){
+  const host=$('taplist'); if(!host) return;
+  host.innerHTML='';
+  (TAPPABLE[CHAPTERS[current].id]||[]).forEach(key=>{
+    const item=ITEMS[key]; if(!item) return;
+    const b=document.createElement('button'); b.type='button'; b.textContent=item.name;
+    b.addEventListener('click',()=>{
+      if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+      showCard(item);
+    });
+    host.appendChild(b);
+  });
+}
 function updateChips(){
   CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
   const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
@@ -1589,6 +1628,7 @@ function switchTo(i){
   if(c.enter) c.enter();
   setCaption(i); updateChips(); updateButtons(); drawMinimap(); refreshStat();
   els.hint.textContent=c.hint; els.hint.hidden=false;
+  buildTapList();
 }
 function dropPetals(){
   if(REDUCED) return;
@@ -1706,6 +1746,7 @@ $('btnWipe').addEventListener('click',()=>{
 });
 setCaption(0); updateChips(); updateButtons(); drawMinimap(); refreshStat();
 els.hint.textContent=CHAPTERS[0].hint;
+buildTapList();
 restoreBadges();
 requestAnimationFrame(frame);
 </script>
