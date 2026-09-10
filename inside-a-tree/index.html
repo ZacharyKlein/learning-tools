@@ -88,7 +88,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 /* ---------- stage ---------- */
 .stage-wrap{min-height:0;display:flex}
 .stage{
-  position:relative;flex:1;min-height:300px;
+  position:relative;flex:1;min-height:160px;
   border:5px solid var(--ink);border-radius:26px;overflow:hidden;
   background:#bfe4ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
 }
@@ -183,13 +183,27 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
 
 /* ---------- dock ---------- */
-.dock{display:grid;grid-template-columns:auto auto minmax(0,1fr);align-items:center;gap:14px}
+/* Three groups no longer fit on one row: once the chips carry words the rail
+   needs real width, and squeezing all three together is what put the controls
+   on top of the buttons. So the rail gets a row of its own and scrolls within
+   it, and the buttons and chapter controls share the row below. A grid item's
+   default min-width is min-content, so the min-width:0 on the rail is what
+   lets it scroll instead of pushing the dock wider than the screen. */
+.dock{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:"levels levels" "buttons ctl";
+  align-items:center;gap:10px 14px;
+}
+.dock > .levels,.dock > .parts{grid-area:levels}
+.dock > .buttons{grid-area:buttons}
+.dock > .ctl{grid-area:ctl}
 /* The chapter rail: an emoji AND a word, the one clearly better idea in
    Build a House. A child should not have to guess that 🥕 means Roots, and on a
    touch screen there is no hover to reveal a title attribute. It scrolls
    sideways when the words do not fit, and the current chapter scrolls itself
    into view. */
-.levels{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;
+.levels{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;
   scrollbar-width:none;max-width:100%;padding:3px 2px}
 .levels::-webkit-scrollbar{display:none}
 .lvl{
@@ -205,7 +219,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .lvl.done{background:var(--paper-2)}
 .lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
 
-.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0}
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .btn{
   font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
   background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
@@ -224,7 +238,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 .btn.quest-btn.won{background:var(--grass);color:var(--white)}
 
 /* chapter controls: one group shown at a time */
-.ctl{display:flex;justify-content:flex-end;min-width:0}
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
 .ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
 .ctl-group[hidden]{display:none}
 .ctl-label{font-family:var(--display);font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;opacity:.8}
@@ -283,11 +297,15 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
   body.questing .caption,body.carding .caption{display:none}
   .stat span{font-size:12px;padding:4px 9px}
 }
-/* a phone on its side is wide but short. It is too wide for the small-screen
+/* Any short viewport — a phone on its side, or a stubby desktop window. It may be
+   too wide for the small-screen
    rules above, so the compact dock has to be spelled out again here — a partial
    override lands half a layout on top of the desktop one, and things overflow. */
-@media (max-width:900px) and (max-height:520px){
-  .dock{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+@media (max-height:560px){   /* short is what matters here, not narrow: a stubby desktop window needs this too */
+  /* the picture is a flex child with a min-height; on a really short screen that
+     min let it grow past its own grid row and sit on top of the dock */
+  .stage{min-height:0}
+  .dock{grid-template-columns:minmax(72px,1fr) auto;grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
   .levels{grid-area:levels;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
   .lvl{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
   .lvl .ic{font-size:16px}
@@ -318,6 +336,13 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
    badges, so it should be hard to hit by accident and takes two taps anyway */
 .wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
 .wipe[hidden]{display:none}
+/* Every .btn is nowrap so the labels read cleanly, but that stops the wide one
+   ('Back to the start') from ever shrinking: at a middling width it overflowed
+   its column and landed on top of the rail. Let the big button wrap its words
+   instead — there is room on a wide screen, and on a squeezed one two lines
+   beat two overlapping controls. */
+.btn.big{white-space:normal;text-wrap:balance}
+.buttons > .btn{min-width:0;max-width:100%}
 </style>
 </head>
 <body>

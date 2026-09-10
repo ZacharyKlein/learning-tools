@@ -201,7 +201,7 @@ input[type=range]{accent-color:#ff6b35;width:130px}
   .quest{padding:6px 10px 8px}
   .quest .qhead{font-size:11px;letter-spacing:1.2px}
   .qopts button{border-radius:12px}
-  .controls{min-height:0}
+  .controls{min-height:0;padding-bottom:200px}   /* room to scroll clear of the pinned challenge bar */
   .ctl{flex-wrap:wrap;max-width:100%}
   .seg{flex-wrap:wrap}
   .ctl > span.lbl{width:100%}
@@ -227,6 +227,7 @@ input[type=range]{accent-color:#ff6b35;width:130px}
   body{overflow-x:hidden;overflow-y:auto}
   .app{padding:6px 8px 12px;gap:6px;height:auto;min-height:100dvh;grid-template-rows:auto auto auto auto}
   .canvasbox{height:min(74vh,320px);min-height:210px}
+  .controls{padding-bottom:200px}   /* room to scroll clear of the pinned challenge bar */
   .bottom{position:sticky;bottom:0;z-index:5;background:var(--paper);padding-block:6px}
 }
 @media (prefers-reduced-motion:reduce){

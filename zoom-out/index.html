@@ -131,7 +131,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 /* ---------- stage ---------- */
 .stage-wrap{min-height:0;display:flex}
 .stage{
-  position:relative;flex:1;min-height:300px;
+  position:relative;flex:1;min-height:160px;
   border:5px solid var(--ink);border-radius:26px;overflow:hidden;
   background:var(--space);
   box-shadow:6px 6px 0 var(--ink);
@@ -189,13 +189,27 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .toast[hidden]{display:none}
 
 /* ---------- dock ---------- */
-.dock{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px}
+/* Three groups no longer fit on one row: once the chips carry words the rail
+   needs real width, and squeezing all three together is what put the controls
+   on top of the buttons. So the rail gets a row of its own and scrolls within
+   it, and the buttons and chapter controls share the row below. A grid item's
+   default min-width is min-content, so the min-width:0 on the rail is what
+   lets it scroll instead of pushing the dock wider than the screen. */
+.dock{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  grid-template-areas:"levels" "buttons" "slider";
+  align-items:center;gap:10px 14px;
+}
+.dock > .levels,.dock > .parts{grid-area:levels}
+.dock > .buttons{grid-area:buttons}
+.dock > .slider{grid-area:slider}
 /* The chapter rail: an emoji AND a word, the one clearly better idea in
    Build a House. A child should not have to guess that 🥕 means Roots, and on a
    touch screen there is no hover to reveal a title attribute. It scrolls
    sideways when the words do not fit, and the current chapter scrolls itself
    into view. */
-.levels{display:flex;align-items:center;gap:6px;overflow-x:auto;overflow-y:hidden;
+.levels{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;
   scrollbar-width:none;max-width:100%;padding:3px 2px}
 .levels::-webkit-scrollbar{display:none}
 .lvl{
@@ -211,7 +225,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .lvl.done{background:var(--paper-2)}
 .lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
 
-.buttons{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;min-width:0}
+.buttons{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap}
 .btn{
   font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
   background:var(--white);padding:9px 15px;font-size:16px;line-height:1;
@@ -231,7 +245,8 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
 .btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
 .btn.on{background:var(--gold)}
 
-.slider{display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;min-width:150px}
+.slider{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:10px;font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;min-width:0}
+.slider input{flex:1;min-width:0;max-width:520px}
 .slider input{
   -webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:999px;
   background:linear-gradient(90deg,var(--grass),var(--sky) 45%,var(--space));
@@ -322,6 +337,30 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
   /* the tap prompt is the only thing that says the picture can be tapped */
   .hint{left:14px;right:14px;text-align:center;bottom:10px;font-size:12.5px;padding:5px 10px}
 }
+/* Any short viewport — a phone on its side, or a stubby desktop window. Three dock rows plus the header do not
+   fit in 390px, and the picture would be squeezed until the caption landed on the
+   rail. Put the buttons and the slider back on one row and shrink everything. */
+@media (max-height:560px){   /* short is what matters here, not narrow: a stubby desktop window needs this too */
+  /* the picture is a flex child with a min-height; on a really short screen that
+     min let it grow past its own grid row and sit on top of the dock */
+  .stage{min-height:0}
+  .dock{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"levels levels" "buttons slider";gap:6px 10px}
+  .lvl{min-height:36px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .lvl .ic{font-size:16px}
+  .btn{min-height:36px;padding:7px 10px;font-size:14px}
+  .btn.big{font-size:16px;padding:8px 14px}
+  .slider>span{display:none}
+  .slider input{max-width:260px}
+  .brand h1{font-size:22px}
+  .brand .tagline{display:none}
+  .meter{min-height:38px;padding:3px 8px}
+  .meter-label{display:none}
+  .badge{width:26px;height:26px;font-size:13px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .spk{width:36px;height:36px;font-size:16px}
+  .hint{left:14px;right:14px;bottom:10px;text-align:center;font-size:12.5px;padding:5px 10px}
+}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
 }
@@ -361,6 +400,13 @@ body.nospeech .btn.read{display:none}
   .btn.read{padding:7px 10px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
   .btn.read .rd-word{display:none}
 }
+/* Every .btn is nowrap so the labels read cleanly, but that stops the wide one
+   ('Back to the start') from ever shrinking: at a middling width it overflowed
+   its column and landed on top of the rail. Let the big button wrap its words
+   instead — there is room on a wide screen, and on a squeezed one two lines
+   beat two overlapping controls. */
+.btn.big{white-space:normal;text-wrap:balance}
+.buttons > .btn{min-width:0;max-width:100%}
 </style>
 </head>
 <body>
