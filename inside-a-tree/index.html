@@ -308,6 +308,16 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
 @media (prefers-reduced-motion:reduce){
   *{animation:none !important;transition:none !important}
 }
+/* ---------- badges that survive a closed tab, and the way to clear them ---------- */
+.wipe{
+  width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:700;font-size:15px;
+  line-height:1;padding:0;box-shadow:2px 2px 0 var(--ink);white-space:nowrap;
+}
+/* deliberately the one small target in the collection: it throws away a child's
+   badges, so it should be hard to hit by accident and takes two taps anyway */
+.wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
+.wipe[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -321,6 +331,7 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
       <div class="meter" id="meter" aria-live="polite">
         <div class="meter-label">Tree<br>badges</div>
         <div class="badges" id="badges" aria-label="one badge for each part of the tree"></div>
+        <button class="wipe" id="btnWipe" type="button" hidden aria-label="Clear all badges and start fresh">↺</button>
       </div>
       <div class="map" aria-hidden="true">
         <canvas id="minimap" width="128" height="120"></canvas>
@@ -353,9 +364,9 @@ button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
         <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
         <div class="q-text" id="qText"></div>
         <div class="q-opts" id="qOpts"></div>
-        <div class="q-fb" id="qFb"></div>
+        <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
       </div>
-      <div class="toast" id="toast" hidden></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
     </div>
   </main>
 
@@ -675,7 +686,7 @@ els.cardClose.addEventListener('click',closeCard);
 
 /* ---------- badges ---------- */
 function award(id){
-  if(badges[id]) return; badges[id]=true;
+  if(badges[id]) return; badges[id]=true; saveBadges(); updateWipe();
   const c=CHAPTERS.find(c=>c.id===id); c.badgeEl.classList.add('won'); c.chip.classList.add('won');
   updateButtons();
   const n=Object.keys(badges).length;
@@ -1518,7 +1529,56 @@ window.insideATree={SCENES,CHAPTERS,goTo,award,startQuest,quest,badges};   // ha
 new ResizeObserver(resize).observe(stage);
 resize();
 SCENES[CHAPTERS[0].id].enter();
+
+/* =====================================================================
+   BADGES THAT SURVIVE A CLOSED TAB
+   A six-year-old gets called to dinner mid-challenge. Losing every badge to
+   a reload is the quickest way to make the whole reward loop feel pointless.
+   The ↺ in the badge meter clears them so a second child can start fresh —
+   two taps, so it cannot happen by accident.
+   ===================================================================== */
+const SAVE_KEY='learningTools.insideATree.badges';
+function saveBadges(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(Object.keys(badges))); }catch(e){} }
+function restoreBadges(){
+  let saved=[];
+  try{ saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]'); }catch(e){ saved=[]; }
+  if(!Array.isArray(saved)) saved=[];
+  saved.forEach(id=>{
+    const c=CHAPTERS.find(x=>x.id===id); if(!c) return;
+    badges[id]=true;
+    if(c.badgeEl) c.badgeEl.classList.add('won');
+    if(c.chip) c.chip.classList.add('won');
+  });
+  if(Object.keys(badges).length===CHAPTERS.length) els.meter.classList.add('all');
+  updateWipe();
+}
+function clearBadges(){
+  Object.keys(badges).forEach(k=>{ delete badges[k]; });
+  CHAPTERS.forEach(c=>{ if(c.badgeEl) c.badgeEl.classList.remove('won'); if(c.chip) c.chip.classList.remove('won'); });
+  els.meter.classList.remove('all');
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  updateWipe(); updateButtons();
+}
+let wipeArmed=false, wipeTimer=null;
+function updateWipe(){
+  const b=$('btnWipe'); if(!b) return;
+  const any=Object.keys(badges).length>0;
+  b.hidden=!any;
+  if(!any){ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); }
+}
+$('btnWipe').addEventListener('click',()=>{
+  const b=$('btnWipe');
+  if(!wipeArmed){
+    wipeArmed=true; b.textContent='Clear?'; b.classList.add('armed');
+    clearTimeout(wipeTimer);
+    wipeTimer=setTimeout(()=>{ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); },3500);
+    return;
+  }
+  clearTimeout(wipeTimer); wipeArmed=false; b.textContent='↺'; b.classList.remove('armed');
+  clearBadges(); toast('↺ Badges cleared — a fresh start.',3000);
+});
 setCaption(0); updateChips(); updateButtons(); drawMinimap(); setStat(SCENES.leaf.stat&&SCENES.leaf.stat());
+restoreBadges();
 requestAnimationFrame(frame);
 </script>
 </body>
