@@ -1736,15 +1736,23 @@ function questSpeech(){
   if(S.options) t+=' Is it: '+S.options.map(o=>Speech.plain(o.text)).join('… or… ')+'?';
   return t;
 }
+/* the switch is remembered, so a child who needs it is not hunting for it every visit */
+const READ_KEY='learningTools.zoomOut.readAloud';
+function applyRead(on,announce){
+  const r=$('btnRead');
+  Speech.on=on;
+  r.querySelector('.rd-icon').textContent=on?'🔊':'🔇';
+  r.querySelector('.rd-word').textContent=on?'Reading':'Quiet';
+  r.classList.toggle('off',!on);
+  r.setAttribute('aria-pressed',String(on));
+  if(on&&announce) Speech.say('Reading is on. I will read the words to you.');
+}
 $('btnRead').addEventListener('click',()=>{
-  const b=$('btnRead');
-  Speech.on=!Speech.on;
-  b.querySelector('.rd-icon').textContent=Speech.on?'🔊':'🔇';
-  b.querySelector('.rd-word').textContent=Speech.on?'Reading':'Quiet';
-  b.classList.toggle('off',!Speech.on);
-  b.setAttribute('aria-pressed',String(Speech.on));
-  if(Speech.on) Speech.say('Reading is on. I will read the words to you.');
+  applyRead(!Speech.on,true);
+  try{ localStorage.setItem(READ_KEY,Speech.on?'on':'off'); }catch(e){}
 });
+/* restored without the spoken confirmation — that would be talking on load again */
+try{ if(localStorage.getItem(READ_KEY)==='on') applyRead(true,false); }catch(e){}
 $('spkCap').addEventListener('click',()=>Speech.say(els.capLevel.textContent+'. '+els.capText.textContent,$('spkCap')));
 $('spkCard').addEventListener('click',()=>{ if(selected) Speech.say(selected.name+'. '+friendlySize(selected)+'. '+selected.fact,$('spkCard')); });
 $('spkQuest').addEventListener('click',()=>Speech.say(questSpeech(),$('spkQuest')));
