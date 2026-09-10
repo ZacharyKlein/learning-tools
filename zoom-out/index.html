@@ -335,6 +335,32 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
    badges, so it should be hard to hit by accident and takes two taps anyway */
 .wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
 .wipe[hidden]{display:none}
+/* ---------- read aloud ---------- */
+.caption{display:flex;gap:10px;align-items:flex-start}
+.cap-body{min-width:0}
+.card-media{display:flex;flex-direction:column;gap:8px;align-items:center;flex:0 0 auto}
+.q-row{display:flex;gap:9px;align-items:flex-start}
+.q-row .q-text{flex:1;margin-top:0}
+.spk{
+  flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--sky);font-size:19px;font-family:'"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';line-height:1;padding:0;
+  box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink);pointer-events:auto;
+  transition:transform .08s,box-shadow .08s;
+}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 #1f6fa8,0 1px 0 2px var(--ink)}
+.spk.talking{background:var(--gold);box-shadow:0 3px 0 #c9a01d,0 3px 0 2px var(--ink);animation:wobble .6s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+body.nospeech .spk{display:none}
+.btn.read{background:var(--sky);color:var(--white);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 5px 0 #1f6fa8,0 5px 0 3px var(--ink)}
+.btn.read:active{box-shadow:0 1px 0 #1f6fa8,0 1px 0 3px var(--ink)}
+.btn.read .rd-icon{font-family:'"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif'}
+.btn.read .rd-word{margin-left:6px}
+.btn.read.off{background:var(--white);color:var(--ink);text-shadow:none;box-shadow:0 5px 0 var(--ink);opacity:.75}
+body.nospeech .btn.read{display:none}
+@media (max-width:860px){
+  .btn.read{padding:7px 10px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
+  .btn.read .rd-word{display:none}
+}
 </style>
 </head>
 <body>
@@ -345,6 +371,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <p class="tagline">Small or big? It depends how far you zoom.</p>
     </div>
     <div class="right">
+    <button class="btn read" id="btnRead" type="button" aria-pressed="true"><span class="rd-icon">🔊</span><span class="rd-word">Reading</span></button>
     <div class="meter" id="meter" aria-live="polite">
       <div class="meter-label">Zoom<br>badges</div>
       <div class="badges" id="badges" aria-label="one badge for each scale"></div>
@@ -362,13 +389,19 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
     <div class="stage" id="stage">
       <canvas id="view"></canvas>
       <div class="caption" id="caption">
-        <div class="cap-level" id="capLevel">🐜 Bugs</div>
-        <div class="cap-text" id="capText">Some bugs are small. Some bugs are <b>BIG!</b></div>
+        <button class="spk" id="spkCap" type="button" aria-label="Read this out loud">🔊</button>
+        <div class="cap-body">
+          <div class="cap-level" id="capLevel">🐜 Bugs</div>
+          <div class="cap-text" id="capText">Some bugs are small. Some bugs are <b>BIG!</b></div>
+        </div>
       </div>
       <div class="hint" id="hint">👆 Tap a thing to learn about it</div>
       <div class="card" id="card" hidden>
         <button class="card-x" id="cardClose" aria-label="Close">×</button>
-        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-media">
+          <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+          <button class="spk" id="spkCard" type="button" aria-label="Read this out loud">🔊</button>
+        </div>
         <div class="card-body">
           <div class="card-name" id="cardName"></div>
           <div class="card-size" id="cardSize"></div>
@@ -379,7 +412,7 @@ button:focus-visible,input:focus-visible{outline:4px solid var(--sky);outline-of
       <div class="quest" id="quest" hidden>
         <button class="q-x" id="questClose" aria-label="Close the challenge">&times;</button>
         <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
-        <div class="q-text" id="qText"></div>
+        <div class="q-row"><div class="q-text" id="qText"></div><button class="spk" id="spkQuest" type="button" aria-label="Read the question out loud">🔊</button></div>
         <div class="q-opts" id="qOpts"></div>
         <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
       </div>
@@ -1137,6 +1170,7 @@ function drawWhoosh(speed){
   ctx.restore();
 }
 const confetti=[];
+
 function burstConfetti(){
   if(REDUCED) return;
   const rnd=seeded(Date.now()%977+1), cols=['#ff6b35','#ffd23f','#4fb3f6','#63c64d','#fffdf7','#ff4fa3'];
@@ -1234,6 +1268,60 @@ function updateMeter(){
 }
 
 /* --- words on the screen --- */
+
+/* =====================================================================
+   READ ALOUD — lifted from Flower Explorer, which is where this was first
+   built. This tool is aimed at grades 1-3, where plenty of children are
+   still emerging readers, so every caption, card and challenge can be read
+   to them. Uses the browser's built-in speech; if there is none, every 🔊
+   button hides itself and the tool works exactly as before.
+   ===================================================================== */
+const Speech=(()=>{
+  const has=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+  if(!has) document.body.classList.add('nospeech');
+  let on=true, voice=null, btn=null, current=null, pending=null, unlocked=false;
+  function pickVoice(){
+    if(!has) return;
+    const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+    const want=[/samantha/i,/karen/i,/moira/i,/google us english/i,/zira/i,/female/i];
+    for(const w of want){ const v=vs.find(v=>/^en/i.test(v.lang)&&w.test(v.name)); if(v){ voice=v; return; } }
+    voice=vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||vs[0];
+  }
+  if(has){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+  /* strip markup and pronunciation hints — "canopy (KAN-uh-pee)" reads badly */
+  function plain(html){
+    return String(html).replace(/<[^>]*>/g,'').replace(/\s*\((?=[A-Z]{2,})[^)]*\)/g,'')
+      /* emoji are decoration here, but a screen voice reads them out: "tree
+         evergreen, top floor, the canopy". Drop them before speaking. */
+      .replace(/[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{20E3}]/gu,'')
+      .replace(/&amp;/g,'and').replace(/&nbsp;/g,' ').replace(/[·•]/g,',').replace(/\s+/g,' ').trim();
+  }
+  function stop(){ if(!has) return; current=null; speechSynthesis.cancel(); if(btn){ btn.classList.remove('talking'); btn=null; } }
+  function say(text,fromBtn){
+    if(!has) return;
+    const t=plain(text); if(!t) return;
+    stop();
+    const u=new SpeechSynthesisUtterance(t);
+    try{ if(voice) u.voice=voice; }catch(e){}   /* a bad voice must never take the page down with it */
+    u.rate=0.88; u.pitch=1.1; u.volume=1;
+    btn=fromBtn||null; if(btn) btn.classList.add('talking');
+    u.onend=u.onerror=()=>{ if(btn){ btn.classList.remove('talking'); btn=null; } current=null; };
+    current=u;
+    setTimeout(()=>{ if(current===u) speechSynthesis.speak(u); },REDUCED?0:60);   /* Chrome wants a tick after cancel() */
+  }
+  /* iOS will not speak until the child has touched something, so the opening
+     line used to be dropped silently. Try it straight away, and if nothing is
+     actually speaking by the first tap, say it then instead. */
+  function unlock(){
+    if(unlocked) return; unlocked=true;
+    const t=pending; pending=null;
+    if(t&&on&&has&&!speechSynthesis.speaking) say(t);
+  }
+  if(has){ addEventListener('pointerdown',unlock,{once:true}); addEventListener('keydown',unlock,{once:true}); }
+  function auto(text){ if(!on) return; say(text); if(!unlocked) pending=text; }
+  return { has, say, auto, stop, plain, get on(){ return on; }, set on(v){ on=v; if(!v) stop(); } };
+})();
+
 function setCaption(i){
   const L=LEVELS[i];
   els.capLevel.textContent=L.icon+' '+L.name;
@@ -1241,9 +1329,10 @@ function setCaption(i){
   if(i>0) txt='All the '+LEVELS.slice(0,i).map(p=>p.icon).join('')+' fit in one dot now! '+txt;
   els.capText.innerHTML=txt;
   if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+  Speech.auto(els.capLevel.textContent+'. '+txt);
 }
 let toastTimer=null;
-function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); Speech.auto(msg); }
 function updateChips(i){
   LEVELS.forEach((L,k)=>{ L.chip.classList.toggle('on',k===i); L.chip.classList.toggle('done',k<i); L.chip.classList.toggle('won',!!badges[L.id]); });
   const on=LEVELS[i]&&LEVELS[i].chip;              /* keep the current one in view when the rail scrolls */
@@ -1331,6 +1420,7 @@ function showCard(o){
   els.cardName.textContent=o.name; els.cardSize.textContent=friendlySize(o);
   els.cardFact.textContent=o.fact; els.cardMeters.textContent=metersLine(o);
   drawThumb(o); els.card.hidden=false; els.hint.hidden=true;
+  Speech.auto(o.name+'. '+friendlySize(o)+'. '+o.fact);
 }
 function closeCard(){ selected=null; els.card.hidden=true; }
 els.cardClose.addEventListener('click',closeCard);
@@ -1464,8 +1554,9 @@ function renderStep(){
     qEls.opts.hidden=false;
     S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); qEls.opts.appendChild(b); });
   }else qEls.opts.hidden=true;
+  Speech.auto(questSpeech());
 }
-function feedback(msg,good){ qEls.fb.textContent=msg; qEls.fb.className='q-fb '+(good?'good':'bad'); }
+function feedback(msg,good){ qEls.fb.textContent=msg; qEls.fb.className='q-fb '+(good?'good':'bad'); Speech.auto(msg); }
 function stepDone(){
   const Q=quest.active; quest.step++;
   if(quest.step>=Q.steps.length){ setTimeout(()=>{ endQuest(); award(Q.id); },1100); }
@@ -1588,6 +1679,27 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+/* ---------- the read-aloud switch and the 🔊 buttons ---------- */
+function questSpeech(){
+  const S=quest.active&&quest.active.steps[quest.step]; if(!S) return '';
+  let t=Speech.plain(S.prompt);
+  if(S.options) t+=' Is it: '+S.options.map(o=>Speech.plain(o.text)).join('… or… ')+'?';
+  return t;
+}
+$('btnRead').addEventListener('click',()=>{
+  const b=$('btnRead');
+  Speech.on=!Speech.on;
+  b.querySelector('.rd-icon').textContent=Speech.on?'🔊':'🔇';
+  b.querySelector('.rd-word').textContent=Speech.on?'Reading':'Quiet';
+  b.classList.toggle('off',!Speech.on);
+  b.setAttribute('aria-pressed',String(Speech.on));
+  if(Speech.on) Speech.say('Reading is on. I will read the words to you.');
+});
+$('spkCap').addEventListener('click',()=>Speech.say(els.capLevel.textContent+'. '+els.capText.textContent,$('spkCap')));
+$('spkCard').addEventListener('click',()=>{ if(selected) Speech.say(selected.name+'. '+friendlySize(selected)+'. '+selected.fact,$('spkCard')); });
+$('spkQuest').addEventListener('click',()=>Speech.say(questSpeech(),$('spkQuest')));
+
+
 new ResizeObserver(resize).observe(stage);
 resize(); cam.z=LEVELS[0].z; lastZ=cam.z;
 

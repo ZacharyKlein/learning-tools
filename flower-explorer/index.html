@@ -549,6 +549,9 @@ const Speech=(()=>{
   /* strip the markup and the pronunciation hints — "petals (PET-uls)" reads badly */
   function plain(html){
     return String(html).replace(/<[^>]*>/g,'').replace(/\s*\((?=[A-Z]{2,})[^)]*\)/g,'')
+      /* emoji are decoration here, but a screen voice reads them out: "tree
+         evergreen, top floor, the canopy". Drop them before speaking. */
+      .replace(/[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{20E3}]/gu,'')
       .replace(/&amp;/g,'and').replace(/&nbsp;/g,' ').replace(/[·•]/g,',').replace(/\s+/g,' ').trim();
   }
   function stop(){ if(!has) return; current=null; speechSynthesis.cancel(); if(btn){ btn.classList.remove('talking'); btn=null; } }
@@ -557,7 +560,7 @@ const Speech=(()=>{
     const t=plain(text); if(!t) return;
     stop();
     const u=new SpeechSynthesisUtterance(t);
-    if(voice) u.voice=voice;
+    try{ if(voice) u.voice=voice; }catch(e){}   /* a bad voice must never take the page down with it */
     u.rate=0.86; u.pitch=1.12; u.volume=1;
     btn=fromBtn||null; if(btn) btn.classList.add('talking');
     u.onend=u.onerror=()=>{ if(btn){ btn.classList.remove('talking'); btn=null; } current=null; };
@@ -565,8 +568,17 @@ const Speech=(()=>{
     /* Chrome sometimes needs a tick after cancel() */
     setTimeout(()=>{ if(current===u) speechSynthesis.speak(u); },REDUCED?0:60);
   }
-  /* auto-read: only when the toggle is on */
-  function auto(text){ if(on) say(text); }
+  /* iOS will not speak until the child has touched something, so the opening line
+     used to be dropped silently. Try it straight away, and if nothing is actually
+     speaking by the first tap, say it then instead. */
+  let pending=null, unlocked=false;
+  function unlock(){
+    if(unlocked) return; unlocked=true;
+    const t=pending; pending=null;
+    if(t&&on&&has&&!speechSynthesis.speaking) say(t);
+  }
+  if(has){ addEventListener('pointerdown',unlock,{once:true}); addEventListener('keydown',unlock,{once:true}); }
+  function auto(text){ if(!on) return; say(text); if(!unlocked) pending=text; }
   return { has, say, auto, stop, plain,
     get on(){ return on; }, set on(v){ on=v; if(!v) stop(); } };
 })();
@@ -1308,7 +1320,10 @@ function setCaption(i){
   Speech.auto(c.title+'. '+c.caption);
 }
 let toastTimer=null;
-function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+/* toasts carry real instructions — "Pollen delivered! Now this flower can make
+   seeds" — and in a tool built for children who cannot read, they were the one
+   kind of text that was never spoken. */
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); Speech.auto(msg); }
 function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
 function statFor(i){
   const c=CHAPTERS[i];
