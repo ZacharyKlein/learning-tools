@@ -12,6 +12,8 @@ Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 | **Flower Explorer** | K–1 | [flower-explorer/](https://zacharyklein.github.io/learning-tools/flower-explorer/) |
 | **Flyway** | 3–4 | [flyway/](https://zacharyklein.github.io/learning-tools/flyway/) |
 | **Build a House** | 3–4 | [build-a-house/](https://zacharyklein.github.io/learning-tools/build-a-house/) |
+| **Under Your Feet** | 1–3 | [under-your-feet/](https://zacharyklein.github.io/learning-tools/under-your-feet/) |
+| **Egg to Wings** | 1–3 | [egg-to-wings/](https://zacharyklein.github.io/learning-tools/egg-to-wings/) |
 
 What each one is about lives in the `TOOLS` array in the root `index.html`, and
 the landing page renders its cards from there. This table deliberately does not
@@ -38,7 +40,7 @@ The root `index.html` is the landing page. Its cards are rendered from a single 
 ## House rules
 
 A child who has played one of these should already know how to play the next
-one. The eighth tool inherits these.
+one. Every tool after the seventh inherits these.
 
 **Words.** One label per action, everywhere: **Back** and **Next**;
 **🔁 Back to the start** on the last chapter (it wraps round — say so, don't
@@ -85,7 +87,7 @@ are all `aria-live` regions.
 **Keyboard.** Each chapter renders a list of buttons named for the things in the
 picture, off-screen until focused, wired to the same handler as a tap — so a
 "tap the ..." challenge step can be answered without a pointer. Done in Flower
-Explorer and Forest Elevator; the other five still need it.
+Explorer and Forest Elevator, Under Your Feet and Egg to Wings; the other five still need it.
 
 **Testing.** Every tool exposes `window.<toolName>` for the headless tests. Run
 `node tests/layout-check.mjs` before pushing.

@@ -20,7 +20,7 @@ const APPS = fs.readdirSync(ROOT, { withFileTypes: true })
   .filter(d => d.isDirectory() && fs.existsSync(path.join(ROOT, d.name, 'index.html')))
   .filter(d => !d.name.startsWith('.') && d.name !== 'tests' && d.name !== 'node_modules')
   .map(d => d.name);
-const READ_ALOUD = ['flower-explorer', 'forest-elevator', 'zoom-out'];   // grades 1-3 and below
+const READ_ALOUD = ['flower-explorer', 'forest-elevator', 'zoom-out', 'under-your-feet', 'egg-to-wings'];   // grades 1-3 and below
 
 const TYPES = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
 const server = http.createServer((req, res) => {
@@ -89,7 +89,8 @@ await Promise.all(APPS.map(async app => {
   /* every chapter has a challenge, and every multiple-choice step has a right answer */
   const quests = await p.evaluate(() => {
     const G = window.zoomOut || window.insideATree || window.forestElevator || window.howACarWorks
-           || window.flowerExplorer || window.flyway || window.buildAHouse;
+           || window.flowerExplorer || window.flyway || window.buildAHouse
+           || window.underYourFeet || window.eggToWings;
     if (!G) return { error: 'no test global' };
     const list = G.CHAPTERS || G.LEVELS || G.CH || G.chapters || [];
     return list.map(c => {
@@ -120,7 +121,8 @@ await Promise.all(APPS.map(async app => {
   /* a badge survives a reload */
   const badgeId = await p.evaluate(() => {
     const G = window.zoomOut || window.insideATree || window.forestElevator || window.howACarWorks
-           || window.flowerExplorer || window.flyway || window.buildAHouse;
+           || window.flowerExplorer || window.flyway || window.buildAHouse
+           || window.underYourFeet || window.eggToWings;
     const list = G.CHAPTERS || G.LEVELS || G.CH || G.chapters || [];
     if (!list[0] || !G.award) return null;
     G.award(list[0].id); return list[0].id;

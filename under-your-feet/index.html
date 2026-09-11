@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Under Your Feet</title>
+<meta name="description" content="Inside the Earth: layers, two kinds of crust, why land floats, and how mountains, volcanoes and earthquakes are made. Grades 1-3.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🌍%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the Earth's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: GO DEEPER */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --granite:#d8c9a4;    /* continental crust: pale and light */
+  --basalt:#3d4c5f;     /* oceanic crust: dark and heavy */
+  --mantle:#c9552a;
+  --mantle-dk:#8e3315;
+  --outer:#ff9330;
+  --inner:#ffe487;
+  --sea:#2f9ada;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.3;-webkit-text-size-adjust:100%;overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;grid-template-rows:auto 1fr auto;gap:10px;
+  padding:10px 14px 12px;max-width:1180px;margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold)}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:160px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#cfe9ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(58%,460px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.cap-body{min-width:0}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.stat{
+  position:absolute;right:14px;bottom:58px;display:flex;gap:8px;pointer-events:none;
+  flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px);
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(350px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-media{display:flex;flex-direction:column;gap:8px;align-items:center;flex:0 0 auto}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:15.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12.5px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;
+  font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:104px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);
+  overflow:hidden;text-overflow:ellipsis;animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(420px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-row{display:flex;gap:9px;align-items:flex-start}
+.q-text{font-weight:800;font-size:16px;margin-top:6px;text-wrap:balance}
+.q-row .q-text{flex:1;margin-top:0}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:8px 14px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14.5px;margin-top:8px;min-height:18px}
+.q-fb.good{color:#2e7d32}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ----------
+   The rail gets a row of its own and scrolls inside it; the buttons and the
+   chapter controls share the row below. Never size the rail's column to its
+   content: an `auto` track sizes to max-content and shoves the other columns
+   into each other. That is the bug tests/layout-check.mjs exists to catch. */
+.dock{
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:"levels levels" "buttons ctl";
+  align-items:center;gap:10px 14px;
+}
+.dock > .levels{grid-area:levels}
+.dock > .buttons{grid-area:buttons}
+.dock > .ctl{grid-area:ctl}
+.levels{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.levels::-webkit-scrollbar{display:none}
+.lvl{
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
+}
+.lvl .ic{font-size:20px;font-family:var(--emoji);line-height:1}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;
+  background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+/* Every .btn is nowrap so the labels read cleanly, but that stops the wide one
+   ("Back to the start") from ever shrinking. Let the big button wrap instead. */
+.btn.big{white-space:normal;text-wrap:balance}
+.buttons > .btn{min-width:0;max-width:100%}
+
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.hot{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog.cool{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "levels" "ctl";gap:8px}
+  .levels{grid-area:levels;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+  .lvl{font-size:12px;padding:5px 11px 5px 8px;box-shadow:2px 2px 0 var(--ink)}
+  .lvl .ic{font-size:18px}
+  .buttons{grid-area:buttons;justify-content:center;gap:8px}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:44px}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 12px;font-size:14px;min-height:44px}
+  .tog{font-size:13.5px;padding:7px 12px;min-height:44px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  /* the tap prompt is the only thing that says the picture can be tapped,
+     and half the challenges ask for a tap — so it stays on every screen */
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:50px}
+  .toast{bottom:92px}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:8px 14px;min-height:44px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+/* Any short viewport — a phone on its side, or a stubby desktop window. It may be
+   too wide for the rules above, so the compact dock is spelled out again here: a
+   partial override lands half a layout on top of the desktop one. */
+@media (max-height:560px){
+  .stage{min-height:0}
+  .dock{grid-template-columns:minmax(72px,1fr) auto;grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
+  .lvl{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .lvl .ic{font-size:16px}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .ctl{grid-area:ctl;justify-content:center}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:38px}
+  .btn,.tog{min-height:38px}
+  .btn{padding:8px 11px;font-size:14px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:44px}
+  .toast{bottom:80px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* ---------- badges that survive a closed tab, and the way to clear them ---------- */
+.wipe{
+  width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:700;font-size:15px;
+  line-height:1;padding:0;box-shadow:2px 2px 0 var(--ink);white-space:nowrap;
+}
+/* deliberately the one small target in the collection: it throws away a child's
+   badges, so it should be hard to hit by accident — and it takes two taps anyway */
+.wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
+.wipe[hidden]{display:none}
+
+/* ---------- read aloud ---------- */
+.spk{
+  flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--sky);font-size:19px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink);pointer-events:auto;
+  transition:transform .08s,box-shadow .08s;
+}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 #1f6fa8,0 1px 0 2px var(--ink)}
+.spk.talking{background:var(--gold);box-shadow:0 3px 0 #c9a01d,0 3px 0 2px var(--ink);animation:wobble .6s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+body.nospeech .spk{display:none}
+.btn.read{background:var(--sky);color:var(--white);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 5px 0 #1f6fa8,0 5px 0 3px var(--ink)}
+.btn.read:active{box-shadow:0 1px 0 #1f6fa8,0 1px 0 3px var(--ink)}
+.btn.read .rd-icon{font-family:var(--emoji)}
+.btn.read .rd-word{margin-left:6px}
+.btn.read.off{background:var(--white);color:var(--ink);text-shadow:none;box-shadow:0 5px 0 var(--ink);opacity:.75}
+body.nospeech .btn.read{display:none}
+@media (max-width:860px){
+  .btn.read{padding:7px 10px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
+  .btn.read .rd-word{display:none}
+}
+
+/* ---------- a keyboard path to everything the picture lets you tap ----------
+   About half of every challenge is "tap the …", and a canvas is invisible to the
+   keyboard, so those badges simply could not be earned without a pointer. These
+   buttons carry the same names as the things in the picture: off-screen until
+   focused, then a chip over the drawing, so Tab walks the scene and Enter opens
+   the card or answers the challenge. */
+.taplist{position:absolute;left:14px;bottom:58px;z-index:4;pointer-events:none}
+.taplist button{position:absolute;width:1px;height:1px;padding:0;margin:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.taplist button:focus-visible{
+  position:static;width:auto;height:auto;clip:auto;overflow:visible;pointer-events:auto;
+  padding:8px 14px;min-height:44px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1;box-shadow:3px 3px 0 var(--ink);outline:3px solid var(--sky);outline-offset:3px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Under Your Feet</h1>
+      <p class="tagline">Dig down through the layers — then find out who builds the mountains.</p>
+    </div>
+    <div class="right">
+      <button class="btn read off" id="btnRead" type="button" aria-pressed="false"><span class="rd-icon">🔇</span><span class="rd-word">Quiet</span></button>
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Rock<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each part of the Earth"></div>
+        <button class="wipe" id="btnWipe" type="button" hidden aria-label="Clear all badges and start fresh">↺</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <button class="spk" id="spkCap" type="button" aria-label="Read this out loud">🔊</button>
+        <div class="cap-body">
+          <div class="cap-level" id="capLevel"></div>
+          <div class="cap-text" id="capText"></div>
+        </div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap a layer to find out what it is</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <div class="card-media">
+          <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+          <button class="spk" id="spkCard" type="button" aria-label="Read this out loud">🔊</button>
+        </div>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-row"><div class="q-text" id="qText"></div><button class="spk" id="spkQuest" type="button" aria-label="Read the question out loud">🔊</button></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
+      </div>
+      <div class="taplist" id="taplist" role="group" aria-label="Things you can tap in this picture"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack" aria-label="Back">◀ <span class="bl">Back</span></button>
+      <button class="btn big" id="btnNext">Next ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-inside" hidden>
+        <button class="tog" id="btnDrill">🕳️ Drill deeper</button>
+        <button class="tog hot" id="togHeat">🌡️ Show how hot</button>
+        <button class="tog" id="btnDrillReset">↺ Reset the drill</button>
+      </div>
+      <div class="ctl-group" id="ctl-crust" hidden>
+        <button class="tog" id="togThick">📏 Show how thick</button>
+        <button class="tog" id="togWeigh">⚖️ Weigh two rocks</button>
+      </div>
+      <div class="ctl-group" id="ctl-float" hidden>
+        <button class="tog cool" id="btnIce">🧊 Pile on ice</button>
+        <button class="tog hot" id="btnMelt">☀️ Melt the ice</button>
+        <button class="tog" id="btnFloatReset">↺ Reset the blocks</button>
+      </div>
+      <div class="ctl-group" id="ctl-mtn" hidden>
+        <button class="tog hot" id="btnPush">👉 Push the plates!</button>
+        <button class="tog cool" id="btnRain">🌧️ Wear them down</button>
+        <button class="tog" id="btnMtnReset">↺ Reset the mountains</button>
+      </div>
+      <div class="ctl-group" id="ctl-vol" hidden>
+        <button class="tog hot" id="btnErupt">🌋 Erupt!</button>
+        <button class="tog" id="togMelt">🔥 Show where it melts</button>
+        <button class="tog" id="btnVolReset">↺ Reset the volcano</button>
+      </div>
+      <div class="ctl-group" id="ctl-quake" hidden>
+        <button class="tog" id="btnSqueeze">🤝 Push harder</button>
+        <button class="tog hot" id="btnSnap">💥 Let it go!</button>
+        <button class="tog" id="btnQuakeReset">↺ Reset the fault</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+/* =====================================================================
+   UNDER YOUR FEET — a single file, no build step, no dependencies.
+
+   Six chapters. The spine running through all of them is one idea: the
+   ground floats. Thick light crust rides high and hangs deep; thin heavy
+   crust rides low and the sea collects on top of it; pile weight on and
+   land sinks; take it off and it rises. Mountains, volcanoes and
+   earthquakes are then all consequences of that, not six unrelated facts.
+
+   Deliberately no ages anywhere. A child of six has no use for a number
+   with nine zeros in it, and the moment it appears the conversation stops
+   being about rock. Rates are fine and much more vivid — plates move
+   about as fast as fingernails grow — so those are what the tool uses.
+
+   Drawing: everything is drawn in a fixed 1000x620 "design space" that is
+   scaled to fit inside the stage and centred, so the whole picture is
+   always on screen at every size the layout check throws at it. The
+   canvas transform does the scaling, so every coordinate below is a
+   design coordinate and every line width is a design line width.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd=Math.random;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', ROCKET_DK='#c2431a',
+      SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7', SPACE='#12103a';
+const GRANITE='#d8c9a4', GRANITE_DK='#b7a478', BASALT='#3d4c5f', BASALT_DK='#26323f',
+      MANTLE='#c9552a', MANTLE_DK='#8e3315', MANTLE_LT='#e4794a',
+      OUTER='#ff9330', INNER='#ffe487', SEA='#2f9ada', SEA_DK='#1d6ea6', SOIL='#8b5a2b';
+
+/* ---------- canvas + the design-space transform ---------- */
+const DW=1000, DH=620;                 // the picture every scene is drawn in
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:560,dpr:1};
+let S=1, OX=0, OY=0;                   // scale + letterbox offsets, set in resize()
+let now=0;                             // seconds since load
+function toDesign(px,py){ return [(px-OX)/S,(py-OY)/S]; }
+function designToScreen(x,y){ return [OX+x*S,OY+y*S]; }
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rot||0,0,TAU);
+  ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol,close){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  if(close!==false) ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2); ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol,olc){ rrect(x,y,w,h,r); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=olc||INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round';
+  ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1);
+  ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
+  ctx.fillText(ch,0,px*.06); ctx.restore(); }
+function label(txt,x,y,o){
+  o=o||{}; const size=o.size||26;
+  ctx.save(); ctx.font=(o.weight||800)+' '+size+'px '+(o.display?DISPLAY_FONT:LABEL_FONT);
+  ctx.textAlign=o.align||'center'; ctx.textBaseline=o.base||'middle';
+  if(o.halo!==false){ ctx.lineWidth=o.haloW||Math.max(4,size*.28); ctx.lineJoin='round';
+    ctx.strokeStyle=o.halo||(o.dark?PAPER:'rgba(255,253,247,.95)'); ctx.strokeText(txt,x,y); }
+  ctx.fillStyle=o.color||INK; ctx.fillText(txt,x,y); ctx.restore();
+}
+function arrow(x1,y1,x2,y2,color,w,head){
+  line(x1,y1,x2,y2,color,w); const a=Math.atan2(y2-y1,x2-x1), h=head||w*3.2;
+  poly([[x2,y2],[x2-h*Math.cos(a-.42),y2-h*Math.sin(a-.42)],[x2-h*Math.cos(a+.42),y2-h*Math.sin(a+.42)]],color,0);
+}
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b);
+  return 'rgb('+Math.round(lerp(A[0],B[0],t))+','+Math.round(lerp(A[1],B[1],t))+','+Math.round(lerp(A[2],B[2],t))+')'; }
+function vgrad(x,y0,y1,stops){ const g=ctx.createLinearGradient(x,y0,x,y1); stops.forEach(s=>g.addColorStop(s[0],s[1])); return g; }
+/* a wobbly edge, for rock that should not look like a ruler drew it */
+function rough(x0,y0,x1,y1,amp,seed,n){
+  const r=seeded(seed||7), P=[]; n=n||Math.max(6,Math.round(Math.hypot(x1-x0,y1-y0)/28));
+  for(let i=0;i<=n;i++){ const t=i/n, e=(i===0||i===n)?0:1;
+    P.push([lerp(x0,x1,t)+(r()-.5)*amp*.4*e, lerp(y0,y1,t)+(r()-.5)*amp*e]); }
+  return P;
+}
+function hatch(x,y,w,h,color,gap,wid){
+  ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+  ctx.strokeStyle=color; ctx.lineWidth=wid||3;
+  for(let i=-h;i<w+h;i+=(gap||18)){ ctx.beginPath(); ctx.moveTo(x+i,y+h); ctx.lineTo(x+i+h,y); ctx.stroke(); }
+  ctx.restore();
+}
+/* a little person, drawn wherever a scale reference is needed */
+function person(x,y,h,color){
+  const hd=h*.22; line(x,y-h*.52,x,y-h*.18,color||INK,h*.15); disc(x,y-h*.66,hd,color||'#f0c39a',h*.06);
+  line(x,y-h*.44,x-h*.2,y-h*.3,color||INK,h*.09); line(x,y-h*.44,x+h*.2,y-h*.3,color||INK,h*.09);
+  line(x,y-h*.18,x-h*.14,y,color||INK,h*.1); line(x,y-h*.18,x+h*.14,y,color||INK,h*.1);
+}
+
+/* =====================================================================
+   HIT SHAPES
+   Every tappable thing in the picture carries one. They are deliberately
+   fat: at phone size the design space is scaled to about 0.37, so a 44px
+   finger target is roughly 120 design units across, and anything smaller
+   than that is only tappable by a mouse.
+   ===================================================================== */
+function hits(h,x,y){
+  if(!h) return false;
+  if(h.t==='r') return x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h;
+  if(h.t==='c') return Math.hypot(x-h.x,y-h.y)<=h.r;
+  if(h.t==='ring'){ const d=Math.hypot(x-h.x,y-h.y); return d>=h.r0&&d<=h.r1; }
+  return false;
+}
+function markOf(h){
+  if(!h) return null;
+  if(h.t==='r') return [h.x+h.w/2,h.y+h.h/2,Math.max(h.w,h.h)*.55];
+  if(h.t==='c') return [h.x,h.y,h.r];
+  if(h.t==='ring') return [h.x,h.y,(h.r0+h.r1)/2];
+  return null;
+}
+
+/* =====================================================================
+   CHAPTERS
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'inside', icon:'🌍', name:'Inside', title:'🌍 Inside the Earth', ctls:['inside'],
+   caption:'Cut the Earth open and you find layers, like a peach. A thin hard <b>crust</b>, a huge warm <b>mantle</b>, and a metal <b>core</b> right in the middle. <b>Drill down!</b>',
+   hint:'👆 Tap a layer to find out what it is'},
+  {id:'crust', icon:'🧱', name:'Two crusts', title:'🧱 Two Kinds of Crust', ctls:['crust'],
+   caption:'There are two kinds of crust. Under the continents it is <b>thick and light</b>. Under the sea it is <b>thin and heavy</b>. That one difference explains almost everything else.',
+   hint:'👆 Tap the land, the sea floor and the water'},
+  {id:'float', icon:'🪵', name:'Floating', title:'🪵 The Ground Floats', ctls:['float'],
+   caption:'Crust floats on the mantle the way wood floats in water. A <b>thick</b> block sticks up higher — and hangs down deeper. Pile weight on and it sinks.',
+   hint:'👆 Tap a block, or tap the mantle underneath'},
+  {id:'mountains', icon:'⛰️', name:'Mountains', title:'⛰️ Making Mountains', ctls:['mtn'],
+   caption:'Push two continents together and the crust has nowhere to go but <b>up</b> — and <b>down</b>. Every big mountain has a root under it, like the bottom of an iceberg.',
+   hint:'👆 Tap the peak, the root, or a plate'},
+  {id:'volcano', icon:'🌋', name:'Volcanoes', title:'🌋 Where Volcanoes Come From', ctls:['vol'],
+   caption:'Heavy sea floor dives under light continent — it never goes the other way. Deep down the rock melts, and melted rock is <b>light</b>, so up it comes.',
+   hint:'👆 Tap the trench, the diving plate or the volcano'},
+  {id:'quake', icon:'💥', name:'Earthquakes', title:'💥 Why the Ground Shakes', ctls:['quake'],
+   caption:'Two pieces of crust try to slide past each other and get <b>stuck</b>. The rock bends and bends… then <b>SNAP</b>. That jolt is an earthquake.',
+   hint:'👆 Tap the crack, the road or the squiggle machine'},
+];
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};
+let selected=null;
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'),
+  cardClose:$('cardClose'), thumb:$('thumb'), toast:$('toast'), levels:$('levels'),
+  btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'),
+  questClose:$('questClose'), badges:$('badges'), meter:$('meter') };
+
+/* =====================================================================
+   SCENE 1 — INSIDE THE EARTH
+   The layer radii are real: the mantle really does end a bit past half
+   way and the inner core really is about a fifth of the way out. Only
+   the crust is cheated, drawn about thirty times too thick, because at
+   its true scale it is thinner than the outline around the circle.
+   ===================================================================== */
+const EARTH={cx:500,cy:332,R:224};
+const LAYERS=[
+  {id:'inner', r0:0,    r1:.192, fill:INNER,  name:'The inner core',  sub:'A ball of solid metal',
+   temp:'about 5,200°C', deep:'6,371 km down at the middle',
+   fact:'Iron and nickel, squeezed so hard by everything on top that it stays solid even though it is hotter than melted lava.',
+   extra:'It is almost as hot down there as the surface of the Sun.'},
+  {id:'outer', r0:.192, r1:.547, fill:OUTER,  name:'The outer core',  sub:'An ocean of melted metal',
+   temp:'about 4,500°C', deep:'from 2,890 km down',
+   fact:'Liquid metal, slowly sloshing around. Those swirls make the Earth into a giant magnet — that is what pulls a compass needle north.',
+   extra:'Birds use that magnet to steer when they migrate.'},
+  {id:'mantle', r0:.547, r1:.965, fill:MANTLE, name:'The mantle', sub:'The thickest layer of all',
+   temp:'up to 3,700°C', deep:'from 35 km down',
+   fact:'Hot rock. It is solid — you could not swim in it — but it creeps, about as fast as your fingernails grow. Everything on top rides on this.',
+   extra:'Hot mantle rises, cool mantle sinks, round and round, like soup on a stove.'},
+  {id:'crust', r0:.965, r1:1,    fill:GRANITE, name:'The crust', sub:'The part you stand on',
+   temp:'15° to 500°C', deep:'the top 5 to 70 km',
+   fact:'The thin hard skin on the outside. Next to the whole Earth it is thinner than the skin on an apple — and everything you have ever walked on is in it.',
+   extra:'Drawn far too fat here. At its real thickness you could not see it.'},
+];
+const DRILL_STOPS=[{r:.965,km:35,say:'🕳️ 35 km down — out the bottom of the crust already!'},
+                   {r:.547,km:2890,say:'🕳️ 2,890 km — through the whole mantle. The rock crept out of the way.'},
+                   {r:.192,km:5150,say:'🕳️ 5,150 km — splash! Into the melted metal of the outer core.'},
+                   {r:0,   km:6371,say:'🕳️ 6,371 km — the middle of the Earth. You cannot go any deeper.'}];
+const INS={stop:-1, r:1, heat:false, spin:0};
+function insideItems(){
+  const {cx,cy,R}=EARTH;
+  const pad=[[0,.24],[.24,.58],[.58,.93],[.93,1.14]];
+  const out=LAYERS.map((L,i)=>Object.assign({},L,{
+    emoji:['⚪','🟠','🟥','🟫'][i],
+    bg:[INNER,OUTER,MANTLE,GRANITE][i],
+    hit:{t:'ring',x:cx,y:cy,r0:pad[3-i][0]*R,r1:pad[3-i][1]*R},
+    mark:[cx,cy-(pad[3-i][0]+pad[3-i][1])/2*R,26],
+  }));
+  out.reverse();                                  /* crust first: the outermost band wins a tap on the edge */
+  out.push({id:'you', name:'You, standing on it', sub:'On the very top of the crust', emoji:'🧒', bg:'#bfe4ff',
+    fact:'Everything you have ever done happened on the outside of the thin skin. The deepest hole anybody has ever drilled did not even get through it.',
+    extra:'That hole took twenty years of drilling and stopped about a third of the way through the crust.',
+    hit:{t:'c',x:cx,y:cy-R-46,r:74}, mark:[cx,cy-R-30,44]});
+  if(INS.stop>=0) out.unshift({id:'drill', name:'The drill', sub:'Going where nobody can go', emoji:'🕳️', bg:SOIL,
+    fact:'Pretend drilling. In real life the rock gets too hot and too squeezed long before you reach the mantle — it closes the hole behind you.',
+    hit:{t:'c',x:cx,y:cy-(EARTH.R*INS.r+EARTH.R)/2,r:60}, mark:[cx,cy-EARTH.R*(INS.r+1)/2,40]});
+  return out;
+}
+function drawInside(){
+  const {cx,cy,R}=EARTH;
+  /* space, so the planet reads as a planet and not a target */
+  ctx.fillStyle=SPACE; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  const st=seeded(31);
+  for(let i=0;i<90;i++){ const x=st()*DW*1.6-DW*.3, y=st()*DH*1.6-DH*.3, s=st()*2.4+1;
+    circle(x,y,s,'rgba(255,255,255,'+(.35+st()*.5)+')'); }
+  /* the layers, outside in */
+  for(let i=LAYERS.length-1;i>=0;i--){
+    const L=LAYERS[i];
+    if(L.id==='mantle'){
+      ctx.save(); ctx.beginPath(); ctx.arc(cx,cy,L.r1*R,0,TAU); ctx.clip();
+      circle(cx,cy,L.r1*R,MANTLE);
+      const g=ctx.createRadialGradient(cx,cy,L.r0*R,cx,cy,L.r1*R);
+      g.addColorStop(0,rgba(MANTLE_LT,.95)); g.addColorStop(1,rgba(MANTLE_DK,.55));
+      ctx.fillStyle=g; ctx.fillRect(cx-R,cy-R,R*2,R*2);
+      /* convection: slow blobs turning over, only pointed out when the heat is shown */
+      for(let k=0;k<7;k++){ const a=k/7*TAU+INS.spin*.13, rr=lerp(L.r0,L.r1,.5)*R;
+        circle(cx+Math.cos(a)*rr,cy+Math.sin(a)*rr,26+Math.sin(now*.7+k)*5,rgba(MANTLE_LT,.4)); }
+      ctx.restore();
+    } else circle(cx,cy,L.r1*R,L.fill);
+    if(L.id==='crust'){ ring(cx,cy,(L.r0+L.r1)/2*R,'#7fc45c',R*(L.r1-L.r0)*.9); }
+    ring(cx,cy,L.r1*R,INK,4);
+  }
+  /* the hot glow at the middle */
+  const gg=ctx.createRadialGradient(cx,cy,0,cx,cy,.3*R);
+  gg.addColorStop(0,'rgba(255,255,220,.9)'); gg.addColorStop(1,'rgba(255,228,135,0)');
+  ctx.fillStyle=gg; ctx.beginPath(); ctx.arc(cx,cy,.3*R,0,TAU); ctx.fill();
+  /* the drill hole */
+  if(INS.stop>=0||INS.r<1){
+    const y0=cy-R, y1=cy-R*INS.r;
+    line(cx,y0-6,cx,y1,'#3a2a18',15); line(cx,y0-6,cx,y1,SOIL,8);
+    emoji('🕳️',cx,y1+10,34);
+  }
+  /* a strip of world on top */
+  const top=cy-R;
+  emoji('🌳',cx-64,top-20,34); emoji('🏠',cx+58,top-22,38); emoji('🧒',cx,top-24,34);
+  label('you are here',cx,top-58,{size:21,display:true});
+  /* One callout per layer, out to the right with a leader line back to the
+     band it names — a stack of floating words in the middle of the ball is
+     unreadable, and half of them landed on the wrong ring. */
+  const CALL=[['The crust',.99,-.66,150],['The mantle',.76,-.20,268],['Outer core',.37,.18,386],['Inner core',.08,.62,502]];
+  CALL.forEach((c,i)=>{
+    const a=c[2], px=cx+Math.cos(a)*c[1]*R, py=cy+Math.sin(a)*c[1]*R, lx=cx+R+56, ly=c[3];
+    path([[px,py],[lerp(px,lx,.62),ly],[lx-10,ly]],rgba(GOLD,.9),4);
+    disc(px,py,7,GOLD,3);
+    label(c[0],lx,ly,{size:23,display:true,align:'left',color:WHITE,halo:'rgba(43,35,80,.85)',haloW:9});
+    /* the temperature goes on its own line: with it on the end of the name the
+       longest one ran clean off the right of the picture */
+    if(INS.heat) label('🌡️ '+LAYERS[3-i].temp,lx+4,ly+27,
+      {size:19,display:true,align:'left',color:GOLD,halo:'rgba(43,35,80,.85)',haloW:8});
+  });
+  if(INS.heat){
+    for(let k=0;k<4;k++){ const a=2.28+k*.3, r0=.6*R, r1=.93*R;
+      arrow(cx+Math.cos(a)*r0,cy+Math.sin(a)*r0,cx+Math.cos(a)*r1,cy+Math.sin(a)*r1,rgba(GOLD,.95),6); }
+    label('hot rock creeps up…',186,566,{size:20,display:true,color:WHITE,halo:'rgba(43,35,80,.85)'});
+  }
+}
+
+/* =====================================================================
+   SCENE 2 — TWO KINDS OF CRUST
+   ===================================================================== */
+const CR={thick:false, weigh:false, tilt:0};
+const SEA_Y=232, SHELF=575;
+function crustItems(){
+  return [
+    {id:'sea', name:'The ocean', sub:'Sitting in the low place', emoji:'🌊', bg:SEA,
+     fact:'Water runs downhill and stops at the bottom. The sea floor rides lower than the continents, so that is where all the water ends up.',
+     extra:'Drain the sea and you would see the ocean crust is a real floor, not a hole.',
+     hit:{t:'r',x:600,y:236,w:380,h:64}, mark:[790,262,120]},
+    {id:'cont', name:'Continental crust', sub:'Thick, pale, light', emoji:'🧱', bg:GRANITE,
+     fact:'The rock the continents are made of. Pale stuff like granite. It is thick — 35 km under flat land, up to 70 km under big mountains — but it is light for its size.',
+     extra:'Light and thick is why it rides high. Everything you have ever stood on is this.',
+     hit:{t:'r',x:70,y:250,w:430,h:180}, mark:[285,330,140]},
+    {id:'ocean', name:'Oceanic crust', sub:'Thin, dark, heavy', emoji:'🪨', bg:BASALT,
+     fact:'The floor of the sea. Dark stuff like basalt, made of cooled lava. Only about 7 km thick — but a piece of it weighs more than the same-size piece of continent.',
+     extra:'Heavy and thin is why it rides low. Being heavy is also why it is the one that dives, later on.',
+     hit:{t:'r',x:600,y:296,w:380,h:76}, mark:[790,322,120]},
+    {id:'mantleTop', name:'The mantle', sub:'What both of them float on', emoji:'🟥', bg:MANTLE,
+     fact:'The same creeping hot rock from the first chapter. Both kinds of crust rest on it, and both of them sink into it a little — the heavy one more.',
+     hit:{t:'r',x:70,y:470,w:880,h:120}, mark:[500,520,180]},
+    {id:'mtnRoot', name:'The mountain root', sub:'The deep half of a mountain', emoji:'⛰️', bg:GRANITE_DK,
+     fact:'Where the crust is piled up high, it also pokes down deep. There is far more mountain below the ground than above it.',
+     extra:'Chapter 4 is about how that pile got there.',
+     hit:{t:'c',x:250,y:452,r:74}, mark:[250,452,74]},
+  ];
+}
+function drawCrust(){
+  /* sky, then sea */
+  ctx.fillStyle='#cfe9ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* the mantle fills the bottom of the whole picture */
+  ctx.fillStyle=MANTLE; ctx.fillRect(-DW,380,DW*3,DH*3);
+  /* continental crust: a fat pale slab with a mountain and a root */
+  const topP=[[-200,300],[60,296],[150,288],[210,236],[250,214],[300,250],[360,286],[440,292],[520,300],[SHELF,318]];
+  const cont=[...topP,[SHELF,352],[520,420],[400,436],[320,470],[250,506],[180,472],[90,436],[-200,430]];
+  poly(cont,GRANITE,5);
+  /* a few bands of rock so the slab does not read as a single sticker */
+  ctx.save(); poly(cont,null,0); ctx.clip();
+  for(let y=320;y<500;y+=34) path(rough(-200,y,SHELF,y+8,12,y),rgba(GRANITE_DK,.55),4);
+  ctx.restore();
+  /* the continental shelf edge and the ocean crust: thin and dark */
+  const ocT=[[SHELF,318],[640,330],[760,332],[900,330],[1200,332]];
+  const oc=[...ocT,[1200,372],[900,370],[760,372],[640,370],[SHELF,352]];
+  poly(oc,BASALT,5);
+  /* water */
+  ctx.save(); ctx.beginPath();
+  ctx.moveTo(SHELF-40,SEA_Y); ctx.lineTo(1200,SEA_Y); ctx.lineTo(1200,340); ctx.lineTo(900,338);
+  ctx.lineTo(760,340); ctx.lineTo(640,338); ctx.lineTo(SHELF,322); ctx.closePath();
+  ctx.fillStyle=rgba(SEA,.82); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=4; ctx.stroke();
+  ctx.restore();
+  for(let i=0;i<7;i++){ const x=620+i*58, y=SEA_Y+10+Math.sin(now*1.3+i)*4;
+    path([[x,y],[x+18,y-5],[x+36,y]],rgba(WHITE,.6),4); }
+  emoji('🐟',712,272,26); emoji('⛵',660,SEA_Y-16,36);
+  /* land dressing */
+  emoji('🌲',120,278,32); emoji('🌲',400,272,28); emoji('🏠',330,236,30); person(90,296,42);
+  emoji('⛰️',250,196,40);
+  label('CONTINENT',430,406,{size:26,display:true,color:INK});
+  label('SEA FLOOR',742,352,{size:24,display:true,color:WHITE,halo:'rgba(43,35,80,.7)'});
+  label('MANTLE',140,528,{size:30,display:true,color:WHITE,halo:'rgba(43,35,80,.6)'});
+  if(CR.thick){
+    /* measuring sticks. The numbers are real; the picture is not to scale. */
+    line(150,290,150,438,GOLD,7); line(126,290,174,290,GOLD,7); line(126,438,174,438,GOLD,7);
+    label('about 35 km',150,364,{size:22,display:true});
+    line(946,332,946,370,GOLD,7); line(924,332,968,332,GOLD,7); line(924,370,968,370,GOLD,7);
+    label('about 7 km',930,392,{size:22,display:true});
+    line(250,214,250,506,rgba(GOLD,.8),6); label('up to 70 km under a mountain',250,538,{size:21,display:true});
+  }
+  if(CR.weigh){
+    /* a balance: same-size cubes, and the dark one goes down */
+    const bx=760, by=104, arm=104, t=clamp(CR.tilt,0,1), a=lerp(0,.26,t);
+    line(bx,by,bx,by+60,INK,8); line(bx-14,by+60,bx+14,by+60,INK,10);
+    const lx=bx-Math.cos(a)*arm, ly=by-Math.sin(-a)*arm, rx=bx+Math.cos(a)*arm, ry=by+Math.sin(-a)*arm*-1;
+    line(lx,ly,rx,ry,INK,8);
+    box(lx-40,ly+6,80,52,10,GRANITE,4); box(rx-40,ry+6,80,52,10,BASALT,4);
+    label('same size',bx,by-34,{size:20,display:true});
+    label('light',lx,ly+68,{size:19,display:true,base:'top'});
+    label('heavy',rx,ry+68,{size:19,display:true,base:'top'});
+  }
+}
+
+/* =====================================================================
+   SCENE 3 — THE GROUND FLOATS  (isostasy, with wooden blocks)
+   One block in six sticks up and five sink: the same ratio the mountain
+   in the next chapter is drawn at, so the two pictures agree with each
+   other and with the words.
+   ===================================================================== */
+const WL=272, DENS=5/6, TANK=[80,112,840,478];
+const FL={blocks:[{id:'thin',x:250,w:128,h:96,d:0},{id:'mid',x:490,w:128,h:216,d:0},{id:'thick',x:716,w:128,h:330,d:0}],
+          ice:0, slow:false};
+function flTarget(b){ return Math.min(b.h+6, b.h*DENS + FL.ice*16); }
+function flReset(){ FL.ice=0; FL.slow=false; FL.blocks.forEach(b=>b.d=b.h*DENS); }
+function floatItems(){
+  const out=FL.blocks.map(b=>{
+    const top=WL-(b.h-b.d);
+    const names={thin:'The thin block',mid:'The middling block',thick:'The thick block'};
+    const facts={
+      thin:'Thin crust. Barely anything above the line, and barely anything below it either. This is what the sea floor is like — which is why the sea is on top of it.',
+      mid:'Ordinary crust, the sort under flat land. It floats with a bit above and a good deal below.',
+      thick:'Thick crust. It sticks up the highest AND hangs down the deepest — both at once. Every mountain range does this.'};
+    return {id:b.id, name:names[b.id], sub:'One part up, five parts down', emoji:'🪵', bg:'#c89a5e',
+      fact:facts[b.id], extra:'Look at how much of it is under the line compared with over it.',
+      hit:{t:'r',x:b.x-b.w/2-22,y:top-20,w:b.w+44,h:b.h+40}, mark:[b.x,top+b.h/2,Math.max(b.w,b.h)*.55]};
+  });
+  if(FL.ice>0) out.unshift({id:'ice', name:'The ice sheet', sub:'A very heavy blanket', emoji:'🧊', bg:'#dff3ff',
+    fact:'An ice sheet is thousands of metres of ice, and it is heavy. Pile it on and the land underneath sinks down into the mantle.',
+    extra:'Melt it and the land rises again — slowly. Land that was under ice long ago is still rising a little every year.',
+    hit:{t:'r',x:150,y:WL-(FL.blocks[2].h-FL.blocks[2].d)-106,w:660,h:116}, mark:[500,WL-150,130]});
+  out.push({id:'goo', name:'The mantle', sub:'The stuff they float on', emoji:'🟥', bg:MANTLE,
+    fact:'Not water — hot rock. But over a long time it behaves a bit like very, very thick honey, and crust floats on it just the way wood floats in a sink.',
+    extra:'Push down on it and it slowly squeezes out of the way sideways.',
+    hit:{t:'r',x:100,y:WL+300,w:760,h:120}, mark:[500,WL+356,160]});
+  return out;
+}
+function drawFloat(){
+  ctx.fillStyle='#ffe9c9'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  const [TX,TY,TW,TH]=TANK;
+  box(TX,TY,TW,TH,26,'#fff6e2',0);
+  /* the "mantle" the blocks float in */
+  ctx.save(); rrect(TX,TY,TW,TH,26); ctx.clip();
+  ctx.fillStyle=vgrad(500,WL,TY+TH,[[0,MANTLE_LT],[1,MANTLE_DK]]); ctx.fillRect(TX,WL,TW,TH);
+  for(let i=0;i<9;i++){ const x=TX+30+i*96, y=WL+70+((i*37)%180);
+    circle(x+Math.sin(now*.6+i)*8,y,16+((i*13)%9),rgba(MANTLE_LT,.45)); }
+  ctx.restore();
+  FL.blocks.forEach((b,i)=>{
+    const top=WL-(b.h-b.d), bot=top+b.h, bx=b.x-b.w/2;
+    if(FL.ice>0){ const ih=FL.ice*22;
+      box(bx,top-ih,b.w,ih,6,'#e6f5ff',5);
+      path(rough(bx,top-ih,bx+b.w,top-ih,9,i*7+FL.ice),'#c9e8fb',5);
+      label('🧊',b.x,top-ih/2,{size:Math.min(30,ih*.7),halo:false}); }
+    box(bx,top,b.w,b.h,10,'#c89a5e',5);
+    ctx.save(); rrect(bx,top,b.w,b.h,10); ctx.clip();
+    for(let y=top+18;y<bot;y+=26) path(rough(bx,y,bx+b.w,y+3,7,i*40+y),'rgba(120,80,40,.45)',3);
+    ctx.fillStyle='rgba(47,154,218,.22)'; ctx.fillRect(bx,WL,b.w,b.h);        /* the drowned part */
+    ctx.restore();
+    /* every block gets its own pair of bars: the whole lesson is the comparison */
+    const gx=b.x+b.w/2+14, up=Math.max(0,Math.round(b.h-b.d));
+    if(up>3) line(gx,top,gx,WL,GRASS,8);
+    line(gx,WL,gx,bot,ROCKET,8);
+    label(b.id==='thin'?'thin':b.id==='mid'?'middling':'thick',b.x,top+b.h*.55,
+      {size:20,display:true,color:'#5a3a1c',halo:'rgba(255,246,226,.9)',haloW:7});
+    if(b.id==='thick'){
+      label('up',gx+30,(top+WL)/2,{size:20,display:true,color:'#2e7d32'});
+      label('down',gx+44,(WL+bot)/2,{size:20,display:true,color:ROCKET_DK}); }
+  });
+  /* the line they all float at */
+  ctx.save(); ctx.setLineDash([12,9]); path([[TX,WL],[TX+TW,WL]],rgba(INK,.6),4); ctx.restore();
+  label('⬇️ they all float at this line',600,TY+34,{size:21,display:true});
+  box(TX,TY,TW,TH,26,null,6);
+  label('MANTLE',TX+96,TY+TH-34,{size:28,display:true,color:WHITE,halo:'rgba(43,35,80,.55)'});
+  if(FL.slow) label('⬆️ rising back up… slowly',500,TY+64,{size:25,display:true,color:ROCKET_DK});
+}
+
+/* =====================================================================
+   SCENE 4 — MAKING MOUNTAINS
+   Drawn at the same one-up-five-down ratio as the floating blocks, so a
+   child can see it is the same idea wearing a different hat.
+   ===================================================================== */
+const MT={p:0,pT:0,e:0,eT:0,rain:0,pushes:0,drops:[]};
+const MT_TOP=210, MT_BOT=280, MT_HALF=270, MT_UP=66, ROOTX=5;
+function mtUp(){ return MT_UP*MT.p*(1-.55*MT.e); }
+function mtEnv(x){ const d=Math.abs(x-500)/MT_HALF; return d>=1?0:Math.pow(Math.cos(d*Math.PI/2),1.5); }
+/* The top is crumpled and the root is smooth, which is how it really works:
+   folding makes ridges you can see, and the root is just the average weight
+   of all of them pressing down. */
+function mtProfile(x){
+  const k=mtEnv(x); if(k<=0) return [MT_TOP,MT_BOT];
+  const u=mtUp()*k;
+  const ridge=u*(.30*Math.max(0,Math.cos((x-500)/38))+.20*Math.max(0,Math.cos((x-500)/23+1.2))
+                 +.14*Math.max(0,Math.cos((x-500)/15+2.4)));
+  return [MT_TOP-u-ridge*(1-.6*MT.e), MT_BOT+u*ROOTX];
+}
+function mtReset(){ MT.p=MT.pT=MT.e=MT.eT=0; MT.rain=0; MT.pushes=0; MT.drops.length=0; }
+function mtnItems(){
+  const pk=mtProfile(500);
+  const out=[
+    {id:'peak', name:'The peak', sub:'The part you can see', emoji:'⛰️', bg:GRANITE,
+     fact:'When two continents shove into each other the crust crumples, like a rug pushed across a floor. It folds up into ridges — and folds down just as hard underneath.',
+     extra:'Neither plate can dive: both are light continent crust. So the only way out is up and down.',
+     hit:{t:'r',x:380,y:pk[0]-40,w:240,h:150}, mark:[500,pk[0]+30,110]},
+    {id:'root', name:'The root', sub:'Five times bigger than the peak', emoji:'🪨', bg:GRANITE_DK,
+     fact:'Under a mountain the crust pokes down deep into the mantle, like the bottom of an iceberg. For every one part sticking up, about five parts hang down.',
+     extra:'That is the floating from the last chapter. A thick block rides high and hangs deep.',
+     hit:{t:'r',x:360,y:MT_BOT+20,w:280,h:Math.max(120,pk[1]-MT_BOT)}, mark:[500,MT_BOT+70,120]},
+    {id:'plateL', name:'The left plate', sub:'A piece of the crust, drifting', emoji:'👈', bg:GRANITE,
+     fact:'The crust is cracked into big pieces called plates, and they drift about as fast as your fingernails grow. Slow — but nothing can stop them.',
+     extra:'Your fingernails will grow about as far this year as a plate moves.',
+     hit:{t:'r',x:20,y:MT_TOP-30,w:200,h:150}, mark:[120,MT_TOP+40,110]},
+    {id:'plateR', name:'The right plate', sub:'Coming the other way', emoji:'👉', bg:GRANITE,
+     fact:'Coming the other way, just as slowly. Where the two meet, something has to give — and it is the rock in the middle.',
+     hit:{t:'r',x:780,y:MT_TOP-30,w:200,h:150}, mark:[880,MT_TOP+40,110]},
+    {id:'mantleM', name:'The mantle', sub:'Holding it all up', emoji:'🟥', bg:MANTLE,
+     fact:'The root pushes down into the mantle and the mantle pushes back. That is what stops a mountain sinking to the middle of the Earth.',
+     hit:{t:'r',x:60,y:400,w:240,h:180}, mark:[180,480,130]},
+  ];
+  if(MT.rain>0.05) out.unshift({id:'rain', name:'Rain, ice and wind', sub:'The mountain wreckers', emoji:'🌧️', bg:'#bcdcf5',
+    fact:'Rain washes grit away. Water freezes in cracks and splits the rock. Bit by bit the top of a mountain goes down the rivers to the sea.',
+    extra:'Missouri is partly made of old mountains that went down a river.',
+    hit:{t:'r',x:300,y:40,w:400,h:150}, mark:[500,110,140]});
+  return out;
+}
+function drawMtn(){
+  ctx.fillStyle='#cfe9ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  ctx.fillStyle=MANTLE; ctx.fillRect(-DW,MT_BOT,DW*3,DH*3);
+  ctx.save(); ctx.beginPath(); ctx.rect(-DW,MT_BOT,DW*3,DH*2); ctx.clip();
+  for(let i=0;i<10;i++){ const x=60+i*100, y=MT_BOT+70+((i*53)%160);
+    circle(x+Math.sin(now*.5+i)*7,y,20,rgba(MANTLE_LT,.4)); }
+  ctx.restore();
+  /* the crust: one continuous slab that thickens where it is squeezed */
+  const T=[],B=[];
+  for(let x=-120;x<=1120;x+=20){ const pr=mtProfile(x); T.push([x,pr[0]]); B.push([x,pr[1]]); }
+  const slab=[...T,...B.reverse()];
+  poly(slab,GRANITE,5);
+  /* folded layers inside, so the crumple is visible and not just a shape */
+  ctx.save(); poly(slab,null,0); ctx.clip();
+  for(let k=0;k<9;k++){
+    const f=k/8, P=[];
+    for(let x=-120;x<=1120;x+=16){ const pr=mtProfile(x); P.push([x,lerp(pr[0],pr[1],f)]); }
+    path(P,rgba(GRANITE_DK,.6),4);
+  }
+  ctx.restore();
+  poly(slab,null,5);
+  /* the plates shoving inwards — drawn ON the crust, where the caption is not */
+  if(MT.p<1){ arrow(96,MT_TOP+38,236,MT_TOP+38,WHITE,9); arrow(904,MT_TOP+38,764,MT_TOP+38,WHITE,9); }
+  emoji('🌲',170,MT_TOP-14,28); emoji('🌲',842,MT_TOP-14,28); person(120,MT_TOP-2,36);
+  label('MANTLE',150,470,{size:28,display:true,color:WHITE,halo:'rgba(43,35,80,.6)'});
+  /* the measuring stick, out on a flank where the crust is smooth: the ratio
+     is the same everywhere, and here it is clear of the caption */
+  if(MT.p>.08){
+    const mx=690, pr=mtProfile(mx), env=MT_TOP-mtUp()*mtEnv(mx);
+    line(mx,env,mx,MT_TOP,GRASS,8); line(mx,MT_BOT,mx,pr[1],ROCKET,8);
+    label('1 up',mx+46,(env+MT_TOP)/2,{size:21,display:true,color:'#2e7d32'});
+    label('5 down',mx+62,(MT_BOT+pr[1])/2,{size:21,display:true,color:ROCKET_DK});
+  }
+  const pk=mtProfile(500);
+  /* weathering */
+  if(MT.rain>0.02){
+    ctx.save(); ctx.globalAlpha=clamp(MT.rain,0,1);
+    MT.drops.forEach(d=>line(d.x,d.y,d.x-4,d.y+16,rgba(SEA,.85),3));
+    for(let i=0;i<5;i++) emoji('☁️',300+i*100,72,46);
+    ctx.restore();
+    /* grit piling up against the flanks */
+    const g=MT.e*36;
+    if(g>1){ poly([[500-MT_HALF-40,MT_TOP],[500-120,MT_TOP-g*.4],[500-MT_HALF+90,MT_TOP+2]],'#d8b98a',4);
+             poly([[500+MT_HALF+40,MT_TOP],[500+120,MT_TOP-g*.4],[500+MT_HALF-90,MT_TOP+2]],'#d8b98a',4); }
+  }
+  if(MT.p<.03) label('👉 Press "Push the plates!"',500,140,{size:28,display:true});
+}
+
+/* =====================================================================
+   SCENE 5 — VOLCANOES  (a subduction zone, drawn in cross-section)
+   ===================================================================== */
+const VOL={e:0,eT:0,on:false,melt:false,parts:[],puff:[],erupts:0};
+const SLAB=[[-200,300],[240,302],[380,306],[430,330],[520,398],[620,462],[740,536],[880,620]];
+function slabLower(){ return SLAB.map(p=>[p[0]-8,p[1]+50]); }
+function volReset(){ VOL.e=VOL.eT=0; VOL.on=false; VOL.parts.length=0; VOL.puff.length=0; }
+function volItems(){
+  const out=[];
+  if(VOL.e>.15){
+    out.push({id:'lava', name:'Lava', sub:'Magma that got out', emoji:'🔥', bg:'#ff5a1f',
+      fact:'The same melted rock — but magma is the name for it underground and lava is the name once it is out in the air. It cools into new rock, layer on layer, and that is what builds the mountain.',
+      extra:'The cone is just a heap of its own old eruptions.',
+      hit:{t:'c',x:700,y:150,r:110}, mark:[700,150,90]});
+    out.push({id:'ash', name:'The ash cloud', sub:'Rock smashed into dust', emoji:'☁️', bg:'#9aa3ad',
+      fact:'Gas trapped in the magma bursts out and blasts the rock into powder. Ash can drift for hundreds of miles and turn the sky grey.',
+      extra:'Volcanic ash makes wonderfully good soil once it settles.',
+      hit:{t:'r',x:540,y:10,w:330,h:120}, mark:[705,70,130]});
+  }
+  out.push(
+    {id:'magma', name:'The magma chamber', sub:'A pocket of melted rock', emoji:'🫧', bg:'#ff7a1f',
+     fact:'Melted rock is lighter than the solid rock around it, so it rises and collects in a pocket under the volcano — waiting.',
+     extra:'When the pocket gets too full, up it comes.',
+     hit:{t:'c',x:700,y:352,r:96}, mark:[700,352,84]},
+    {id:'cone', name:'The volcano', sub:'Built out of its own eruptions', emoji:'🌋', bg:'#6b4a3a',
+     fact:'Every eruption leaves a layer of lava and ash. Do that over and over and you get a mountain with a hole down the middle.',
+     extra:'Volcanoes line up in a row above a diving plate — a whole chain of them.',
+     hit:{t:'r',x:600,y:108,w:210,h:150}, mark:[700,190,110]},
+    {id:'trench', name:'The trench', sub:'The deepest place in the sea', emoji:'🕳️', bg:SEA_DK,
+     fact:'Where the sea floor bends downwards it makes a long, narrow ditch. Trenches are the deepest water anywhere on Earth — deeper than the tallest mountain is tall.',
+     hit:{t:'c',x:424,y:318,r:94}, mark:[424,318,80]},
+    {id:'slab', name:'The diving plate', sub:'Heavy sea floor, going under', emoji:'🪨', bg:BASALT,
+     fact:'Sea floor is thin and heavy, continent is thick and light, so the sea floor is always the one that goes under. It never happens the other way round.',
+     extra:'As it sinks it drags water down with it, and that water is what makes the rock above melt.',
+     hit:{t:'c',x:580,y:452,r:104}, mark:[580,452,92]},
+    {id:'seaV', name:'The sea', sub:'Riding on the low, heavy crust', emoji:'🌊', bg:SEA,
+     fact:'Same story as chapter two: the water sits over the thin heavy crust, because that crust rides lower.',
+     hit:{t:'r',x:40,y:246,w:330,h:80}, mark:[205,286,120]},
+    {id:'contV', name:'The continent', sub:'Thick, light, and staying put', emoji:'🧱', bg:GRANITE,
+     fact:'Too light to sink. So it gets a row of volcanoes along its edge instead, and slowly grows bigger as new rock is added.',
+     hit:{t:'r',x:850,y:258,w:150,h:150}, mark:[925,330,110]});
+  return out;
+}
+function drawVol(){
+  ctx.fillStyle=VOL.e>.2?mix('#cfe9ff','#8e8d95',clamp(VOL.e,0,1)):'#cfe9ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  ctx.fillStyle=MANTLE; ctx.fillRect(-DW,290,DW*3,DH*3);
+  ctx.save(); ctx.beginPath(); ctx.rect(-DW,290,DW*3,DH*2); ctx.clip();
+  for(let i=0;i<8;i++) circle(90+i*130+Math.sin(now*.5+i)*8,470+((i*61)%120),22,rgba(MANTLE_LT,.35));
+  ctx.restore();
+  /* the diving slab */
+  const lower=slabLower().reverse();
+  poly([...SLAB,...lower],BASALT,5);
+  /* the continent it is diving under */
+  poly([[430,330],[540,262],[600,252],[1200,250],[1200,430],[720,430],[560,392],[430,330]],GRANITE,5);
+  ctx.save(); poly([[430,330],[540,262],[600,252],[1200,250],[1200,430],[720,430],[560,392],[430,330]],null,0); ctx.clip();
+  for(let y=300;y<430;y+=32) path(rough(430,y,1200,y+6,10,y),rgba(GRANITE_DK,.5),4);
+  ctx.restore();
+  /* water, and the trench notch */
+  ctx.save(); ctx.beginPath();
+  ctx.moveTo(-200,250); ctx.lineTo(410,250); ctx.lineTo(430,330); ctx.lineTo(400,308);
+  ctx.lineTo(240,302); ctx.lineTo(-200,300); ctx.closePath();
+  ctx.fillStyle=rgba(SEA,.85); ctx.fill(); ctx.strokeStyle=INK; ctx.lineWidth=4; ctx.stroke(); ctx.restore();
+  emoji('⛵',180,234,36); emoji('🐟',300,278,22);
+  label('TRENCH',424,220,{size:22,display:true}); arrow(424,238,424,292,INK,5);
+  /* where it melts */
+  if(VOL.melt){
+    for(let i=0;i<6;i++){ const t=.35+i*.09, p=[lerp(430,880,t),lerp(330,620,t)];
+      circle(p[0]+18,p[1]-26+Math.sin(now*2+i)*4,20,rgba('#ff9330',.8)); }
+    label('🔥 here the rock melts',466,512,{size:22,display:true,color:WHITE,halo:'rgba(43,35,80,.75)'});
+    arrow(648,452,694,384,rgba(GOLD,.95),7);
+  }
+  /* magma chamber + pipe */
+  line(700,352,700,150,'#ff7a1f',18);
+  ellipse(700,352,80,46,0,'#ff7a1f',5);
+  circle(700+Math.sin(now*2)*6,352,24,rgba(GOLD,.7));
+  /* the cone */
+  poly([[598,252],[678,124],[722,124],[802,252]],'#6b4a3a',5);
+  ctx.save(); poly([[598,252],[678,124],[722,124],[802,252]],null,0); ctx.clip();
+  for(let k=0;k<5;k++) path([[560,246-k*26],[700,214-k*26],[840,246-k*26]],'rgba(40,26,18,.45)',5);
+  ctx.restore();
+  poly([[678,124],[700,140],[722,124]],'#3a2a20',4);
+  /* dressing on the land */
+  emoji('🌲',900,236,30); emoji('🏠',960,240,26); emoji('🌲',860,238,24);
+  /* the eruption */
+  if(VOL.e>0.02){
+    ctx.save(); ctx.globalAlpha=clamp(VOL.e*1.2,0,1);
+    VOL.puff.forEach(p=>circle(p.x,p.y,p.r,'rgba(120,118,126,'+p.a+')'));
+    ctx.restore();
+    VOL.parts.forEach(p=>circle(p.x,p.y,p.r,p.c));
+    /* two lava flows, hugging the flanks of the cone */
+    const f=clamp(VOL.e*1.5,0,1);
+    path([[694,134],[676,176],[650,212],[624,246]].slice(0,1+Math.round(f*3)),'#ff5a1f',9);
+    path([[706,134],[726,178],[754,214],[782,248]].slice(0,1+Math.round(f*3)),'#ff8b2b',8);
+  }
+  label('MANTLE',170,404,{size:28,display:true,color:WHITE,halo:'rgba(43,35,80,.6)'});
+  label('CONTINENT',930,296,{size:20,display:true});
+}
+
+/* =====================================================================
+   SCENE 6 — EARTHQUAKES  (a fault seen from above)
+   Elastic rebound, drawn honestly: while the plates drift, the ground
+   far from the fault moves and the ground at the fault stays stuck, so
+   the road bends. At the snap the bend straightens and what is left is
+   a step in the road. Nothing is lost or gained at the moment of the
+   snap — it just moves from "bent" to "broken".
+   ===================================================================== */
+const QK={D:0,DT:0,off:0,shake:0,trace:[],quakes:0,waveT:-1};
+const FAULT_X=500;
+function qkReset(){ QK.D=QK.DT=0; QK.off=0; QK.shake=0; QK.quakes=0; QK.waveT=-1; QK.trace.length=0; }
+function qkDisp(x){
+  const s=x<FAULT_X?1:-1, d=Math.abs(x-FAULT_X);
+  return s*(QK.D*(1-Math.exp(-d/150))+QK.off/2);
+}
+function quakeItems(){
+  const out=[];
+  if(QK.waveT>=0) out.push({id:'waves', name:'The shaking', sub:'Waves, spreading out', emoji:'〰️', bg:'#ffd9a8',
+    fact:'The snap sends waves out through the rock in every direction, like ripples from a stone dropped in a pond. The waves are the earthquake — the shaking you feel.',
+    extra:'They travel through the whole Earth. A machine on the far side can feel them.',
+    hit:{t:'c',x:FAULT_X,y:400,r:170}, mark:[FAULT_X,400,150]});
+  out.push(
+    {id:'seismo', name:'The seismograph', sub:'The squiggle machine', emoji:'📈', bg:'#fff6e2',
+     fact:'A weight on a spring that stays still while the ground jiggles underneath it, and a pen that draws the difference. Small squiggle, small quake. Big squiggle, big quake.',
+     extra:'Every ten times bigger a squiggle gets, the quake is one number higher on the scale.',
+     hit:{t:'r',x:624,y:26,w:350,h:200}, mark:[799,126,160]},
+    {id:'fault', name:'The fault', sub:'A crack where two pieces meet', emoji:'⚡', bg:'#6b6b78',
+     fact:'Two pieces of crust trying to slide past each other. The rock is rough, so they catch and stick — and then the plates keep pushing anyway.',
+     extra:'They are stuck almost all the time. The sliding happens in a few seconds, once in a great while.',
+     hit:{t:'r',x:434,y:196,w:132,h:420}, mark:[FAULT_X,410,110]},
+    {id:'road', name:'The road', sub:'A ruler laid across the crack', emoji:'🛣️', bg:'#8a8a92',
+     fact:'A straight road is the easiest way to see it. While the rock is stuck, the road bends. When it snaps, the bend turns into a step — and half the road is suddenly somewhere else.',
+     extra:'Real roads, fences and rows of trees have been broken exactly like this.',
+     hit:{t:'r',x:120,y:288,w:280,h:116}, mark:[260,346,120]},
+    {id:'town', name:'New Madrid, Missouri', sub:'Missouri has a famous fault', emoji:'🏘️', bg:'#c8e3a0',
+     fact:'The New Madrid fault runs under the bootheel of Missouri. Long ago it made quakes so big they rang church bells hundreds of miles away and made the Mississippi look like it ran backwards.',
+     extra:'If the ground ever shakes: DROP, take COVER under something solid, and HOLD ON.',
+     hit:{t:'c',x:200,y:450,r:96}, mark:[200,450,88]},
+    {id:'blockR', name:'The other side', sub:'Going the other way', emoji:'➡️', bg:'#a9d17f',
+     fact:'Two plates grinding past each other. Neither goes under, neither piles up — they just try to slide, and get stuck trying.',
+     hit:{t:'r',x:700,y:196,w:280,h:90}, mark:[840,240,120]});
+  return out;
+}
+function drawQuake(){
+  const j=QK.shake>0.02?(rnd()-.5)*QK.shake*16:0, j2=QK.shake>0.02?(rnd()-.5)*QK.shake*16:0;
+  ctx.save(); ctx.translate(j,j2);
+  ctx.fillStyle='#cfe9ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* the ground, from above */
+  ctx.fillStyle='#9ecf72'; ctx.fillRect(-DW,190,DW*3,DH*2);
+  const gr=seeded(19);
+  for(let i=0;i<46;i++){ const x=gr()*DW, y=190+gr()*430; circle(x+qkDisp(x)*0,y,3+gr()*3,'rgba(90,140,60,.5)'); }
+  /* a stripe of ploughed field on each side so the offset is visible everywhere */
+  for(let i=0;i<9;i++){ const y=214+i*46;
+    const P=[]; for(let x=-60;x<=1060;x+=20) P.push([x,y+qkDisp(x)*.55]);
+    path(P,'rgba(120,160,80,.55)',6); }
+  /* the road */
+  const RY=346;
+  const road=[]; for(let x=-60;x<=1060;x+=10) road.push([x,RY+qkDisp(x)]);
+  path(road,'#6f6f78',46); path(road,'#8a8a92',38);
+  for(let i=0;i<24;i++){ const x=-40+i*46, y=RY+qkDisp(x); if(Math.abs(x-FAULT_X)<26) continue;
+    line(x,y,x+22,y+qkDisp(x+22)-qkDisp(x),'#fff2b8',5); }
+  /* a fence, lower down, as a second ruler */
+  const FY=556;
+  for(let i=0;i<26;i++){ const x=-20+i*42, y=FY+qkDisp(x);
+    line(x,y-16,x,y+16,'#9a6b3f',6); if(i) line(x-42,FY+qkDisp(x-42),x,y,'#b98a52',5); }
+  /* the fault itself */
+  const F=[]; for(let y=186;y<=626;y+=22) F.push([FAULT_X+Math.sin(y*.07)*9,y]);
+  path(F,'#3a3a46',12); path(F,'#5d5d6a',6);
+  arrow(FAULT_X-92,236,FAULT_X-92,318,INK,7); arrow(FAULT_X+92,318,FAULT_X+92,236,INK,7);
+  label('stuck!',FAULT_X,206,{size:22,display:true,color:ROCKET_DK});
+  /* the town, sitting between the road and the fence */
+  emoji('🏘️',196,442,46); emoji('🏠',274,452,28); emoji('⛪',130,450,28);
+  label('New Madrid',196,478,{size:20,display:true});
+  /* the waves */
+  if(QK.waveT>=0){
+    for(let k=0;k<4;k++){ const r=(QK.waveT*420)-k*70; if(r<0) continue;
+      ring(FAULT_X,400,r,'rgba(255,107,53,'+clamp(1-r/420,0,1)*.8+')',9); }
+  }
+  ctx.restore();
+  /* the seismograph, pinned to the corner: it must not jiggle with the ground */
+  box(624,26,350,200,16,'#fff6e2',5);
+  box(640,44,318,106,10,WHITE,3);
+  ctx.save(); rrect(640,44,318,106,10); ctx.clip();
+  const tr=QK.trace, base=97;
+  ctx.strokeStyle=ROCKET_DK; ctx.lineWidth=3; ctx.beginPath();
+  for(let i=0;i<tr.length;i++){ const x=958-(tr.length-i)*2.2, y=base-tr[i]*46; i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.stroke(); ctx.restore();
+  label('📈 seismograph',799,168,{size:20,display:true});
+  /* the squeeze meter, in the same instrument panel */
+  label('🤝 squeeze',684,196,{size:19,display:true});
+  box(760,184,184,26,13,WHITE,4);
+  box(763,187,clamp(QK.D/40,0,1)*178,20,10,QK.D>34?ROCKET:GOLD,0);
+  if(QK.D>34) label('about to go!',799,216,{size:19,display:true,color:ROCKET_DK});
+}
+
+/* =====================================================================
+   THE SCENES, AND WHAT EACH ONE DOES EVERY FRAME
+   ===================================================================== */
+const SCENES={
+  inside:{draw:drawInside,items:insideItems},
+  crust:{draw:drawCrust,items:crustItems},
+  float:{draw:drawFloat,items:floatItems},
+  mountains:{draw:drawMtn,items:mtnItems},
+  volcano:{draw:drawVol,items:volItems},
+  quake:{draw:drawQuake,items:quakeItems},
+};
+function items(){ return SCENES[CHAPTERS[current].id].items(); }
+function hitTest(x,y){ const L=items(); for(const it of L) if(hits(it.hit,x,y)) return it; return null; }
+
+function updateScenes(dt){
+  INS.spin+=dt;
+  INS.r+=(( INS.stop<0?1:DRILL_STOPS[INS.stop].r )-INS.r)*Math.min(1,dt*3);
+  CR.tilt+=((CR.weigh?1:0)-CR.tilt)*Math.min(1,dt*3);
+  /* floating: sinking is quick, rising back up is not. Land that had an ice
+     sheet on it is still coming up today, and that is the point of the delay. */
+  FL.slow=false;
+  FL.blocks.forEach(b=>{ const t=flTarget(b), rate=(t<b.d-0.5)?0.55:3.2;
+    if(t<b.d-0.5) FL.slow=true;
+    b.d+=(t-b.d)*Math.min(1,dt*rate); });
+  MT.p+=(MT.pT-MT.p)*Math.min(1,dt*1.8);
+  MT.e+=(MT.eT-MT.e)*Math.min(1,dt*(MT.rain>.5?0.5:2));
+  if(MT.rainOn){ MT.rain=Math.min(1,MT.rain+dt*3); MT.eT=Math.min(1,MT.eT+dt*0.22);
+    if(MT.drops.length<70) MT.drops.push({x:240+rnd()*520,y:90+rnd()*40,v:420+rnd()*260});
+    MT.drops.forEach(d=>{ d.y+=d.v*dt; if(d.y>mtProfile(d.x)[0]-6){ d.y=86+rnd()*30; d.x=240+rnd()*520; } });
+    if(MT.eT>=1) setRain(false);
+  } else MT.rain=Math.max(0,MT.rain-dt*2);
+  /* the volcano */
+  VOL.e+=(VOL.eT-VOL.e)*Math.min(1,dt*(VOL.eT>VOL.e?2.6:0.8));
+  if(VOL.on){ VOL.on-=dt; if(VOL.on<=0){ VOL.on=0; VOL.eT=0; } }
+  if(VOL.eT>0){
+    if(VOL.parts.length<150) for(let i=0;i<3;i++)
+      VOL.parts.push({x:700+(rnd()-.5)*26,y:132,vx:(rnd()-.5)*170,vy:-260-rnd()*250,r:4+rnd()*7,
+        c:['#ff5a1f','#ff8b2b','#ffd23f'][Math.floor(rnd()*3)]});
+    if(VOL.puff.length<70) VOL.puff.push({x:700+(rnd()-.5)*40,y:120,r:16+rnd()*18,a:.5,vy:-46-rnd()*40,vx:(rnd()-.5)*40});
+  }
+  VOL.parts.forEach(p=>{ p.vy+=760*dt; p.x+=p.vx*dt; p.y+=p.vy*dt; });
+  VOL.parts=VOL.parts.filter(p=>p.y<252);
+  VOL.puff.forEach(p=>{ p.y+=p.vy*dt; p.x+=p.vx*dt; p.r+=14*dt; p.a-=dt*.13; });
+  VOL.puff=VOL.puff.filter(p=>p.a>0.02);
+  /* the fault */
+  QK.D+=(QK.DT-QK.D)*Math.min(1,dt*3);
+  if(QK.shake>0){ QK.shake=Math.max(0,QK.shake-dt*0.75); }
+  if(QK.waveT>=0){ QK.waveT+=dt*0.85; if(QK.waveT>1.25) QK.waveT=-1; }
+  const amp=QK.shake>0.02?QK.shake*(rnd()-.5)*2:0;
+  QK.trace.push(amp); if(QK.trace.length>144) QK.trace.shift();
+}
+
+/* =====================================================================
+   READ ALOUD — the same machinery as Flower Explorer and Forest
+   Elevator, because a child who has used one should not have to learn a
+   second way of turning the voice on. Starts quiet: a voice that begins
+   talking the moment a page opens is a surprise in a classroom and talks
+   over whoever is helping. If the browser has no speech at all, every 🔊
+   hides itself and the tool works exactly as before.
+   ===================================================================== */
+const Speech=(()=>{
+  const has=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+  if(!has) document.body.classList.add('nospeech');
+  let on=false, voice=null, btn=null, cur=null, pending=null, unlocked=false;
+  function pickVoice(){
+    if(!has) return;
+    const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+    const want=[/samantha/i,/karen/i,/moira/i,/google us english/i,/zira/i,/female/i];
+    for(const w of want){ const v=vs.find(v=>/^en/i.test(v.lang)&&w.test(v.name)); if(v){ voice=v; return; } }
+    voice=vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||vs[0];
+  }
+  if(has){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+  /* strip markup, pronunciation hints and emoji — a screen voice happily reads
+     "mountain, tap the peak" as "mountain snow capped, tap the peak" */
+  function plain(html){
+    return String(html).replace(/<[^>]*>/g,'').replace(/\s*\((?=[A-Z]{2,})[^)]*\)/g,'')
+      .replace(/[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{20E3}]/gu,'')
+      .replace(/&amp;/g,'and').replace(/&nbsp;/g,' ').replace(/[·•]/g,',').replace(/\s+/g,' ').trim();
+  }
+  function stop(){ if(!has) return; cur=null; speechSynthesis.cancel(); if(btn){ btn.classList.remove('talking'); btn=null; } }
+  function say(text,fromBtn){
+    if(!has) return;
+    const t=plain(text); if(!t) return;
+    stop();
+    const u=new SpeechSynthesisUtterance(t);
+    try{ if(voice) u.voice=voice; }catch(e){}      /* a bad voice must never take the page down with it */
+    u.rate=.88; u.pitch=1.1; u.volume=1;
+    btn=fromBtn||null; if(btn) btn.classList.add('talking');
+    u.onend=u.onerror=()=>{ if(btn){ btn.classList.remove('talking'); btn=null; } cur=null; };
+    cur=u;
+    setTimeout(()=>{ if(cur===u) speechSynthesis.speak(u); },REDUCED?0:60);   /* Chrome wants a tick after cancel() */
+  }
+  /* iOS will not speak until the child has touched something, so the opening line
+     used to vanish silently. Try it, and if nothing is actually speaking by the
+     first tap, say it then instead. */
+  function unlock(){ if(unlocked) return; unlocked=true; const t=pending; pending=null;
+    if(t&&on&&has&&!speechSynthesis.speaking) say(t); }
+  if(has){ addEventListener('pointerdown',unlock,{once:true}); addEventListener('keydown',unlock,{once:true}); }
+  function auto(text){ if(!on) return; say(text); if(!unlocked) pending=text; }
+  return { has, say, auto, stop, plain, get on(){ return on; }, set on(v){ on=v; if(!v) stop(); } };
+})();
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+  Speech.auto(c.title+'. '+c.caption);
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); Speech.auto(msg); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+function statFor(i){
+  const id=CHAPTERS[i].id;
+  if(id==='inside'){ const km=INS.stop<0?0:DRILL_STOPS[INS.stop].km;
+    return '<span>🕳️ Drilled down: <b>'+km.toLocaleString()+'</b> km</span><span>🌍 All the way: <b>6,371</b> km</span>'; }
+  if(id==='crust') return '<span>🧱 Continent: <b>thick + light</b></span><span>🪨 Sea floor: <b>thin + heavy</b></span>';
+  if(id==='float'){ const b=FL.blocks[2], up=Math.max(0,Math.round((b.h-b.d)/b.h*100));
+    return '<span>🧊 Ice piled on: <b>'+FL.ice+'</b> of 3</span><span>⬆️ Thick block above the line: <b>'+up+'%</b></span>'; }
+  if(id==='mountains'){ const km=(5*MT.p*(1-.55*MT.e));
+    return '<span>⛰️ Peak: <b>'+km.toFixed(1)+'</b> km up</span><span>🪨 Root: <b>'+(km*5).toFixed(1)+'</b> km down</span>'; }
+  if(id==='volcano') return '<span>🌋 Eruptions: <b>'+VOL.erupts+'</b></span><span>'+(VOL.eT>0?'🔥 <b>Erupting!</b>':'😴 <b>Sleeping</b>')+'</span>';
+  if(id==='quake') return '<span>🤝 Squeeze: <b>'+Math.round(clamp(QK.D/40,0,1)*100)+'%</b></span><span>💥 Quakes: <b>'+QK.quakes+'</b></span>';
+  return '';
+}
+function refreshStat(){ setStat(statFor(current)); }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(item.emoji) emoji(item.emoji,42,44,48);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+  Speech.auto(item.name+'. '+(item.sub?item.sub+'. ':'')+item.fact);
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true; saveBadges(); updateWipe();
+  const c=CHAPTERS.find(c=>c.id===id); if(!c) return;
+  if(c.badgeEl) c.badgeEl.classList.add('won'); if(c.chip) c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🌍 All 6 badges — you are a GEOLOGIST!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const c=CHAPTERS.find(c=>c.id===id); if(!c||!c.quest) return;
+  closeCard(); quest.active={id:c.id,title:c.questTitle,steps:c.quest}; quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true;
+  document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing');
+  if(!els.card.hidden) return; els.hint.hidden=false; }
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML='';
+  Q.steps.forEach((_,i)=>{ const d=document.createElement('span');
+    d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){ els.qOpts.hidden=false;
+    S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.type='button';
+      b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); }); }
+  else els.qOpts.hidden=true;
+  if(S.onShow) S.onShow();
+  Speech.auto(questSpeech());
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); Speech.auto(msg); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length) setTimeout(()=>{ endQuest(); award(Q.id); },1100);
+  else setTimeout(renderStep,1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true);
+    if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no');
+    feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that one. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+const tapIs=(id,hint)=>it=>it&&it.id===id?true:hint;
+
+/* The challenges live on the chapters themselves, so the headless smoke check
+   can read every step without having to open the panel and walk it. */
+CHAPTERS[0].questTitle='🌍 Down through the layers';
+CHAPTERS[0].quest=[
+  {prompt:'Which layer are you standing on <b>right now</b>?',options:[
+    {text:'🟫 The crust',ok:true,say:'Yes! The thin skin on the outside. Everything is up here.'},
+    {text:'🟥 The mantle',say:'That is under you — a long way under you.'},
+    {text:'⚪ The inner core',say:'That is the very middle of the Earth. A bit far down!'}]},
+  {prompt:'Tap the layer of <b>melted metal</b> that turns the Earth into a magnet.',
+   tap:tapIs('outer','Look for the orange ring, between the mantle and the little ball in the middle.'),
+   yes:'Yes! The outer core. Its swirls are what pull a compass needle north.'},
+];
+CHAPTERS[1].questTitle='🧱 Thick and light, thin and heavy';
+CHAPTERS[1].quest=[
+  {prompt:'Tap the crust that is <b>thin and heavy</b>.',
+   tap:it=>it&&it.id==='ocean'?true:(it&&it.id==='sea'?'That is the water on top of it. Tap the dark rock underneath.':'Look under the sea for the thin dark band.'),
+   yes:'Yes! Oceanic crust. Thin, dark, and heavy for its size.'},
+  {prompt:'So why is the sea <b>where it is</b>?',options:[
+    {text:'🌊 The sea floor rides lower, so water collects there',ok:true,say:'Yes! Water runs downhill and stops at the bottom.'},
+    {text:'⛏️ Somebody dug a big hole for it',say:'Nobody dug the ocean! Think about which crust rides lower.'},
+    {text:'☔ Rain falls on the highest places',say:'Rain falls everywhere — but it runs downhill afterwards.'}]},
+];
+CHAPTERS[2].questTitle='🪵 Up a little, down a lot';
+CHAPTERS[2].quest=[
+  {prompt:'Which block sticks up the <b>highest</b>?',options:[
+    {text:'🪵 The thick one',ok:true,say:'Yes! Thicker means more of it above the line.'},
+    {text:'🪵 The thin one',say:'Look again — the thin one barely shows at all.'},
+    {text:'🤷 They are all the same',say:'Not quite. Compare their tops.'}]},
+  {prompt:'Now tap the block that hangs down the <b>deepest</b>.',
+   tap:tapIs('thick','Try the same block you just picked…'),
+   yes:'The same one! High top AND deep root — that is how floating works.'},
+  {prompt:'Press <b>🧊 Pile on ice</b> a few times. What happens to the blocks?',options:[
+    {text:'⬇️ They sink lower',ok:true,say:'Yes! Weight on top pushes the land down into the mantle.'},
+    {text:'⬆️ They pop up higher',say:'Press the ice button and watch. They go the other way.'},
+    {text:'➡️ They slide sideways',say:'Watch the tops. They go down, not sideways.'}]},
+];
+CHAPTERS[3].questTitle='⛰️ The half you cannot see';
+CHAPTERS[3].quest=[
+  {prompt:'Press <b>👉 Push the plates!</b>, then tap the part of the mountain that goes <b>down</b> into the mantle.',
+   tap:it=>it&&it.id==='root'?true:(MT.p<.2?'Press 👉 Push the plates! first, and watch the mountain grow.':'That is the part you can see. The root is the big part underneath.'),
+   yes:'Yes! The root. About five times bigger than the peak on top.'},
+  {prompt:'Now rain wears the top off. What does the <b>root</b> do?',options:[
+    {text:'⬆️ It floats up, so the mountain lasts a long time',ok:true,say:'Yes! Take weight off the top and the whole thing rises. That is why old hills are still hills.'},
+    {text:'💨 It vanishes straight away',say:'Rock does not vanish. Think about the floating blocks.'},
+    {text:'⬇️ It grows deeper',say:'The other way. Lighter on top means it floats higher.'}]},
+];
+CHAPTERS[4].questTitle='🌋 Which one dives?';
+CHAPTERS[4].quest=[
+  {prompt:'When sea floor runs into a continent, which one goes <b>under</b>?',options:[
+    {text:'🪨 The sea floor — it is heavier',ok:true,say:'Yes! Heavy sinks, light floats. Every single time.'},
+    {text:'🧱 The continent — it is bigger',say:'Big is not the same as heavy. Which crust was the heavy one?'},
+    {text:'🤝 They take turns',say:'The Earth does not take turns! The heavy one always loses.'}]},
+  {prompt:'Press <b>🌋 Erupt!</b> and tap the melted rock pouring out of the top.',
+   tap:it=>it&&it.id==='lava'?true:(VOL.eT<=0?'Press 🌋 Erupt! first.':'Not that — tap the hot orange stuff at the top.'),
+   yes:'Yes! Lava. It is called magma underground and lava once it is out.'},
+];
+CHAPTERS[5].questTitle='💥 Stuck, then not stuck';
+CHAPTERS[5].quest=[
+  {prompt:'Press <b>🤝 Push harder</b> until the meter is full, then press <b>💥 Let it go!</b> and tap the waves.',
+   tap:it=>it&&it.id==='waves'?true:(QK.waveT<0?'Squeeze the fault first, then let it go — the waves only last a moment.':'Tap the orange rings spreading out from the crack.'),
+   yes:'Yes! That shaking is the earthquake, travelling out through the rock.'},
+  {prompt:'If the ground ever starts shaking, what should you do?',options:[
+    {text:'🛡️ Drop, cover your head, and hold on',ok:true,say:'Exactly right. Drop, Cover, Hold On.'},
+    {text:'🏃 Run outside as fast as you can',say:'Running is how people get hurt — things fall on the way out.'},
+    {text:'🚪 Stand in a doorway',say:'That is an old story that turned out to be wrong. Get down and cover up instead.'}]},
+];
+
+/* ---------- the read-aloud switch and the 🔊 buttons ---------- */
+function questSpeech(){
+  const S=quest.active&&quest.active.steps[quest.step]; if(!S) return '';
+  let t=Speech.plain(S.prompt);
+  if(S.options) t+=' Is it: '+S.options.map(o=>Speech.plain(o.text)).join('… or… ')+'?';
+  return t;
+}
+const READ_KEY='learningTools.underYourFeet.readAloud';
+function applyRead(on,announce){
+  const r=$('btnRead');
+  Speech.on=on;
+  r.querySelector('.rd-icon').textContent=on?'🔊':'🔇';
+  r.querySelector('.rd-word').textContent=on?'Reading':'Quiet';
+  r.classList.toggle('off',!on);
+  r.setAttribute('aria-pressed',String(on));
+  if(on&&announce) Speech.say('Reading is on. I will read the words to you.');
+}
+$('btnRead').addEventListener('click',()=>{ applyRead(!Speech.on,true);
+  try{ localStorage.setItem(READ_KEY,Speech.on?'on':'off'); }catch(e){} });
+/* restored without the spoken confirmation — that would be talking on load again */
+try{ if(localStorage.getItem(READ_KEY)==='on') applyRead(true,false); }catch(e){}
+$('spkCap').addEventListener('click',()=>Speech.say(CHAPTERS[current].title+'. '+CHAPTERS[current].caption,$('spkCap')));
+$('spkCard').addEventListener('click',()=>{ if(selected)
+  Speech.say(selected.name+'. '+(selected.sub?selected.sub+'. ':'')+selected.fact+' '+(selected.extra||''),$('spkCard')); });
+$('spkQuest').addEventListener('click',()=>Speech.say(questSpeech(),$('spkQuest')));
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,
+    r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i];
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt;
+    if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+    ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+}
+
+/* =====================================================================
+   THE CHAPTER CONTROLS
+   ===================================================================== */
+function setHeat(v){ INS.heat=v; $('togHeat').classList.toggle('on',v);
+  $('togHeat').textContent=v?'🌡️ Hide the heat':'🌡️ Show how hot'; }
+$('btnDrill').addEventListener('click',()=>{
+  if(INS.stop>=DRILL_STOPS.length-1){ toast('🕳️ You are already at the middle of the Earth!',3000); return; }
+  INS.stop++; const s=DRILL_STOPS[INS.stop]; toast(s.say,4500); refreshStat();
+  $('btnDrill').textContent=INS.stop>=DRILL_STOPS.length-1?'🕳️ At the middle!':'🕳️ Drill deeper';
+});
+$('btnDrillReset').addEventListener('click',()=>{ INS.stop=-1; $('btnDrill').textContent='🕳️ Drill deeper';
+  toast('↺ Back up to the surface.',2500); refreshStat(); buildTapList(); });
+$('togHeat').addEventListener('click',()=>{ setHeat(!INS.heat);
+  if(INS.heat) toast('🌡️ Hotter the deeper you go — the middle is almost as hot as the Sun\'s surface.',5000); });
+
+function setThick(v){ CR.thick=v; $('togThick').classList.toggle('on',v);
+  $('togThick').textContent=v?'📏 Hide the measuring':'📏 Show how thick'; }
+function setWeigh(v){ CR.weigh=v; $('togWeigh').classList.toggle('on',v);
+  $('togWeigh').textContent=v?'⚖️ Put the rocks away':'⚖️ Weigh two rocks'; }
+$('togThick').addEventListener('click',()=>{ setThick(!CR.thick);
+  if(CR.thick) toast('📏 Thick under the land, thin under the sea — and thickest of all under mountains.',5000); });
+$('togWeigh').addEventListener('click',()=>{ setWeigh(!CR.weigh);
+  if(CR.weigh) toast('⚖️ Same size, but the dark sea-floor rock is heavier. Down it goes.',5000); });
+
+$('btnIce').addEventListener('click',()=>{
+  if(FL.ice>=3){ toast('🧊 That is all the ice there is!',2500); return; }
+  FL.ice++;
+  toast(FL.ice===3?'🧊 Look at the thin one — almost under! Heavy ice pushes land right down.'
+       :'🧊 Heavier now. Every block settles deeper into the mantle.',4500);
+  refreshStat();
+});
+$('btnMelt').addEventListener('click',()=>{
+  if(FL.ice===0){ toast('☀️ There is no ice left to melt.',2500); return; }
+  FL.ice=0; toast('☀️ Ice gone — and now the land rises again, slowly. It takes a very long time.',5500); refreshStat();
+});
+$('btnFloatReset').addEventListener('click',()=>{ flReset(); toast('↺ Blocks back the way they started.',2500); refreshStat(); });
+
+function setRain(v){ MT.rainOn=v; $('btnRain').classList.toggle('on',v);
+  $('btnRain').textContent=v?'🌧️ Stop the rain':'🌧️ Wear them down'; }
+$('btnPush').addEventListener('click',()=>{
+  if(MT.pT>=1){ toast('👉 They are pushed all the way together already!',2500); return; }
+  MT.pT=Math.min(1,MT.pT+.25); MT.pushes++;
+  toast(MT.pT>=1?'👉 Crunch! The crust has folded up as far as it can go.'
+       :'👉 Push! The crust folds — up into a peak, and down into a root.',4000);
+  refreshStat();
+});
+$('btnRain').addEventListener('click',()=>{
+  if(MT.pT<.2){ toast('🌧️ Build a mountain first — press 👉 Push the plates!',3000); return; }
+  setRain(!MT.rainOn);
+  if(MT.rainOn) toast('🌧️ Rain, ice and wind, chipping away at the top. Watch the root come up to match.',5500);
+});
+$('btnMtnReset').addEventListener('click',()=>{ mtReset(); setRain(false);
+  toast('↺ Flat again. Start pushing.',2500); refreshStat(); });
+
+function setMeltView(v){ VOL.melt=v; $('togMelt').classList.toggle('on',v);
+  $('togMelt').textContent=v?'🔥 Hide the melting':'🔥 Show where it melts'; }
+$('btnErupt').addEventListener('click',()=>{
+  if(VOL.eT>0){ toast('🌋 It is already erupting!',2000); return; }
+  closeCard(); VOL.eT=1; VOL.on=4.2; VOL.erupts++;
+  toast('🌋 BOOM! Lava out of the top, ash into the sky.',4500); refreshStat();
+});
+$('togMelt').addEventListener('click',()=>{ setMeltView(!VOL.melt);
+  if(VOL.melt) toast('🔥 The diving plate carries water down. Water makes hot rock melt — and up it floats.',6000); });
+$('btnVolReset').addEventListener('click',()=>{ volReset(); toast('↺ The volcano goes back to sleep.',2500); refreshStat(); });
+
+$('btnSqueeze').addEventListener('click',()=>{
+  QK.DT=Math.min(40,QK.DT+10);
+  toast(QK.DT>=40?'🤝 The rock is bent as far as it will go. Let it go!'
+       :'🤝 The plates keep drifting — but the crack is stuck, so the road bends.',4000);
+  refreshStat();
+});
+$('btnSnap').addEventListener('click',()=>{
+  if(QK.DT<10){ toast('💥 Nothing is squeezed yet — press 🤝 Push harder first.',3000); return; }
+  closeCard();
+  QK.off+=QK.DT*2; QK.DT=0; QK.shake=1; QK.waveT=0; QK.quakes++;
+  toast('💥 SNAP! The bend straightened out — and left a step in the road.',5000);
+  refreshStat();
+});
+$('btnQuakeReset').addEventListener('click',()=>{ qkReset(); toast('↺ A brand new, unbroken road.',2500); refreshStat(); });
+
+/* Everything a chapter switches on gets switched off again when the child
+   leaves it. Keeping this in one named function, rather than scattering
+   `if (id !== 'crust')` through goTo, is what stops a control quietly
+   following the child to the next chapter. The things a child has BUILT —
+   the drill hole, the ice, the mountain, the broken road — are deliberately
+   not here: each has its own ↺ that says what it puts back. */
+function resetTransient(){
+  setHeat(false); setThick(false); setWeigh(false); setMeltView(false); setRain(false);
+  VOL.eT=0; VOL.on=0; VOL.parts.length=0; VOL.puff.length=0;
+  QK.shake=0; QK.waveT=-1;
+}
+
+/* =====================================================================
+   MOVING BETWEEN CHAPTERS
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge';
+  els.badges.appendChild(b); c.badgeEl=b;
+  const t=document.createElement('button'); t.className='lvl'; t.type='button';
+  t.setAttribute('aria-label','Go to '+c.name);
+  t.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:c.icon}));
+  t.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
+  t.addEventListener('click',()=>goTo(i)); els.levels.appendChild(t); c.chip=t;
+});
+function buildTapList(){
+  const host=$('taplist'); if(!host) return;
+  host.innerHTML='';
+  items().forEach(it=>{
+    const b=document.createElement('button'); b.type='button'; b.textContent=it.name;
+    b.addEventListener('click',()=>{
+      if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(it)) return; }
+      showCard(it);
+    });
+    host.appendChild(b);
+  });
+}
+function updateChips(){
+  CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
+  const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?'🔁 Back to the start':'Next ▶';
+  els.btnNext.classList.toggle('home',last);
+  const c=CHAPTERS[current], won=!!badges[c.id];
+  els.btnQuest.textContent=won?'✅ Badge earned':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  ['inside','crust','float','mtn','vol','quake'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
+}
+let trans=null;         // {to,t0,dur}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true;
+  resetTransient();
+  if(REDUCED){ switchTo(i); return; }
+  trans={to:i,t0:performance.now(),dur:700};
+}
+function switchTo(i){
+  current=i;
+  setCaption(i); updateChips(); updateButtons(); refreshStat();
+  els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;   /* every chapter says what to tap */
+  buildTapList();
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), [wx,wy]=toDesign(e.clientX-r.left,e.clientY-r.top);
+  const item=hitTest(wx,wy);
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item) showCard(item); else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='6') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(240,Math.round(r.width)); V.h=Math.max(160,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  /* "contain": the whole picture is on screen at every size the layout check
+     throws at it, from a 320px phone to a 2000px window. The bands left over
+     are painted by each scene's own background, which is drawn well outside
+     the design box on purpose. */
+  S=Math.min(V.w/DW,V.h/DH); OX=(V.w-DW*S)/2; OY=(V.h-DH*S)/2;
+}
+let lastT=performance.now(), lastStat=0;
+function frame(nowMs){
+  const dt=Math.min(.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  updateScenes(dt);
+  if(nowMs-lastStat>250){ lastStat=nowMs; refreshStat(); }
+  let fade=0;
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    fade=1-Math.abs(k*2-1);
+    if(k>=.5&&current!==trans.to) switchTo(trans.to);
+    if(k>=1) trans=null;
+  }
+  ctx.setTransform(V.dpr*S,0,0,V.dpr*S,V.dpr*OX,V.dpr*OY);
+  SCENES[CHAPTERS[current].id].draw();
+  if(selected){ const m=selected.mark||markOf(selected.hit);
+    if(m){ ctx.save(); ctx.setLineDash([14,10]); ctx.lineDashOffset=-now*44;
+      ring(m[0],m[1],m[2],GOLD,7); ctx.restore(); } }
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  if(fade>0){ ctx.fillStyle='rgba(255,248,231,'+fade+')'; ctx.fillRect(0,0,V.w,V.h); }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.underYourFeet={CHAPTERS,goTo,award,startQuest,quest,badges,items,hitTest,
+  INS,CR,FL,MT,VOL,QK};                                   // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+resize();
+
+/* =====================================================================
+   BADGES THAT SURVIVE A CLOSED TAB
+   A seven-year-old gets called to dinner mid-challenge. Losing every badge
+   to a reload is the quickest way to make the whole reward loop feel
+   pointless. The ↺ in the meter clears them so a second child can start
+   fresh — two taps, so it cannot happen by accident.
+   ===================================================================== */
+const SAVE_KEY='learningTools.underYourFeet.badges';
+function saveBadges(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(Object.keys(badges))); }catch(e){} }
+function restoreBadges(){
+  let saved=[];
+  try{ saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]'); }catch(e){ saved=[]; }
+  if(!Array.isArray(saved)) saved=[];
+  saved.forEach(id=>{ const c=CHAPTERS.find(x=>x.id===id); if(!c) return;
+    badges[id]=true;
+    if(c.badgeEl) c.badgeEl.classList.add('won');
+    if(c.chip) c.chip.classList.add('won'); });
+  if(Object.keys(badges).length===CHAPTERS.length) els.meter.classList.add('all');
+  updateWipe(); updateButtons();
+}
+function clearBadges(){
+  Object.keys(badges).forEach(k=>{ delete badges[k]; });
+  CHAPTERS.forEach(c=>{ if(c.badgeEl) c.badgeEl.classList.remove('won'); if(c.chip) c.chip.classList.remove('won'); });
+  els.meter.classList.remove('all');
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  updateWipe(); updateButtons();
+}
+let wipeArmed=false, wipeTimer=null;
+function updateWipe(){
+  const b=$('btnWipe'); if(!b) return;
+  const any=Object.keys(badges).length>0;
+  b.hidden=!any;
+  if(!any){ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); }
+}
+$('btnWipe').addEventListener('click',()=>{
+  const b=$('btnWipe');
+  if(!wipeArmed){
+    wipeArmed=true; b.textContent='Clear?'; b.classList.add('armed');
+    clearTimeout(wipeTimer);
+    wipeTimer=setTimeout(()=>{ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); },3500);
+    return;
+  }
+  clearTimeout(wipeTimer); wipeArmed=false; b.textContent='↺'; b.classList.remove('armed');
+  clearBadges(); toast('↺ Badges cleared — a fresh start.',3000);
+});
+flReset(); setCaption(0); updateChips(); updateButtons(); refreshStat();
+els.hint.textContent=CHAPTERS[0].hint;
+buildTapList();
+restoreBadges();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
