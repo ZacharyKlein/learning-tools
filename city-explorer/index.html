@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>City Explorer</title>
+<meta name="description" content="How a city is put together: streets and blocks, neighborhoods, downtown, the pipes and wires under the road, who comes when you call 911, and parks — then build a city of your own. Grades 3-4.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏙️%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus a city's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --white:#fffdf7;
+  --night:#1b1b46;
+  --asphalt:#6f6b7d;    /* streets */
+  --asphalt-dk:#4a4757;
+  --brick:#b1553f;      /* St. Louis is a brick city */
+  --brick-dk:#7d3527;
+  --river:#4a93c9;
+  --river-dk:#2d6a98;
+  --zone-home:#ffd98a;  /* the four zoning colors, used in ch.3 and ch.7 alike */
+  --zone-shop:#ff8f6b;
+  --zone-work:#b39ddb;
+  --zone-park:#8fd47a;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.3;-webkit-text-size-adjust:100%;overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;grid-template-rows:auto 1fr auto;gap:10px;
+  padding:10px 14px 12px;max-width:1180px;margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold)}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:160px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#cfe9ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(58%,460px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+  max-width:calc(100% - 28px);text-align:center;
+}
+.stat{
+  position:absolute;right:14px;bottom:58px;display:flex;gap:8px;pointer-events:none;
+  flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px);
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat span.ok{background:#d6f5cd}
+.stat span.bad{background:#ffe0d6}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(350px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:15.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12.5px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;
+  font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:104px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:min(620px,calc(100% - 28px));
+  text-align:center;animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(420px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-text{font-weight:800;font-size:16px;margin-top:6px;text-wrap:balance}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:8px 14px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14.5px;margin-top:8px;min-height:18px}
+.q-fb.good{color:#2e7d32}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+/* In Build a City the map fills the stage, so the challenge takes the caption's
+   corner instead of sitting on top of the grid — the instruction IS the caption
+   while a challenge is running. */
+body.building .quest{top:12px;bottom:auto}
+body.building.questing .caption{display:none}
+/* …and the caption shrinks to a slim instruction bar across the top, so the
+   grid underneath is never half-hidden behind a paragraph of prose. */
+body.building .caption{left:14px;right:14px;max-width:none;padding:6px 12px 7px}
+body.building .cap-level{display:none}
+body.building .cap-text{font-size:14px;margin-top:0}
+/* the city-size comparison covers the map completely; the caption would land on
+   its heading */
+body.comparing .caption,body.comparing .stat{display:none}
+
+/* ---------- dock ----------
+   The rail gets a row of its own and scrolls inside it; the buttons and the
+   chapter controls share the row below. Never size the rail's column to its
+   content: an `auto` track sizes to max-content and shoves the other columns
+   into each other. That is the bug tests/layout-check.mjs exists to catch. */
+.dock{
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:"levels levels" "buttons ctl";
+  align-items:center;gap:10px 14px;
+}
+.dock > .levels{grid-area:levels}
+.dock > .buttons{grid-area:buttons}
+.dock > .ctl{grid-area:ctl}
+.levels{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.levels::-webkit-scrollbar{display:none}
+.lvl{
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
+}
+.lvl .ic{font-size:20px;font-family:var(--emoji);line-height:1}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;
+  background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+/* Every .btn is nowrap so the labels read cleanly, but that stops the wide one
+   ("Back to the start") from ever shrinking. Let the big button wrap instead. */
+.btn.big{white-space:normal;text-wrap:balance}
+.buttons > .btn{min-width:0;max-width:100%}
+
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;min-width:0;max-width:100%}
+.ctl-group[hidden]{display:none}
+.ctl-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;opacity:.75}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);min-height:44px;
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.hot{background:var(--rocket);color:var(--white);text-shadow:1px 1px 0 var(--rocket-dk)}
+.tog.cool{background:var(--sky);color:var(--white);text-shadow:1px 1px 0 #1f6fa8}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- the build palette ----------
+   Nine tools will not fit on a phone as a wrapping row without eating the map,
+   so the palette borrows the chapter rail's trick: one row, scrolling inside
+   itself. Same shape, same gesture, one less thing to learn. */
+.palette{
+  display:flex;align-items:center;gap:6px;flex:1 1 220px;min-width:0;max-width:100%;
+  overflow-x:auto;overflow-y:hidden;flex-wrap:nowrap;scrollbar-width:none;padding:3px 2px;
+}
+.palette::-webkit-scrollbar{display:none}
+.palette .tog{flex:0 0 auto;padding:8px 11px;font-size:14px}
+.palette .tog.on{background:var(--gold);transform:translateY(2px);box-shadow:0 2px 0 var(--ink)}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "levels" "ctl";gap:8px}
+  .levels{grid-area:levels;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+  .lvl{font-size:12px;padding:5px 11px 5px 8px;box-shadow:2px 2px 0 var(--ink)}
+  .lvl .ic{font-size:18px}
+  .buttons{grid-area:buttons;justify-content:center;gap:8px}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:44px}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 12px;font-size:14px;min-height:44px}
+  .tog{font-size:13.5px;padding:7px 12px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  /* the tap prompt is the only thing that says the picture can be tapped,
+     and half the challenges ask for a tap — so it stays on every screen */
+  .hint{left:14px;right:14px;transform:none;bottom:10px;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:50px}
+  /* a wrapped toast inside a 999px radius turns into a circle, so on a phone,
+     where every toast wraps, it becomes a rounded card instead */
+  .toast{bottom:92px;font-size:14.5px;border-radius:20px;padding:7px 14px;line-height:1.25}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:8px 14px;min-height:44px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+/* Any short viewport — a phone on its side, or a stubby desktop window. It may be
+   too wide for the rules above, so the compact dock is spelled out again here: a
+   partial override lands half a layout on top of the desktop one. */
+@media (max-height:560px){
+  .stage{min-height:0}
+  .dock{grid-template-columns:minmax(72px,1fr) auto;grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
+  .lvl{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .lvl .ic{font-size:16px}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .ctl{grid-area:ctl;justify-content:center}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:38px}
+  .btn,.tog{min-height:38px}
+  .btn{padding:8px 11px;font-size:14px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .palette .tog{padding:7px 10px;font-size:13.5px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{left:14px;right:14px;transform:none;bottom:10px;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:44px}
+  .toast{bottom:80px;font-size:15px;border-radius:20px;line-height:1.25}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* ---------- badges that survive a closed tab, and the way to clear them ---------- */
+.wipe{
+  width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:700;font-size:15px;
+  line-height:1;padding:0;box-shadow:2px 2px 0 var(--ink);white-space:nowrap;
+}
+/* deliberately the one small target in the collection: it throws away a child's
+   badges, so it should be hard to hit by accident — and it takes two taps anyway */
+.wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
+.wipe[hidden]{display:none}
+
+/* ---------- a keyboard path to everything the picture lets you tap ----------
+   About half of every challenge is "tap the …", and a canvas is invisible to the
+   keyboard, so those badges simply could not be earned without a pointer. These
+   buttons carry the same names as the things in the picture: off-screen until
+   focused, then a chip over the drawing, so Tab walks the scene and Enter opens
+   the card or answers the challenge. In Build a City there is nothing to name —
+   sixty identical squares — so the same list becomes a cursor: move it around
+   the map with Tab and Enter, and build where it stands. */
+.taplist{position:absolute;left:14px;bottom:58px;z-index:4;pointer-events:none}
+.taplist button{position:absolute;width:1px;height:1px;padding:0;margin:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.taplist button:focus-visible{
+  position:static;width:auto;height:auto;clip:auto;overflow:visible;pointer-events:auto;
+  padding:8px 14px;min-height:44px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1;box-shadow:3px 3px 0 var(--ink);outline:3px solid var(--sky);outline-offset:3px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>City Explorer</h1>
+      <p class="tagline">How a city is put together — then build one of your own.</p>
+    </div>
+    <div class="right">
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">City<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each part of the city"></div>
+        <button class="wipe" id="btnWipe" type="button" hidden aria-label="Clear all badges and start fresh">↺</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <div class="cap-level" id="capLevel"></div>
+        <div class="cap-text" id="capText"></div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap the river, a block or an alley</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
+      </div>
+      <div class="taplist" id="taplist" role="group" aria-label="Things you can tap in this picture"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack" aria-label="Back">◀ <span class="bl">Back</span></button>
+      <button class="btn big" id="btnNext">Next ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-grid" hidden>
+        <button class="tog" id="btnGrow">🕰️ Grow the city</button>
+        <button class="tog" id="togBlock">📏 Measure a block</button>
+        <button class="tog cool" id="togSizes">🔍 Compare city sizes</button>
+        <button class="tog" id="btnGridReset">↺ Reset the map</button>
+      </div>
+      <div class="ctl-group" id="ctl-homes" hidden>
+        <span class="ctl-label">Block:</span>
+        <button class="tog on" data-dens="house">🏠 Houses</button>
+        <button class="tog" data-dens="flat">🏘️ Two-family flats</button>
+        <button class="tog" data-dens="apt">🏢 Apartments</button>
+        <button class="tog cool" id="togWalk">🚶 Walk to school</button>
+      </div>
+      <div class="ctl-group" id="ctl-downtown" hidden>
+        <button class="tog" id="togZones">🗺️ Show the zones</button>
+        <button class="tog hot" id="btnTaller">🏗️ Build it taller</button>
+        <button class="tog" id="togNight">🌙 Night</button>
+        <button class="tog" id="btnDtReset">↺ Reset downtown</button>
+      </div>
+      <div class="ctl-group" id="ctl-pipes" hidden>
+        <button class="tog cool" id="btnTap">💧 Turn on the faucet</button>
+        <button class="tog" id="btnFlush">🚽 Flush</button>
+        <button class="tog hot" id="btnPower">⚡ Switch on the lights</button>
+        <button class="tog" id="btnStorm">🌧️ Big storm</button>
+      </div>
+      <div class="ctl-group" id="ctl-help" hidden>
+        <button class="tog hot" id="btnCall">🔥 Call 911!</button>
+        <button class="tog" id="togReach">⭕ Show how far they reach</button>
+        <button class="tog" id="btnAddFire">➕ Add a firehouse</button>
+        <button class="tog" id="btnHelpReset">↺ Reset the stations</button>
+      </div>
+      <div class="ctl-group" id="ctl-green" hidden>
+        <button class="tog hot" id="togHeat">🌡️ Show the heat</button>
+        <button class="tog cool" id="togWalkPark">🚶 10-minute walk</button>
+        <button class="tog" id="togFair">🎡 The 1904 World's Fair</button>
+      </div>
+      <div class="ctl-group" id="ctl-build" hidden>
+        <div class="palette" id="palette" role="group" aria-label="Pick something to build"></div>
+        <button class="tog" id="btnClearMap">↺ Clear the map</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+/* =====================================================================
+   CITY EXPLORER — a single file, no build step, no dependencies.
+
+   Seven chapters. The spine running through all of them is one idea:
+   everything in a city hangs off the street. The street is the shape of
+   the place (ch.1), it is how far you can walk to school (ch.2), it is
+   why land in the middle is expensive (ch.3), it is where the water,
+   sewer, gas and wires actually run (ch.4), it is how long the fire truck
+   takes (ch.5), and it is what a park has to sit next to for anyone to
+   reach it (ch.6). Then in ch.7 the child builds a city, and the
+   simulator will not let them forget it: pipes follow roads, so a house
+   with no street has no water, no power and no fire truck.
+
+   St. Louis is the worked example throughout — a real city with a real
+   river, real numbers and real names — with towns, mid-sized cities and
+   metropolis-sized places set beside it in chapter 1 so "city" does not
+   quietly come to mean "a place exactly this big".
+
+   Drawing: everything is drawn in a fixed 1000x620 "design space" that is
+   scaled to fit inside the stage and centred, so the whole picture is
+   always on screen at every size the layout check throws at it. The
+   canvas transform does the scaling, so every coordinate below is a
+   design coordinate and every line width is a design line width.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeOut=t=>1-Math.pow(1-t,3);
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd=Math.random;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', ROCKET_DK='#c2431a',
+      SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7', NIGHT='#1b1b46';
+const ASPHALT='#6f6b7d', ASPHALT_DK='#4a4757', BRICK='#b1553f', BRICK_DK='#7d3527',
+      RIVER='#4a93c9', RIVER_DK='#2d6a98', GROUND='#efe3c4', GROUND_DK='#ddceab',
+      Z_HOME='#ffd98a', Z_SHOP='#ff8f6b', Z_WORK='#b39ddb', Z_PARK='#8fd47a',
+      PIPE_WATER='#3da5dd', PIPE_SEWER='#8a6a4a', PIPE_GAS='#f2c14e', PIPE_ELEC='#e8564b', PIPE_FIBER='#8ad3c0';
+
+/* ---------- canvas + the design-space transform ---------- */
+const DW=1000, DH=620;                 // the picture every scene is drawn in
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:560,dpr:1};
+let S=1, OX=0, OY=0;                   // scale + letterbox offsets, set in resize()
+let now=0;                             // seconds since load
+function toDesign(px,py){ return [(px-OX)/S,(py-OY)/S]; }
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rot||0,0,TAU);
+  ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol,close){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  if(close!==false) ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2); ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol,olc){ rrect(x,y,w,h,r); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=olc||INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round';
+  ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function dash(P,stroke,w,pat){ ctx.save(); ctx.setLineDash(pat||[14,10]); path(P,stroke,w); ctx.restore(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1);
+  ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
+  ctx.fillText(ch,0,px*.06); ctx.restore(); }
+function label(txt,x,y,o){
+  o=o||{}; const size=o.size||26;
+  ctx.save(); ctx.font=(o.weight||800)+' '+size+'px '+(o.display?DISPLAY_FONT:LABEL_FONT);
+  ctx.textAlign=o.align||'center'; ctx.textBaseline=o.base||'middle';
+  if(o.halo!==false){ ctx.lineWidth=o.haloW||Math.max(4,size*.28); ctx.lineJoin='round';
+    ctx.strokeStyle=o.halo||(o.dark?PAPER:'rgba(255,253,247,.95)'); ctx.strokeText(txt,x,y); }
+  ctx.fillStyle=o.color||INK; ctx.fillText(txt,x,y); ctx.restore();
+}
+function arrow(x1,y1,x2,y2,color,w,head){
+  line(x1,y1,x2,y2,color,w); const a=Math.atan2(y2-y1,x2-x1), h=head||w*3.2;
+  poly([[x2,y2],[x2-h*Math.cos(a-.42),y2-h*Math.sin(a-.42)],[x2-h*Math.cos(a+.42),y2-h*Math.sin(a+.42)]],color,0);
+}
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b);
+  return 'rgb('+Math.round(lerp(A[0],B[0],t))+','+Math.round(lerp(A[1],B[1],t))+','+Math.round(lerp(A[2],B[2],t))+')'; }
+function vgrad(x,y0,y1,stops){ const g=ctx.createLinearGradient(x,y0,x,y1); stops.forEach(s=>g.addColorStop(s[0],s[1])); return g; }
+/* a person, drawn wherever a scale reference is needed */
+function person(x,y,h,color){
+  const hd=h*.22; line(x,y-h*.52,x,y-h*.18,color||INK,h*.15); disc(x,y-h*.66,hd,'#f0c39a',h*.06);
+  line(x,y-h*.44,x-h*.2,y-h*.3,color||INK,h*.09); line(x,y-h*.44,x+h*.2,y-h*.3,color||INK,h*.09);
+  line(x,y-h*.18,x-h*.14,y,color||INK,h*.1); line(x,y-h*.18,x+h*.14,y,color||INK,h*.1);
+}
+/* a plain brick building front — the whole tool is set in a brick city */
+function building(x,y,w,h,o){
+  o=o||{};
+  box(x,y,w,h,o.r||6,o.fill||BRICK,4);
+  const rows=Math.max(1,o.rows||Math.floor(h/34)), cols=Math.max(1,o.cols||Math.floor(w/30));
+  const mw=w/cols*.52, mh=Math.min(16,h/rows*.46);
+  for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
+    const wx=x+w*(c+.5)/cols-mw/2, wy=y+h*(r+.42)/rows-mh/2;
+    if(o.lit===undefined || ((r*7+c*3)%5)<3) box(wx,wy,mw,mh,2,o.win||(o.lit?GOLD:'#bfe4ff'),2);
+    else box(wx,wy,mw,mh,2,'#3a4a63',2);
+  }
+}
+
+/* =====================================================================
+   HIT SHAPES
+   Every tappable thing in the picture carries one. They are deliberately
+   fat: at phone size the design space is scaled to about 0.39, so a 44px
+   finger target is roughly 115 design units across, and anything smaller
+   than that is only tappable by a mouse.
+   ===================================================================== */
+function hits(h,x,y){
+  if(!h) return false;
+  if(h.t==='r') return x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h;
+  if(h.t==='c') return Math.hypot(x-h.x,y-h.y)<=h.r;
+  return false;
+}
+function markOf(h){
+  if(!h) return null;
+  if(h.t==='r') return [h.x+h.w/2,h.y+h.h/2,Math.max(h.w,h.h)*.55];
+  if(h.t==='c') return [h.x,h.y,h.r];
+  return null;
+}
+const R=(x,y,w,h)=>({t:'r',x,y,w,h});
+const C=(x,y,r)=>({t:'c',x,y,r});
+
+/* =====================================================================
+   CHAPTERS
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'grid', icon:'🗺️', name:'Streets', title:'🗺️ The Street Grid', ctls:['grid'],
+   caption:'A city starts as a <b>plan on the ground</b>. Streets go in first, and everything else fills the <b>blocks</b> between them. St. Louis began in 1764 as three short streets beside the Mississippi — and grew <b>west</b> from there.',
+   hint:'👆 Tap the river, downtown, a block or an alley'},
+  {id:'homes', icon:'🏘️', name:'Neighborhoods', title:'🏘️ Where People Live', ctls:['homes'],
+   caption:'Most of a city is <b>homes</b>. A neighborhood is a piece of the city with its own name, its own school, its own corner store — St. Louis has <b>79</b> of them.',
+   hint:'👆 Tap a house, the school, the store or the alley'},
+  {id:'downtown', icon:'🏙️', name:'Downtown', title:'🏙️ Where the Work Is', ctls:['downtown'],
+   caption:'Shops and offices go in <b>commercial</b> zones. Land in the middle costs the most, so buildings there grow <b>up</b> instead of out. Factories go where the barges and trains are.',
+   hint:'👆 Tap a tower, the Arch, the shops or the warehouse'},
+  {id:'pipes', icon:'🚰', name:'Pipes & wires', title:'🚰 Under the Street', ctls:['pipes'],
+   caption:'Under every street is a second city: <b>water</b> coming in, <b>sewer</b> going out, gas, electricity and internet. They follow the roads, because the road is the one strip of land the city owns all the way through.',
+   hint:'👆 Tap a pipe, a wire, the water plant or a manhole'},
+  {id:'help', icon:'🚒', name:'Help', title:'🚒 Who Comes to Help', ctls:['help'],
+   caption:'Fire, police and ambulances are spread <b>all over</b> the city on purpose. One giant station in the middle would be too far from everywhere else — and in a fire, <b>minutes</b> are the whole story.',
+   hint:'👆 Tap a firehouse, the hospital, a hydrant or 911'},
+  {id:'green', icon:'🌳', name:'Green space', title:'🌳 Room to Breathe', ctls:['green'],
+   caption:'A city needs <b>green</b> as much as it needs pavement. Forest Park is <b>1,326 acres</b> — about 500 acres bigger than Central Park in New York — and the zoo, the art museum, the science center and the history museum inside it are all <b>free</b>.',
+   hint:'👆 Tap the zoo, the museum, the playground or a trail'},
+  {id:'build', icon:'🏗️', name:'Build a city', title:'🏗️ Build a City', ctls:['build'],
+   caption:'Pick a tool from the row below, then tap the map — drag to lay a whole street at once. The rule the city runs on: <b>pipes and wires follow the streets</b>, so nothing works until a road reaches it.',
+   hint:'👷 Pick a tool below, then tap the map to build'},
+];
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};
+let selected=null;
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'),
+  cardClose:$('cardClose'), thumb:$('thumb'), toast:$('toast'), levels:$('levels'),
+  btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'),
+  questClose:$('questClose'), badges:$('badges'), meter:$('meter') };
+
+/* =====================================================================
+   SCENE 1 — THE STREET GRID
+   A map seen from above, with the Mississippi down the right-hand side,
+   because that is where it is. The grid grows west through four eras,
+   which is also the real order: the river first, then the blocks, then
+   the boulevard, then the highway cut straight through the middle.
+   ===================================================================== */
+const MAP={x0:130,x1:838,y0:95,y1:559,cols:6,rows:4};
+const CW=(MAP.x1-MAP.x0)/MAP.cols, CH=(MAP.y1-MAP.y0)/MAP.rows;   // 118 x 116
+const bx=c=>MAP.x0+c*CW, by=r=>MAP.y0+r*CH;
+const ERAS=[
+  {yr:'1764', west:5, rows:[1,2], say:'🕰️ 1764 — Pierre Laclède and Auguste Chouteau pick a bluff about 40 feet above the water. Three short streets, and by winter, 40 families.'},
+  {yr:'1850', west:3, rows:[0,3], say:'🕰️ 1850 — steamboats everywhere. The grid marches west, one block at a time, and the city fills in behind it.'},
+  {yr:'1904', west:1, rows:[0,3], say:'🕰️ 1904 — the World\'s Fair year. Streetcars reach the big new park, and the city is one of the largest in the country.'},
+  {yr:'today', west:0, rows:[0,3], say:'🕰️ Today — about 280,000 people inside the city limits, and 2.8 million in the whole St. Louis area. The highway arrived in the 1950s and cut straight through.'},
+];
+const GRID={era:3, block:false, sizes:false, flow:0};
+function gridAlive(c,r){
+  const e=ERAS[GRID.era];
+  return c>=e.west && r>=e.rows[0] && r<=e.rows[1];
+}
+function drawGrid(){
+  /* ground */
+  ctx.fillStyle=GROUND; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* countryside / suburbs outside the city limits */
+  ctx.fillStyle='#d9e8c0'; ctx.fillRect(-DW,-DH,DW+MAP.x0,DH*3);
+  if(GRID.era>=3){
+    const s=seeded(12);
+    for(let i=0;i<9;i++){ const x=14+s()*100, y=110+s()*430;
+      box(x,y,26,20,4,WHITE,3); poly([[x-3,y],[x+13,y-12],[x+29,y]],'#c46d55',3); }
+    dash([[MAP.x0-2,88],[MAP.x0-2,566]],ROCKET_DK,5,[16,12]);
+    ctx.save(); ctx.translate(MAP.x0-16,330); ctx.rotate(-Math.PI/2);
+    label('CITY LIMITS',0,0,{size:20,display:true,color:ROCKET_DK}); ctx.restore();
+  }
+  /* the river, always */
+  const rx=846;
+  ctx.fillStyle=RIVER; ctx.fillRect(rx,-DH,DW*2,DH*3);
+  for(let i=0;i<6;i++){ const y=40+i*100+Math.sin(now*.5+i)*6;
+    path([[rx+18,y],[rx+58,y+14],[rx+96,y-4],[rx+140,y+10]],rgba('#ffffff',.42),5); }
+  path([[rx,-40],[rx+8,160],[rx-6,340],[rx+10,520],[rx,660]],INK,5);
+  ctx.save(); ctx.translate(rx+74,326); ctx.rotate(-Math.PI/2);
+  label('Mississippi River',0,0,{size:21,display:true,color:WHITE,halo:RIVER_DK,haloW:7}); ctx.restore();
+  /* blocks */
+  for(let r=0;r<MAP.rows;r++) for(let c=0;c<MAP.cols;c++){
+    if(!gridAlive(c,r)) continue;
+    const x=bx(c)+7, y=by(r)+7, w=CW-14, h=CH-14;
+    const dt=(c===5&&r>=1&&r<=2), pk=(c===1&&r===2&&GRID.era>=2);
+    box(x,y,w,h,5,pk?Z_PARK:dt?'#e8dcc0':'#f6edd6',3.5);
+    if(pk){ const s=seeded(3+r*7+c);
+      for(let i=0;i<7;i++) emoji('🌳',x+12+s()*(w-24),y+14+s()*(h-28),20);
+      label('a big park',x+w/2,y+h-12,{size:16,display:true}); }
+    else if(dt){ const s=seeded(50+r*3+c);
+      for(let i=0;i<10;i++){ const bw=13+s()*11, bh=13+s()*13;
+        box(x+6+s()*(w-26),y+6+s()*(h-26),bw,bh,2,mix(BRICK,'#8d8798',s()),2); } }
+    else{ /* houses along the street, and the alley down the middle */
+      const s=seeded(9+r*11+c), n=Math.floor(w/22);
+      for(let i=0;i<n;i++){ const hx=x+5+i*22;
+        box(hx,y+6,15,14,2,mix(BRICK,'#c98f66',s()),2);
+        box(hx,y+h-20,15,14,2,mix(BRICK,'#c98f66',s()),2); }
+      if(GRID.era>=2) dash([[x+3,y+h/2],[x+w-3,y+h/2]],'#9a9282',3,[9,7]);
+    }
+  }
+  /* streets: the lines between the blocks */
+  for(let c=0;c<=MAP.cols;c++){
+    let top=null,bot=null;
+    for(let r=0;r<MAP.rows;r++) if(gridAlive(c,r)||gridAlive(c-1,r)){ if(top===null) top=by(r); bot=by(r+1); }
+    if(top!==null) line(bx(c),top-6,bx(c),bot+6,ASPHALT,c===3&&GRID.era>=2?26:13);
+  }
+  for(let r=0;r<=MAP.rows;r++){
+    let l=null,rr=null;
+    for(let c=0;c<MAP.cols;c++) if(gridAlive(c,r)||gridAlive(c,r-1)){ if(l===null) l=bx(c); rr=bx(c+1); }
+    if(l!==null) line(l-6,by(r),rr+6,by(r),ASPHALT,13);
+  }
+  if(GRID.era>=2){
+    line(bx(3),MAP.y0-6,bx(3),MAP.y1+6,ASPHALT,26);
+    dash([[bx(3),MAP.y0],[bx(3),MAP.y1]],GOLD,3,[16,14]);
+    ctx.save(); ctx.translate(bx(3)-2,by(2)+CH/2); ctx.rotate(-Math.PI/2);
+    label('GRAND BOULEVARD',0,0,{size:15,display:true,color:WHITE,halo:ASPHALT_DK,haloW:6}); ctx.restore();
+  }
+  /* the highway, cut straight through in the 1950s */
+  if(GRID.era>=3){
+    const hy=by(1);
+    box(MAP.x0-10,hy-40,MAP.x1-MAP.x0+30,80,6,ASPHALT_DK,4);
+    dash([[MAP.x0-6,hy],[MAP.x1+16,hy]],WHITE,4,[24,18]);
+    for(let i=0;i<5;i++) emoji(i%2?'🚗':'🚚',MAP.x0+60+i*150+(now*26)%150,hy-18,20);
+    for(let i=0;i<5;i++) emoji(i%2?'🚙':'🚗',MAP.x1-60-i*150-(now*22)%150,hy+18,20,true);
+    label('HIGHWAY',MAP.x0+92,hy-52,{size:17,display:true,color:ASPHALT_DK});
+  }
+  /* downtown marker */
+  if(gridAlive(5,1)){
+    emoji('🏙️',bx(5)+CW/2,by(1)+16,26);
+    label('DOWNTOWN',bx(5)+CW/2,by(2)+CH-4,{size:16,display:true,color:ROCKET_DK});
+  }
+  /* the measured block. Kept out of the bottom row: that is where the tap
+     prompt and the stat pills float, and the dimensions would be under them. */
+  if(GRID.block){
+    const x=bx(4)+7,y=by(2)+7,w=CW-14,h=CH-14;
+    box(x,y,w,h,5,rgba(GOLD,.55),5,ROCKET_DK);
+    arrow(x,y-14,x+w,y-14,ROCKET_DK,4); arrow(x+w,y-14,x,y-14,ROCKET_DK,4);
+    label('about 300 feet',x+w/2,y-30,{size:18,display:true,color:ROCKET_DK});
+    arrow(x+w+16,y,x+w+16,y+h,ROCKET_DK,4); arrow(x+w+16,y+h,x+w+16,y,ROCKET_DK,4);
+    label('one block',x+w/2,y+h/2,{size:17,display:true});
+    label('≈ 30 houses',x+w/2,y+h/2+20,{size:15});
+  }
+  if(GRID.sizes) drawSizes();
+}
+/* Four places, drawn as squares whose AREA is the population, because a
+   nine-year-old can see "eight of those fit inside this" and cannot see
+   the difference between 280,000 and 2,700,000 written down. */
+const PLACES=[
+  {k:'🏡',n:'A town',ex:'Kirkwood, Missouri',pop:29000,say:'about 29,000'},
+  {k:'🏬',n:'A mid-sized city',ex:'Springfield, Missouri',pop:170000,say:'about 170,000'},
+  {k:'🏙️',n:'A city',ex:'St. Louis, Missouri',pop:280000,say:'about 280,000'},
+  {k:'🌆',n:'A metropolis',ex:'Chicago, Illinois',pop:2700000,say:'about 2,700,000'},
+];
+function drawSizes(){
+  ctx.fillStyle=rgba('#2b2350',.94); ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  label('How big is a "city"?',500,46,{size:34,display:true,color:GOLD,halo:INK,haloW:8});
+  label('Each square is that many people. St. Louis has 2.8 million in its whole metro area —',500,86,{size:17,color:WHITE,halo:INK,haloW:6});
+  label('the city plus every town around it. The biggest in the world, Jakarta, has about 42 million.',500,108,{size:17,color:WHITE,halo:INK,haloW:6});
+  const big=Math.sqrt(PLACES[3].pop), base=470;
+  PLACES.forEach((p,i)=>{
+    const cx=140+i*240, side=Math.sqrt(p.pop)/big*168;
+    box(cx-side/2,base-side,side,side,5,i===2?GOLD:rgba(SKY,.85),4,WHITE);
+    emoji(p.k,cx,base-side-30,34);
+    label(p.n,cx,base+28,{size:20,display:true,color:WHITE,halo:INK,haloW:6});
+    label(p.ex,cx,base+52,{size:16,color:GOLD,halo:INK,haloW:5});
+    label(p.say+' people',cx,base+74,{size:16,color:WHITE,halo:INK,haloW:5});
+  });
+}
+function gridItems(){
+  const out=[];
+  if(GRID.sizes) return out;
+  if(GRID.era>=3) out.push({id:'highway',name:'The highway',sub:'Built straight through, in the 1950s',emoji:'🛣️',bg:ASPHALT,
+    hit:R(MAP.x0-10,by(1)-59,MAP.x1-MAP.x0+30,118),
+    fact:'Highways were pushed through American cities in the 1950s and 60s to move cars quickly. To make room, whole blocks of houses were knocked down and neighborhoods were cut in two.',
+    extra:'Some cities are now taking pieces of them back out again.'});
+  if(GRID.era>=2) out.push({id:'main',name:'A boulevard',sub:'The wide street with the shops on it',emoji:'🛤️',bg:ASPHALT,
+    hit:R(bx(3)-60,MAP.y0,120,MAP.y1-MAP.y0),
+    fact:'Not every street is the same size. A boulevard is wide, runs a long way, carries buses, and collects the shops — while the little streets around it stay quiet and full of houses.',
+    extra:'Grand Boulevard runs almost the whole length of St. Louis, north to south.'});
+  out.push({id:'river',name:'The Mississippi River',sub:'The reason the city is here at all',emoji:'🌊',bg:RIVER,
+    hit:R(842,30,180,570),
+    fact:'In 1764 Pierre Laclède chose a bluff about 40 feet above the water, just downstream of where the Missouri River joins the Mississippi. Boats could land, and floods could not reach it.',
+    extra:'Nearly every old city in the world sits on a river, a lake or a harbour. Before trucks, water was the only cheap way to move heavy things.'});
+  out.push({id:'downtown',name:'Downtown',sub:'The oldest part, and the busiest',emoji:'🏙️',bg:'#e8dcc0',
+    hit:R(bx(5),by(1)+72,CW+14,CH*2-72),
+    fact:'The first streets ran parallel to the river, and everything grew west from there. That is why the oldest part of almost every river city is the part nearest the water.',
+    extra:'Look at the blocks here: they are smaller and packed tighter than the ones further out.'});
+  if(GRID.era>=2) out.push({id:'park',name:'A big park',sub:'A block with nothing built on it',emoji:'🌳',bg:Z_PARK,
+    hit:R(bx(1)-2,by(2)-2,CW+4,CH+4),
+    fact:'Cities set land aside on purpose and then refuse to build on it. St. Louis did it in 1876 with Forest Park, while that land was still out in the country.',
+    extra:'You will go there in the Green Space chapter.'});
+  out.push({id:'alley',name:'An alley',sub:'The little street behind the houses',emoji:'🗑️',bg:'#cdc4ae',
+    hit:R(bx(1)-2,by(3)-2,CW+4,CH+4),
+    fact:'A skinny street running down the middle of the block, behind the houses. St. Louis is full of them. Trash cans, garages, delivery vans and power poles all live back there, so the front of the house stays quiet and pretty.',
+    extra:'Newer American suburbs mostly stopped building alleys — which is why their trash cans sit out front.'});
+  out.push({id:'block',name:'A city block',sub:'What the streets go around',emoji:'🔲',bg:'#f6edd6',
+    hit:R(bx(4)-2,by(2)-2,CW+4,CH+4),
+    fact:'A block is the piece of land inside a ring of streets. A typical St. Louis block is about 300 feet across and holds around 30 houses, with an alley down the middle.',
+    extra:'Small blocks mean more corners, more ways to walk, and more places to put a shop.'});
+  if(GRID.era>=3) out.push({id:'limits',name:'The city limits',sub:'Where the city stops — but the people do not',emoji:'🚧',bg:'#d9e8c0',
+    hit:R(0,MAP.y0,MAP.x0-6,MAP.y1-MAP.y0),
+    fact:'A city has a legal edge. St. Louis City is about 62 square miles with roughly 280,000 people — but 2.8 million live in the wider St. Louis area, most of them on this side of the line.',
+    extra:'St. Louis City has not been allowed to grow its border since 1876. Most American cities can.'});
+  return out;
+}
+
+/* =====================================================================
+   SCENE 2 — NEIGHBOURHOODS
+   One block of one neighborhood, seen from the sidewalk across the
+   street. The three density buttons rebuild the same five lots three
+   ways, and the people-count under them is the whole lesson.
+   ===================================================================== */
+const HOMES={dens:'house', walk:false, t:0};
+const LOT0=176, LOTW=132;                 /* five lots, between the school and the shop */
+const DENS={
+  house:{people:24,label:'single-family houses',n:5},
+  flat :{people:48,label:'two-family flats',n:5},
+  apt  :{people:180,label:'apartment buildings',n:2},
+};
+function drawHomes(){
+  /* sky and ground */
+  ctx.fillStyle=vgrad(0,-40,470,[[0,'#bfe4ff'],[1,'#e9f6ff']]); ctx.fillRect(-DW,-DH,DW*3,DH*2);
+  ctx.fillStyle=GROUND; ctx.fillRect(-DW,436,DW*3,DH);
+  /* the alley behind, drawn up high so it reads as "further away" */
+  box(-40,196,DW+80,40,0,'#cdc4ae',0);
+  dash([[0,216],[DW,216]],'#9a9282',3,[12,10]);
+  for(let i=0;i<6;i++){ const x=60+i*160;
+    box(x,168,52,30,4,'#b8ae97',3); poly([[x-4,168],[x+26,152],[x+56,168]],'#8d8474',3);
+    emoji('🗑️',x+64,186,17); }
+  label('the alley',500,186,{size:17,display:true});
+  const D=DENS[HOMES.dens];
+  /* the five lots, between the school on one corner and the shop on the other */
+  for(let i=0;i<5;i++){
+    const x=LOT0+i*LOTW, cxx=x+LOTW/2;
+    if(HOMES.dens==='apt'){
+      if(i%3===0){ const w=LOTW*2.6;
+        building(x+8,244,w-16,192,{fill:'#9c7f6a'});
+        poly([[x+2,244],[x+w/2,244],[x+w-14,244]],'#6f5a4c',4,false);
+        box(x+8,244,w-16,14,4,'#6f5a4c',4);
+        emoji('🚪',x+w/2,424,22);
+      }
+      continue;
+    }
+    const twoFam=HOMES.dens==='flat';
+    const h=twoFam?186:132, top=436-h;
+    building(x+18,top,LOTW-36,h,{fill:i%2?BRICK:'#c07a55',rows:twoFam?4:2,cols:3});
+    /* the St. Louis gable + front steps */
+    poly([[x+12,top],[cxx,top-34],[x+LOTW-12,top]],i%2?BRICK_DK:'#a1613f',4);
+    box(cxx-16,436-40,32,40,3,'#6f4a35',3);            // front door
+    if(twoFam){ box(cxx-16,436-40-82,32,34,3,'#6f4a35',3); label('2',cxx+30,436-100,{size:15}); label('1',cxx+30,436-22,{size:15}); }
+    poly([[cxx-30,436],[cxx+30,436],[cxx+24,452],[cxx-24,452]],'#d9cfc0',3);
+  }
+  /* sidewalk, trees, street */
+  box(-40,452,DW+80,28,0,'#ded4c2',3);
+  for(let i=0;i<6;i++){ const x=42+i*186; line(x,452,x,432,'#6f4a35',7); circle(x,414,21,'#4f9f3d'); circle(x-13,424,15,'#63c64d'); circle(x+13,422,14,'#57b342'); }
+  box(-40,480,DW+80,86,0,ASPHALT,0);
+  dash([[-40,523],[DW+40,523]],GOLD,4,[26,20]);
+  emoji('🚗',180+(now*34)%900,502,30); emoji('🚙',760-(now*28)%900,544,30,true);
+  /* the school and the corner store bracket the block */
+  building(24,286,132,150,{fill:'#c9a227',rows:3,cols:3});
+  poly([[16,286],[90,250],[164,286]],'#8d6f14',4);
+  box(74,404,32,32,3,'#6f4a35',3); emoji('🏫',90,300,34);
+  label('SCHOOL',90,268,{size:16,display:true,color:WHITE,halo:'#8d6f14',haloW:6});
+  building(858,326,124,110,{fill:'#5c8d6a',rows:2,cols:3});
+  box(858,326,124,22,3,'#3f6a4b',4); emoji('🏪',920,300,30);
+  label('corner store',920,340,{size:15,display:true,color:WHITE,halo:'#3f6a4b',haloW:5});
+  /* the count — the point of the three buttons. Sits right of centre so the
+     caption, which is pinned to the top-left corner, never lands on it. */
+  box(560,16,428,74,14,rgba(WHITE,.94),4);
+  label('This block, built with '+D.label+':',774,38,{size:17});
+  label('about '+D.people+' people live here',774,68,{size:25,display:true,color:ROCKET_DK});
+  if(HOMES.walk){
+    dash([[90,470],[924,470]],ROCKET_DK,5,[18,12]);
+    for(let i=0;i<9;i++) emoji('👣',130+i*94,470,17);
+    box(300,586,400,0,0,null,0);
+    label('🚶 School to the corner store: 4 blocks, about 8 minutes\' walk',501,582,{size:19,display:true,color:ROCKET_DK});
+    label('A 10-minute walk is roughly half a mile — the distance city planners use.',501,606,{size:15});
+  }
+}
+function homesItems(){
+  const out=[];
+  if(HOMES.dens==='apt') out.push({id:'home',name:'An apartment building',sub:'Many homes stacked up',emoji:'🏢',bg:'#9c7f6a',
+    hit:R(LOT0+8,244,LOTW*2.6-16,192),
+    fact:'Stacking homes puts far more people on the same land — about 180 on this one block instead of 24. More neighbours means the corner store has enough customers to stay open, and the bus has enough riders to come often.',
+    extra:'It also means most people have no yard. Cities are always trading one of those for the other.'});
+  else out.push({id:'home',name:HOMES.dens==='flat'?'A two-family flat':'A brick house',sub:HOMES.dens==='flat'?'Two front doors, one building':'One family, one building',emoji:'🏠',bg:BRICK,
+    hit:R(LOT0+LOTW*2+18,HOMES.dens==='flat'?244:298,LOTW-36,HOMES.dens==='flat'?192:146),
+    fact:HOMES.dens==='flat'
+      ? 'A St. Louis speciality: two homes stacked, one front door each, sharing one set of walls and one roof. Twice the neighbours, almost none of the extra land — and often the owner lived in one half.'
+      : 'Almost every old St. Louis house is brick. The clay was right under the city, and after the Great Fire of 1849 burned 430 buildings and 23 steamboats, the city simply made wooden houses against the rules.',
+    extra:HOMES.dens==='flat'?'Shared walls also mean shared heat — a flat is cheaper to warm than a house standing alone.'
+      :'Look for the stone name and date carved over the door. Many of these houses are well over a hundred years old.'});
+  out.push({id:'school',name:'The school',sub:'The middle of a neighborhood',emoji:'🏫',bg:'#c9a227',hit:R(16,250,150,186),
+    fact:'A neighborhood school is put where children can walk to it. That single rule shapes the whole neighborhood: streets that connect, sidewalks, crossings, and houses packed close enough that there are enough children nearby.',
+    extra:'Ask someone who grew up here which school they walked to. It is usually how people say where they are from.'});
+  out.push({id:'store',name:'The corner store',sub:'Shops mixed in among the houses',emoji:'🏪',bg:'#5c8d6a',hit:R(852,286,148,150),
+    fact:'A shop on the corner of a residential block — milk, bread, a sandwich. It only works if enough people live within a couple of minutes\' walk, which is why you find them in old dense neighborhoods and almost never in new spread-out ones.',
+    extra:'Mixing shops in among houses is called mixed use. Cities banned it for most of the last century, and are now bringing it back.'});
+  out.push({id:'alley',name:'The alley',sub:'The service street out the back',emoji:'🗑️',bg:'#cdc4ae',hit:R(0,140,DW,122),
+    fact:'Trash cans, garages, delivery vans and power lines all go behind the houses instead of in front of them. It is the reason the street out front can be quiet enough to play on.',
+    extra:'St. Louis has thousands of alleys, some still paved in their original stone.'});
+  out.push({id:'sidewalk',name:'The sidewalk and the trees',sub:'The bit of the street that is for people',emoji:'🌳',bg:'#ded4c2',hit:R(0,386,DW,100),
+    fact:'A row of trees between the sidewalk and the traffic makes walking feel safe, and shades the pavement so the whole street stays cooler on a July afternoon.',
+    extra:'A street with trees can be 10 degrees cooler than the same street without them.'});
+  out.push({id:'street',name:'The street',sub:'What the whole block is built along',emoji:'🛣️',bg:ASPHALT,hit:R(0,486,DW,134),
+    fact:'Every single house here faces the street, and every pipe and wire that serves them runs underneath it. Turn the street off and the block is just a field with buildings on it.',
+    extra:'You will see exactly how that works in the next chapter but one.'});
+  return out;
+}
+
+/* =====================================================================
+   SCENE 3 — DOWNTOWN
+   One picture, read left to right: the edge of town, a neighborhood
+   business street, downtown, the Arch, the river. Buildings get taller
+   the closer they are to the middle, which is the chapter in one image.
+   ===================================================================== */
+const DT={zones:false, night:false, extra:0};
+function drawDowntown(){
+  const n=DT.night;
+  ctx.fillStyle=n?vgrad(0,-40,470,[[0,'#131341'],[1,'#3b3570']]):vgrad(0,-40,470,[[0,'#bfe4ff'],[1,'#ffe9c4']]);
+  ctx.fillRect(-DW,-DH,DW*3,DH*2);
+  if(n){ const s=seeded(21); for(let i=0;i<70;i++) circle(s()*DW,s()*380,1.6+s()*1.6,rgba('#ffffff',.4+s()*.5)); emoji('🌙',80,70,38); }
+  else emoji('☀️',86,74,42);
+  ctx.fillStyle=n?'#2a2740':GROUND; ctx.fillRect(-DW,470,DW*3,DH);
+  /* the river and the far bank */
+  ctx.fillStyle=n?'#1d3b57':RIVER; ctx.fillRect(906,442,DW,DH);
+  for(let i=0;i<4;i++) path([[916,470+i*32],[950,480+i*32],[990,468+i*32]],rgba('#ffffff',.32),4);
+  emoji('🚢',952,516,30);
+  /* 1. the edge of town: a strip mall and a parking lot */
+  box(14,406,150,64,5,n?'#4a4757':'#d7cdbb',4);
+  box(14,406,150,16,4,'#7a8c9a',3);
+  for(let i=0;i<4;i++) box(24+i*36,432,26,20,2,n?GOLD:'#bfe4ff',2);
+  label('strip mall',88,398,{size:15,display:true});
+  for(let i=0;i<10;i++) emoji('🚗',26+(i%5)*30,482+Math.floor(i/5)*26,17);
+  dash([[14,470],[164,470]],'#b8ae97',3,[10,8]);
+  /* 2. the neighborhood business street */
+  for(let i=0;i<3;i++){ const x=190+i*66;
+    building(x,342,58,128,{fill:i===1?'#8d6a9c':BRICK,lit:n});
+    box(x,436,58,34,3,n?'#3a3550':'#f0e2c2',3);
+    box(x+6,442,46,22,2,n?GOLD:SKY,2);
+    box(x-2,430,62,10,3,['#d9534f','#4f9f6b','#3f7fbf'][i],3);
+  }
+  label('shops with apartments above',256,326,{size:16,display:true});
+  /* 3. downtown: the towers, tallest in the middle */
+  const H=[150,210,262,330+DT.extra*30,286,214];
+  H.forEach((h,i)=>{ const x=400+i*68;
+    building(x,470-h,58,h,{fill:i===3?'#7e7a94':'#6e6a86',lit:n,win:n?GOLD:'#cfe9ff'});
+    if(i===3){ box(x+22,470-h-24,14,26,3,'#9c98ae',3); circle(x+29,470-h-30,5,ROCKET); }
+  });
+  label('DOWNTOWN',508,492,{size:24,display:true,color:n?GOLD:ROCKET_DK,halo:n?INK:undefined,haloW:7});
+  /* the ballpark, in front of the towers where a downtown one really sits */
+  ellipse(620,452,62,30,0,n?'#3f3b58':'#cfd6c0',4);
+  ellipse(620,452,43,19,0,n?'#2c5a34':'#7fc45c',3);
+  for(let i=0;i<8;i++) line(620+Math.cos(i/8*TAU)*62,452+Math.sin(i/8*TAU)*30,620+Math.cos(i/8*TAU)*68,452+Math.sin(i/8*TAU)*34,n?GOLD:'#fff2c4',4);
+  label('ballpark',620,412,{size:15,display:true});
+  /* 4. the Gateway Arch */
+  ctx.save(); ctx.lineCap='butt'; ctx.lineJoin='round';
+  ctx.beginPath();
+  for(let i=0;i<=40;i++){ const t=i/40, x=800+t*96, y=470-Math.sin(t*Math.PI)*236;
+    i?ctx.lineTo(x,y):ctx.moveTo(x,y); }
+  ctx.strokeStyle=INK; ctx.lineWidth=21; ctx.stroke();
+  ctx.strokeStyle=n?'#8e93a8':'#ccd0da'; ctx.lineWidth=14; ctx.stroke();
+  ctx.strokeStyle=n?'#b9bed0':'#eef1f6'; ctx.lineWidth=4; ctx.stroke(); ctx.restore();
+  label('630 ft',848,198,{size:18,display:true,color:n?WHITE:INK,halo:n?INK:undefined,haloW:6});
+  /* 5. the warehouses on the riverfront */
+  for(let i=0;i<2;i++){ const x=712+i*46;
+    box(x,406,42,64,3,n?'#463f5c':'#9c8f7a',4);
+    for(let k=0;k<3;k++) poly([[x+k*14,406],[x+7+k*14,396],[x+14+k*14,406]],n?'#5c5476':'#867a67',3); }
+  emoji('🚂',700,492,26); dash([[640,500],[906,500]],'#7a7466',3,[12,9]);
+  label('warehouses',758,386,{size:15,display:true});
+  person(186,470,34); person(300,470,34,'#5c3a7a');
+  /* the zoning overlay */
+  if(DT.zones){
+    const bands=[[6,172,Z_SHOP,'SHOPS'],[176,396,Z_HOME,'SHOPS + HOMES'],
+                 [400,698,Z_SHOP,'OFFICES + SHOPS'],[702,800,Z_WORK,'FACTORIES'],[804,902,Z_PARK,'PARK']];
+    ctx.save(); ctx.globalAlpha=.42;
+    bands.forEach(b=>{ ctx.fillStyle=b[2]; ctx.fillRect(b[0],210,b[1]-b[0],320); });
+    ctx.restore();
+    bands.forEach(b=>{ box(b[0],210,b[1]-b[0],320,6,null,4,ROCKET_DK);
+      label(b[3],(b[0]+b[1])/2,224,{size:13,display:true,color:ROCKET_DK}); });
+    label('ZONING MAP',40,550,{size:18,display:true,color:ROCKET_DK,align:'left'});
+  }
+  if(DT.extra>0) label('+'+(DT.extra*4)+' floors · about '+(DT.extra*160)+' more people work here',502,196,{size:18,display:true,color:ROCKET_DK});
+}
+function downtownItems(){
+  const H3=330+DT.extra*46;
+  return [
+   {id:'tower',name:'An office tower',sub:'Where the land is dearest',emoji:'🏢',bg:'#6e6a86',hit:R(392,470-H3-10,132,H3+10),
+    fact:'Everybody wants to be near the middle, so the land there costs the most. The only way to get more building onto a small expensive piece of ground is to go up — and an elevator makes that possible.',
+    extra:'Before safe elevators were invented in the 1850s, almost nothing was built taller than about five floors.'},
+   {id:'arch',name:'The Gateway Arch',sub:'630 feet of stainless steel',emoji:'🌈',bg:'#ccd0da',hit:R(786,214,126,258),
+    fact:'Finished in October 1965 and designed by Eero Saarinen, it is the tallest man-made monument in the United States: 630 feet tall, and 630 feet wide at the base. It is exactly as wide as it is high.',
+    extra:'A little tram carries people up inside one leg to a window room at the very top.'},
+   {id:'shops',name:'A business street',sub:'The neighborhood\'s own high street',emoji:'🏬',bg:BRICK,hit:R(176,318,150,152),
+    fact:'Two or three stories: shops on the ground floor, apartments above. Everyone living upstairs is a customer downstairs. St. Louis has dozens — the Delmar Loop, Cherokee Street, South Grand, and The Hill.',
+    extra:'The Hill has been an Italian neighborhood for over a century, and its restaurants are the reason most people go there.'},
+   {id:'stadium',name:'The stadium',sub:'A building that is empty most days',emoji:'⚾',bg:'#7fc45c',hit:C(620,450,74),
+    fact:'A stadium fills a whole downtown block with 40,000 people about 80 days a year, and with nothing at all on the others. Cities argue endlessly about whether that is a good use of land right in the middle.',
+    extra:'Which is why newer ones are built with shops and apartments wrapped around the outside.'},
+   {id:'warehouse',name:'Warehouses and factories',sub:'The industrial zone',emoji:'🏭',bg:'#9c8f7a',hit:R(640,376,160,130),
+    fact:'Heavy things travel cheapest by barge and by train, so factories and warehouses cluster where the river and the railroad are. They also make noise, smoke and truck traffic — which is why the rules keep them away from houses.',
+    extra:'Look at the roofline: rows of little peaks with windows in them, to light a big floor before electricity.'},
+   {id:'strip',name:'A strip mall',sub:'Shopping built for cars',emoji:'🅿️',bg:'#d7cdbb',hit:R(6,396,166,110),
+    fact:'Same shops, completely different shape: one long row set back behind a parking lot, out where land is cheap. It works brilliantly if you drive and barely at all if you do not.',
+    extra:'Count the space: the parking lot here is bigger than the shops.'},
+   {id:'river',name:'The riverfront',sub:'Where the whole thing started',emoji:'🚢',bg:RIVER,hit:R(900,436,110,180),
+    fact:'Barges still work this river. One tow of barges can carry as much cargo as about 1,000 trucks, which is why the flat land along the water is worth so much to industry.',
+    extra:'The Arch stands on what used to be thirty-seven blocks of riverfront warehouses, pulled down in the 1930s and 40s.'},
+  ];
+}
+
+/* =====================================================================
+   SCENE 4 — UNDER THE STREET
+   A cutaway: houses and the road on top, and the five services below it
+   in the order they really lie. Sewer deepest, because it has no pump —
+   it runs downhill on gravity alone, and that single fact decides the
+   order of everything above it.
+   ===================================================================== */
+const GROUND_Y=330, ROAD_Y=302;
+const PIPES={tap:-1, flush:-1, power:-1, storm:0, stormOn:false, overflow:0, lit:false};
+/* Spaced so each band is a fat enough tap target (42+ design units, the same
+   as the layer rings in Under Your Feet) and so each name sits in clear earth
+   BELOW its own pipe instead of clipping the one above it. */
+const LAYERS=[
+  {id:'fiber', y:358, w:9,  c:PIPE_FIBER, n:'Internet and phone'},
+  {id:'elec',  y:398, w:13, c:PIPE_ELEC,  n:'Electric cable'},
+  {id:'gas',   y:442, w:15, c:PIPE_GAS,   n:'Gas main'},
+  {id:'water', y:488, w:26, c:PIPE_WATER, n:'Water main'},
+  {id:'sewer', y:550, w:42, c:PIPE_SEWER, n:'Sewer'},
+];
+const SEWER_FALL=26;                       /* how far it drops across the picture */
+const sewerY=x=>550+x/900*SEWER_FALL;
+const HOUSE_X=[86,300,514];
+function drawPipes(){
+  /* sky, earth, road */
+  ctx.fillStyle=vgrad(0,-40,GROUND_Y,[[0,'#bfe4ff'],[1,'#eaf6ff']]); ctx.fillRect(-DW,-DH,DW*3,DH*2);
+  if(PIPES.stormOn){ ctx.fillStyle=rgba('#5b6b86',.55); ctx.fillRect(-DW,-DH,DW*3,GROUND_Y+DH); }
+  ctx.fillStyle='#a9825c'; ctx.fillRect(-DW,GROUND_Y,DW*3,DH);
+  ctx.fillStyle='#8f6a48'; ctx.fillRect(-DW,GROUND_Y+128,DW*3,DH);
+  for(let i=0;i<40;i++){ const s=seeded(i*13); circle(s()*DW,GROUND_Y+24+s()*250,3+s()*4,rgba('#7a5738',.5)); }
+  /* houses on top */
+  HOUSE_X.forEach((x,i)=>{
+    building(x,178,150,GROUND_Y-178-16,{fill:i%2?BRICK:'#c07a55',lit:PIPES.lit,win:PIPES.lit?GOLD:'#bfe4ff'});
+    poly([[x-8,178],[x+75,140],[x+158,178]],i%2?BRICK_DK:'#a1613f',4);
+    box(x+58,GROUND_Y-58,34,42,3,'#6f4a35',3);
+    box(x+150,GROUND_Y-56,16,22,3,'#cfc6b4',3);             // the gas meter on the side
+  });
+  /* the road */
+  box(-40,ROAD_Y,DW+80,GROUND_Y-ROAD_Y+6,0,ASPHALT,0);
+  dash([[-40,ROAD_Y+14],[900,ROAD_Y+14]],GOLD,4,[26,20]);
+  /* poles and overhead wires */
+  [120,420,720].forEach(x=>{ line(x,GROUND_Y-2,x,116,'#8d6f4a',10); line(x-26,140,x+26,140,'#8d6f4a',7);
+    box(x+8,150,18,26,4,'#9aa0ad',3); });
+  path([[120,142],[270,160],[420,142]],'#3a3550',4); path([[420,142],[570,160],[720,142]],'#3a3550',4);
+  path([[720,142],[800,152],[866,196]],'#3a3550',4);
+  /* the water tower */
+  [664].forEach(x=>{ line(x-20,GROUND_Y-4,x-8,214,'#9aa0ad',7); line(x+20,GROUND_Y-4,x+8,214,'#9aa0ad',7);
+    box(x-44,168,88,50,12,'#bcd6e8',4); label('WATER',x,193,{size:15,display:true}); });
+  /* the river and the two plants */
+  ctx.fillStyle=RIVER; ctx.fillRect(906,GROUND_Y-118,DW,DH);
+  for(let i=0;i<5;i++) path([[916,GROUND_Y-96+i*44],[948,GROUND_Y-86+i*44],[988,GROUND_Y-100+i*44]],rgba('#ffffff',.34),4);
+  box(766,196,132,GROUND_Y-196,8,'#d6cdbb',4);
+  circle(802,250,26,'#9ec9e4'); ring(802,250,26,INK,4); circle(860,250,26,'#9ec9e4'); ring(860,250,26,INK,4);
+  label('WATER',832,300,{size:15,display:true}); label('PLANT',832,318,{size:15,display:true});
+  path([[898,286],[934,286]],PIPE_WATER,14);
+  box(620,486,150,96,8,'#c6bda8',4);
+  label('CLEAN-UP PLANT',695,504,{size:14,display:true});
+  circle(662,544,21,'#a89a7c'); ring(662,544,21,INK,4); circle(728,544,21,'#a89a7c'); ring(728,544,21,INK,4);
+  /* the five services */
+  LAYERS.forEach(L=>{
+    if(L.id==='sewer'){ const P=[[-40,sewerY(-40)],[900,sewerY(900)]];
+      path(P,INK,L.w+5); path(P,L.c,L.w); }
+    else{ line(-40,L.y,900,L.y,INK,L.w+5); line(-40,L.y,900,L.y,L.c,L.w); }
+    label(L.n,26,(L.id==='sewer'?sewerY(26):L.y)+L.w/2+13,{size:15,display:true,align:'left',halo:'#a9825c'});
+  });
+  /* service lines up into the houses */
+  HOUSE_X.forEach(x=>{ line(x+40,488,x+40,GROUND_Y,PIPE_WATER,8); line(x+96,sewerY(x+96),x+96,GROUND_Y,PIPE_SEWER,12);
+    line(x+150,442,x+150,GROUND_Y-40,PIPE_GAS,6); });
+  /* manhole and storm drain */
+  line(482,ROAD_Y+8,482,sewerY(482),'#5c5668',24);
+  circle(482,ROAD_Y+4,18,'#4a4757'); ring(482,ROAD_Y+4,18,INK,4);
+  line(266,ROAD_Y,266,sewerY(266),'#5c5668',16);
+  box(240,ROAD_Y-14,52,16,3,'#4a4757',3); label('storm drain',266,ROAD_Y-26,{size:14,display:true});
+  /* --- the four animations --- */
+  if(PIPES.tap>=0){ const t=PIPES.tap;
+    const dot=(u,col)=>{ if(t<u||t>u+.5) return; };
+    for(let k=0;k<9;k++){ const p=clamp(t*1.15-k*.02,0,1);
+      if(p<=0) continue;
+      let x,y;
+      if(p<.22){ const q=p/.22; x=lerp(934,832,q); y=lerp(286,250,q); }
+      else if(p<.34){ const q=(p-.22)/.12; x=832; y=lerp(250,488,q); }
+      else if(p<.82){ const q=(p-.34)/.48; x=lerp(832,126,q); y=488; }
+      else { const q=(p-.82)/.18; x=126; y=lerp(488,GROUND_Y-46,q); }
+      circle(x,y,7,'#9ddcff'); }
+    if(t>.98){ emoji('🚿',HOUSE_X[0]+76,236,34); }
+  }
+  if(PIPES.flush>=0){ const t=PIPES.flush;
+    for(let k=0;k<7;k++){ const p=clamp(t*1.2-k*.03,0,1);
+      if(p<=0) continue;
+      let x,y;
+      if(p<.2){ const q=p/.2; x=HOUSE_X[1]+96; y=lerp(GROUND_Y-46,sewerY(HOUSE_X[1]+96),q); }
+      else if(p<.86){ const q=(p-.2)/.66; x=lerp(HOUSE_X[1]+96,800,q); y=lerp(sewerY(HOUSE_X[1]+96),sewerY(800),q); }
+      else { const q=(p-.86)/.14; x=lerp(800,695,q); y=lerp(sewerY(800),544,q); }
+      circle(x,y,8,'#a07c4e'); }
+  }
+  if(PIPES.power>=0){ const t=PIPES.power;
+    for(let k=0;k<5;k++){ const p=clamp(t*1.2-k*.05,0,1); if(p<=0) continue;
+      const pts=[[866,196],[720,142],[570,160],[420,142],[270,160],[120,142],[120,GROUND_Y-40]];
+      const seg=clamp(Math.floor(p*(pts.length-1)),0,pts.length-2), q=p*(pts.length-1)-seg;
+      const x=lerp(pts[seg][0],pts[seg+1][0],q), y=lerp(pts[seg][1],pts[seg+1][1],q);
+      emoji('⚡',x,y,20); }
+  }
+  if(PIPES.stormOn||PIPES.storm>0){
+    const s=seeded(77);
+    if(PIPES.stormOn) for(let i=0;i<70;i++){ const x=s()*900, y=(s()*400+now*560)%GROUND_Y;
+      line(x,y,x-4,y+16,rgba('#cfe9ff',.8),3); }
+    /* the combined sewer filling up, from the bottom of the pipe upwards */
+    const fill=clamp(PIPES.storm,0,1);
+    ctx.save(); ctx.beginPath();
+    ctx.moveTo(-40,sewerY(-40)-21); ctx.lineTo(900,sewerY(900)-21);
+    ctx.lineTo(900,sewerY(900)+21); ctx.lineTo(-40,sewerY(-40)+21); ctx.closePath(); ctx.clip();
+    ctx.fillStyle=rgba('#6b8ea8',.92); ctx.fillRect(-40,600-92*fill,940,120); ctx.restore();
+    if(PIPES.overflow>0){
+      path([[880,sewerY(880)],[918,544],[956,506]],'#7a8fa0',16);
+      emoji('💩',946,498,22);
+    }
+  }
+}
+/* Ordered small-things-first: the manhole, the drain, the tower and the plant
+   all sit inside one of the five full-width pipe bands, and a band listed above
+   them would swallow them whole. */
+function pipesItems(){
+  const out=[
+   {id:'plant',name:'The water plant',sub:'River in one end, drinking water out the other',emoji:'🏭',bg:'#d6cdbb',hit:R(752,180,164,160),
+    fact:'River water is pulled in, stirred with a chemical that makes the mud clump together and sink, filtered through sand, then disinfected. Chain of Rocks sits about 11 miles north of downtown, right by where the Missouri joins the Mississippi.',
+    extra:'Howard Bend, the other plant, sits 15 miles west of the city on the Missouri River.'},
+   {id:'tower',name:'The water tower',sub:'A hill for cities that have no hill',emoji:'🗼',bg:'#bcd6e8',hit:R(608,150,112,190),
+    fact:'It is not storage so much as pressure. Water sitting up high pushes down the pipes all by itself, so faucets still work when the pumps stop — and the tank refills quietly overnight.',
+    extra:'Every 2.3 feet of height adds about one more pound of pressure at the faucet.'},
+   {id:'manhole',name:'The manhole',sub:'The door into the pipe',emoji:'🕳️',bg:'#4a4757',hit:C(482,ROAD_Y,62),
+    fact:'A shaft down to the sewer so somebody can get in and look. They sit at every corner and every bend, because that is where a pipe blocks.',
+    extra:'The lid is round on purpose. Turn a round lid any way you like and it still will not fit down its own hole — a square one drops straight through, corner first.'},
+   {id:'drain',name:'The storm drain',sub:'Where the rain goes',emoji:'🌧️',bg:'#4a4757',hit:R(206,250,124,120),
+    fact:'The slot at the curb swallows rain off the street. In most of the St. Louis area it runs in its own pipe — but in the old city it joins the same pipe as the sewage. That is called a combined sewer.',
+    extra:'Press 🌧️ Big storm and watch what happens when the combined pipe fills up.'},
+   {id:'water',name:'The water main',sub:'Clean water, under pressure',emoji:'💧',bg:PIPE_WATER,hit:R(0,465,900,54),
+    fact:'St. Louis has two water plants — Chain of Rocks on the Mississippi and Howard Bend on the Missouri. Together they can clean and send out 360 million gallons a day. The main is kept under pressure, which is why water shoots out the moment you open a faucet.',
+    extra:'That pressure is also what makes a fire hydrant work.'},
+   {id:'sewer',name:'The sewer',sub:'The deepest pipe, and the biggest',emoji:'🚽',bg:PIPE_SEWER,hit:R(0,519,900,92),
+    fact:'It has no pump. Everything in it runs downhill, so it must start deeper than everything else and keep tilting down the whole way to the clean-up plant. That is why it is the bottom pipe — every other line has to go above it.',
+    extra:'The Metropolitan St. Louis Sewer District looks after about 9,500 miles of pipe and seven clean-up plants for 1.3 million people.'},
+   {id:'gas',name:'The gas main',sub:'For stoves and furnaces',emoji:'🔥',bg:PIPE_GAS,hit:R(0,420,900,45),
+    fact:'Natural gas piped straight into the house for cooking and heat. Each house has a meter on the outside wall that counts what it uses — that little box beside the door.',
+    extra:'Gas lines are marked in yellow paint before anyone digs. That is what the coloured squiggles on a street mean.'},
+   {id:'elec',name:'The electric line',sub:'Sometimes up a pole, sometimes buried',emoji:'⚡',bg:PIPE_ELEC,hit:R(0,378,900,42),
+    fact:'Power leaves a plant at enormous voltage, drops at a substation, and drops again in the grey can on the pole outside before it is safe to send into a house. Ameren Missouri does this for most of the St. Louis area.',
+    extra:'Old neighborhoods keep theirs on poles because burying it later costs a fortune. New ones bury it, and lose power far less often in storms.'},
+   {id:'fiber',name:'Internet and phone',sub:'The newest pipe in the road',emoji:'🌐',bg:PIPE_FIBER,hit:R(0,332,900,46),
+    fact:'Hair-thin glass threads carrying light. It is the shallowest thing down there, because it was the last to arrive and nobody wanted to dig any deeper than they had to.',
+    extra:'It often shares a trench with the electric line: light travelling down a glass thread cannot shock anybody.'},
+  ];
+  return out;
+}
+
+/* =====================================================================
+   SCENE 5 — WHO COMES TO HELP
+   A map with coverage circles on it. The child can start an emergency and
+   watch the nearest engine drive to it, and can add a firehouse and see
+   the covered share go up. Everything here is about distance and minutes.
+   ===================================================================== */
+const STATION_SPOTS=[[236,196],[706,392],[200,430],[560,170]];
+const HELP={fires:[[236,196],[706,392]], reach:false, call:null, t:0, best:0, added:0};
+const HOMES_GRID=[];
+for(let r=0;r<5;r++) for(let c=0;c<8;c++) HOMES_GRID.push([116+c*104,146+r*82]);
+const REACH=196;                                           // about a four-minute drive
+function covered(p){ return HELP.fires.some(f=>Math.hypot(f[0]-p[0],f[1]-p[1])<=REACH); }
+function coverPct(){ return Math.round(HOMES_GRID.filter(covered).length/HOMES_GRID.length*100); }
+function drawHelp(){
+  ctx.fillStyle=GROUND; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* a plain street grid to sit everything on */
+  for(let c=0;c<=8;c++) line(64+c*104,96,64+c*104,556,ASPHALT,9);
+  for(let r=0;r<=5;r++) line(64,105+r*82,896,105+r*82,ASPHALT,9);
+  HOMES_GRID.forEach(p=>{ const ok=covered(p);
+    box(p[0]-18,p[1]-16,36,30,4,ok?'#f6edd6':'#e6d5cc',3);
+    poly([[p[0]-22,p[1]-16],[p[0],p[1]-30],[p[0]+22,p[1]-16]],ok?'#c07a55':'#a88c82',3); });
+  if(HELP.reach) HELP.fires.forEach(f=>{
+    ctx.save(); ctx.globalAlpha=.2; circle(f[0],f[1],REACH,ROCKET); ctx.restore();
+    ctx.save(); ctx.setLineDash([15,11]); ring(f[0],f[1],REACH,ROCKET_DK,5); ctx.restore(); });
+  /* the stations */
+  HELP.fires.forEach((f,i)=>{ box(f[0]-42,f[1]-34,84,68,8,'#d9534f',4);
+    box(f[0]-26,f[1]+4,52,30,3,'#7a2f2c',3); emoji('🚒',f[0],f[1]-14,28);
+    label('FIREHOUSE',f[0],f[1]+50,{size:14,display:true,color:ROCKET_DK}); });
+  box(418,444,84,62,8,'#3f7fbf',4); emoji('🚓',460,472,28);
+  label('POLICE',460,520,{size:14,display:true,color:'#2b5d8f'});
+  box(776,132,84,62,8,WHITE,4); emoji('🏥',818,162,28);
+  label('HOSPITAL',818,208,{size:14,display:true});
+  box(300,502,96,58,8,GOLD,4); label('9-1-1',348,522,{size:22,display:true}); label('dispatch',348,546,{size:14,display:true});
+  [[168,268],[376,268],[584,350],[792,268],[272,432]].forEach(h=>emoji('🧯',h[0],h[1],19));
+  /* the emergency and the engine driving to it */
+  if(HELP.call){
+    const c=HELP.call, p=clamp(HELP.t/c.dur,0,1);
+    emoji('🔥',c.at[0],c.at[1],34+Math.sin(now*9)*4);
+    const x=lerp(c.from[0],c.at[0],easeOut(p)), y=lerp(c.from[1],c.at[1],easeOut(p));
+    dash([[c.from[0],c.from[1]],[c.at[0],c.at[1]]],ROCKET_DK,4,[13,10]);
+    emoji('🚒',x,y,30,c.at[0]<c.from[0]);
+    if(p<1&&Math.floor(now*6)%2===0) circle(x,y-20,7,SKY);
+    box(360,18,280,54,12,p>=1?'#d6f5cd':rgba(WHITE,.95),4);
+    label(p>=1?'Engine on scene — '+c.mins+' minutes':'Engine responding… '+(HELP.t).toFixed(1)+'s',500,45,{size:20,display:true});
+  }
+}
+function helpItems(){
+  const out=HELP.fires.map((f,i)=>({id:'fire'+i,name:i?'Another firehouse':'A firehouse',sub:'One of 30 in St. Louis',emoji:'🚒',bg:'#d9534f',hit:C(f[0],f[1],78),
+    fact:'The St. Louis Fire Department runs 30 engine houses, spread across six districts, with about 900 firefighters, paramedics and staff. They are scattered on purpose: a house fire can double in size in under a minute, so the drive is the whole game.',
+    extra:'The engine carries its own water — but only a few hundred gallons. After that it has to plug into a hydrant.'}));
+  out.push({id:'police',name:'The police station',sub:'One district of several',emoji:'🚓',bg:'#3f7fbf',hit:R(404,430,112,96),
+    fact:'The city is carved into districts, and each has its own station and its own patrol cars. Most of the time the car nearest the call goes, whoever it belongs to.',
+    extra:'Police, fire and ambulance all answer the same phone number, and a dispatcher decides who is sent.'});
+  out.push({id:'hospital',name:'The hospital',sub:'Where the ambulance is going',emoji:'🏥',bg:WHITE,hit:R(762,118,112,106),
+    fact:'Ambulances carry a paramedic who starts treating someone on the way, so the hospital is really the second stop, not the first. A city needs its emergency rooms spread out for the same reason it spreads firehouses.',
+    extra:'Some St. Louis fire engines carry paramedics too, so the nearest help is often a fire engine.'});
+  out.push({id:'call',name:'9-1-1 dispatch',sub:'One room, every emergency',emoji:'📞',bg:GOLD,hit:R(288,490,120,82),
+    fact:'Every emergency call in the city lands in one room. A dispatcher asks where you are, works out who is needed, and sends the closest one — while staying on the line with you.',
+    extra:'The number was chosen in 1968 because it was short, easy to remember, and no area code started with it.'});
+  out.push({id:'hydrant',name:'A fire hydrant',sub:'A tap straight into the water main',emoji:'🧯',bg:'#ffd98a',hit:C(376,268,64),
+    fact:'It is a handle on the water main you met in the last chapter. That is why a fire truck parks by one: the pipes under the street are the only thing with enough water in them to fight a real fire.',
+    extra:'The city has thousands, and they are checked and flushed every year to be sure they still turn.'});
+  out.push({id:'block',name:'A block of houses',sub:'What all of it is for',emoji:'🏘️',bg:'#f6edd6',hit:R(96,300,120,84),
+    fact:'Turn on ⭕ Show how far they reach and look for the houses outside every circle. Those are the ones where help takes the longest — and that is exactly the argument a city has when it decides where the next firehouse goes.',
+    extra:'Press ➕ Add a firehouse and watch the covered share climb.'});
+  return out;
+}
+
+/* =====================================================================
+   SCENE 6 — ROOM TO BREATHE
+   Forest Park from above, with a neighborhood playground beside it for
+   scale, because "1,326 acres" means nothing until you can see the
+   playground next to it.
+   ===================================================================== */
+const PARK={x0:96,y0:120,x1:764,y1:508};
+const GREEN={heat:false, walk:false, fair:false};
+function drawGreen(){
+  ctx.fillStyle=GROUND; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* the city around it */
+  for(let c=0;c<=11;c++) line(40+c*88,60,40+c*88,580,ASPHALT,7);
+  for(let r=0;r<=6;r++) line(40,74+r*86,1008,74+r*86,ASPHALT,7);
+  const s0=seeded(5);
+  for(let i=0;i<90;i++){ const x=48+s0()*952, y=82+s0()*490;
+    if(x>PARK.x0-16&&x<PARK.x1+16&&y>PARK.y0-16&&y<PARK.y1+16) continue;
+    box(x,y,16,13,2,mix(BRICK,'#c9a98c',s0()),2); }
+  /* the park */
+  box(PARK.x0,PARK.y0,PARK.x1-PARK.x0,PARK.y1-PARK.y0,26,GREEN.heat?'#7fc9a0':Z_PARK,5);
+  const s=seeded(19);
+  for(let i=0;i<48;i++){ const x=PARK.x0+16+s()*(PARK.x1-PARK.x0-32), y=PARK.y0+16+s()*(PARK.y1-PARK.y0-32);
+    circle(x,y,7+s()*7,'#4f9f3d'); }
+  /* the Grand Basin and the museum on its hill */
+  ellipse(360,318,104,44,0,'#7fc2e8',4);
+  for(let i=0;i<3;i++) ellipse(360,318,30+i*26,12+i*11,0,null,2);
+  box(300,182,124,64,8,'#e8e0cc',4);
+  for(let i=0;i<5;i++) line(310+i*26,182,310+i*26,246,'#c9bfa6',6);
+  poly([[292,182],[362,150],[432,182]],'#c9bfa6',4);
+  label('ART MUSEUM',362,262,{size:15,display:true});
+  /* the zoo */
+  box(136,376,196,116,12,'#cfe4b0',4); emoji('🦁',188,412,28); emoji('🐘',252,418,30); emoji('🦒',300,404,26);
+  label('ZOO',214,468,{size:20,display:true});
+  /* the science center and the Muny */
+  box(556,372,148,106,12,'#cfe0ee',4); emoji('🔭',600,410,28); emoji('🚀',660,412,26);
+  label('SCIENCE CENTER',630,456,{size:14,display:true});
+  poly([[556,166],[700,166],[684,240],[572,240]],'#e6d0a8',4);
+  for(let i=0;i<6;i++) line(572+i*22,240,578+i*22,200,'#c9a97c',4);
+  label('THE MUNY',628,258,{size:15,display:true});
+  box(452,150,86,54,8,'#e8dcc0',4); emoji('🏛️',495,176,26); label('HISTORY',495,214,{size:13,display:true});
+  /* a ball field and the loop trail */
+  ellipse(640,318,42,29,0,'#b7d98e',3); emoji('⚾',640,318,18);
+  label('ball field',640,356,{size:14,display:true});
+  ctx.save(); ctx.setLineDash([13,10]); ctx.strokeStyle='#b98b58'; ctx.lineWidth=6;
+  ctx.beginPath(); ctx.ellipse(430,318,286,158,0,0,TAU); ctx.stroke(); ctx.restore();
+  label('trail',730,300,{size:15,display:true});
+  /* the park's name goes inside the park: along the bottom it lands under the
+     stat pills, and the caption owns the top-left corner */
+  label('FOREST PARK — 1,326 acres',596,140,{size:21,display:true,color:'#2e6b24'});
+  /* the neighborhood playground, for scale */
+  box(828,244,84,64,10,Z_PARK,4); emoji('🛝',856,268,24); emoji('🌳',896,292,20);
+  label('the playground',870,322,{size:15,display:true});
+  label('on your block',870,342,{size:14});
+  if(GREEN.heat){
+    ctx.save(); ctx.globalAlpha=.5;
+    ctx.fillStyle='#ff5a2e'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+    ctx.fillStyle='#3fa9e0'; ctx.fillRect(PARK.x0,PARK.y0,PARK.x1-PARK.x0,PARK.y1-PARK.y0);
+    ctx.fillStyle='#3fa9e0'; ctx.fillRect(828,244,84,64);
+    ctx.restore();
+    label('🌡️ 95°F over the pavement',862,110,{size:19,display:true,color:'#9c2a10'});
+    label('🌡️ 85°F under the trees',430,318,{size:22,display:true,color:'#0f4f77'});
+    label('Trees drink up water and breathe it out again — which cools the air, the same way sweating cools you.',500,600,{size:16,display:true});
+  }
+  if(GREEN.walk){
+    ctx.save(); ctx.setLineDash([16,12]); ctx.lineWidth=5;
+    ctx.strokeStyle=ROCKET_DK; ctx.beginPath(); ctx.ellipse(430,318,392,258,0,0,TAU); ctx.stroke();
+    ctx.strokeStyle='#2b7d8f'; ctx.beginPath(); ctx.arc(870,276,112,0,TAU); ctx.stroke(); ctx.restore();
+    label('a 10-minute walk',884,152,{size:17,display:true,color:'#1d5a68'});
+    label('Planners aim for every home to be within a 10-minute walk of some green — about half a mile.',500,600,{size:16,display:true,color:ROCKET_DK});
+  }
+  if(GREEN.fair){
+    ctx.save(); ctx.globalAlpha=.72;
+    const f=seeded(41);
+    for(let i=0;i<11;i++){ const x=PARK.x0+40+f()*(PARK.x1-PARK.x0-140), y=PARK.y0+40+f()*(PARK.y1-PARK.y0-120);
+      box(x,y,96,54,6,'#f6efdd',4); poly([[x-8,y],[x+48,y-26],[x+104,y]],'#e0d3b4',4);
+      circle(x+48,y-34,9,GOLD); }
+    ctx.restore();
+    label('1904 — the World\'s Fair',430,300,{size:28,display:true,color:'#8d5a14'});
+    label('Twenty million visitors. Nearly every palace was torn down afterwards — the Art Museum is the one that stayed.',500,600,{size:16,display:true,color:'#8d5a14'});
+  }
+}
+function greenItems(){
+  return [
+   {id:'zoo',name:'The zoo',sub:'Free, every single day',emoji:'🦁',bg:'#cfe4b0',hit:R(130,370,208,128),
+    fact:'The Saint Louis Zoo opened in 1910 and keeps more than 18,000 animals. About 2.9 million people visit it a year — and it does not charge to get in, which is unusual for a zoo this size.',
+    extra:'It started with a giant birdcage left behind by the 1904 World\'s Fair, which the city bought and kept.'},
+   {id:'museum',name:'The art museum',sub:'The last building of the 1904 fair',emoji:'🏛️',bg:'#e8e0cc',hit:R(286,142,152,124),
+    fact:'Almost everything built for the World\'s Fair was pulled down within a year. This one was built properly, in stone, so it stayed — and it is free as well.',
+    extra:'It sits on the highest ground in the park, so it looks down over the Grand Basin.'},
+   {id:'muny',name:'The Muny',sub:'An outdoor theatre for 11,000',emoji:'🎭',bg:'#e6d0a8',hit:R(548,158,164,110),
+    fact:'A theatre with no roof, putting on musicals every summer since 1919. The back 1,500 seats have always been free, and they still are — you line up that evening.',
+    extra:'It is the largest and oldest outdoor musical theatre in America.'},
+   {id:'science',name:'The science center',sub:'Also free',emoji:'🔭',bg:'#cfe0ee',hit:R(550,366,160,118),
+    fact:'A science museum and a planetarium, joined by a walkway that crosses right over the highway — you can stand in the middle and count the cars going under you.',
+    extra:'Four big free museums in one park is very rare. It happens because they are paid for by a tax that the city and St. Louis County both pay into.'},
+   {id:'basin',name:'The Grand Basin',sub:'A lake that was a swamp',emoji:'⛵',bg:'#7fc2e8',hit:C(360,318,110),
+    fact:'Much of the park was boggy ground. For the 1904 fair the wet ground was dug out into lakes and channels — and the art museum went up on the high ground looking down over them.',
+    extra:'The 1904 Olympic swimming and diving races were held in this park.'},
+   {id:'trail',name:'The trail',sub:'A road for feet and bikes',emoji:'🚴',bg:'#b98b58',hit:C(726,306,74),
+    fact:'A loop right round the park, with no cars on it. Trails like this are increasingly built along old railroad lines, so they run right through a city without ever crossing traffic.',
+    extra:'Forest Park gets more than 13 million visits a year — more than the Arch and the ballpark put together.'},
+   {id:'play',name:'The playground on your block',sub:'The park most people actually use',emoji:'🛝',bg:Z_PARK,hit:R(812,230,120,102),
+    fact:'A city needs both. The big park is where you go on a Saturday; the little one is where you go after school, because it is close enough to walk to on your own. St. Louis has over a hundred parks, and most of them are this size.',
+    extra:'Turn on 🚶 10-minute walk and compare the two circles.'},
+   {id:'street',name:'The streets around it',sub:'Pavement, and what it does to the air',emoji:'🛣️',bg:ASPHALT,hit:R(830,420,160,140),
+    fact:'Dark pavement soaks up sunlight and hands the heat back all evening, so a built-up block can sit 10 degrees hotter than a park a few streets away. It also sheds rain instead of drinking it, which is what fills the storm drains.',
+    extra:'Press 🌡️ Show the heat.'},
+  ];
+}
+
+/* =====================================================================
+   SCENE 7 — BUILD A CITY
+   The simulator. Everything the six chapters said, turned into rules the
+   map actually enforces:
+
+     · nothing works unless a street touches it            (ch.1)
+     · homes need water AND power AND a road               (ch.2, ch.4)
+     · water and power travel ALONG the roads, not through
+       the air — so the road network is the pipe network   (ch.4)
+     · a water plant has to stand on the river             (ch.4)
+     · a fire engine can only reach so far                 (ch.5)
+     · a factory beside a house makes the house miserable  (ch.3)
+     · a park within a short walk makes it happier         (ch.6)
+
+   The advisor never says "something is wrong". It names the one thing
+   that is most wrong, and where it is, in the words a nine-year-old
+   would use. That is the whole teaching mechanism.
+   ===================================================================== */
+const COLS=6, ROWS=4, CELLW=132, CELLH=106, GX=40, GY=104;
+const RIVX=848;
+const KINDS={
+  road :{icon:'🛣️',name:'Road',    fill:ASPHALT},
+  home :{icon:'🏠',name:'Homes',   fill:Z_HOME},
+  shop :{icon:'🏬',name:'Shops',   fill:Z_SHOP},
+  work :{icon:'🏭',name:'Factory', fill:Z_WORK},
+  park :{icon:'🌳',name:'Park',    fill:Z_PARK},
+  fire :{icon:'🚒',name:'Firehouse',fill:'#ff9d9d'},
+  water:{icon:'💧',name:'Water plant',fill:'#a9d8f0'},
+  power:{icon:'⚡',name:'Power plant',fill:'#ffe07a'},
+};
+const TOOLS=['road','home','shop','work','park','fire','water','power'];
+const BUILD={ tool:'road', cells:new Array(COLS*ROWS).fill(null), cur:{c:0,r:0}, showCur:false, sim:null, tick:0 };
+const gi=(c,r)=>r*COLS+c;
+const inG=(c,r)=>c>=0&&c<COLS&&r>=0&&r<ROWS;
+const cellX=c=>GX+c*CELLW, cellY=r=>GY+r*CELLH;
+function cellAt(x,y){
+  const c=Math.floor((x-GX)/CELLW), r=Math.floor((y-GY)/CELLH);
+  return inG(c,r)?{c,r}:null;
+}
+/* where a thing is, said the way a child would say it */
+function placeName(c,r){
+  const across=['on the far left','on the left','in the middle','in the middle','on the right','on the far right'][c];
+  const down=['at the top','in the second row','in the third row','at the bottom'][r];
+  return across+' '+down;
+}
+function nbrs(c,r){ return [[c+1,r],[c-1,r],[c,r+1],[c,r-1]].filter(p=>inG(p[0],p[1])); }
+function kindAt(c,r){ return inG(c,r)?BUILD.cells[gi(c,r)]:null; }
+
+/* ---------- the simulation ---------- */
+function simulate(){
+  const K=BUILD.cells;
+  const roadOf=i=>K[i]==='road';
+  /* water and power do not fly through the air: they run along the roads.
+     Flood-fill the road network out from each plant and see how far it gets. */
+  function servedRoads(kind){
+    const seen=new Set(), q=[];
+    for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+      if(K[gi(c,r)]!==kind) continue;
+      nbrs(c,r).forEach(([nc,nr])=>{ const i=gi(nc,nr); if(roadOf(i)&&!seen.has(i)){ seen.add(i); q.push([nc,nr]); } });
+    }
+    while(q.length){ const [c,r]=q.pop();
+      nbrs(c,r).forEach(([nc,nr])=>{ const i=gi(nc,nr); if(roadOf(i)&&!seen.has(i)){ seen.add(i); q.push([nc,nr]); } });
+    }
+    return seen;
+  }
+  const wRoads=servedRoads('water'), pRoads=servedRoads('power');
+  const has=(c,r,set)=>nbrs(c,r).some(([nc,nr])=>set.has(gi(nc,nr)));
+  const hasRoad=(c,r)=>nbrs(c,r).some(([nc,nr])=>roadOf(gi(nc,nr)));
+  const fires=[], parks=[], works=[], plants=[], powers=[];
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const k=K[gi(c,r)];
+    if(k==='fire') fires.push([c,r]); else if(k==='park') parks.push([c,r]);
+    else if(k==='work') works.push([c,r]); else if(k==='water') plants.push([c,r]);
+    else if(k==='power') powers.push([c,r]);
+  }
+  const near=(c,r,list,d)=>list.some(p=>Math.max(Math.abs(p[0]-c),Math.abs(p[1]-r))<=d);
+  const S={ homes:[], people:0, jobs:0, orphans:[], happy:null, plants, powers, fires, parks, works,
+            wRoads, pRoads, roads:K.filter(k=>k==='road').length };
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const k=K[gi(c,r)]; if(!k||k==='road') continue;
+    const road=hasRoad(c,r);
+    if(!road) S.orphans.push({c,r,k});
+    if(k==='home'){
+      const w=has(c,r,wRoads), p=has(c,r,pRoads);
+      const f=road&&fires.some(q=>Math.hypot(q[0]-c,q[1]-r)<=2.2);
+      const h={c,r,road,water:w&&road,power:p&&road,fire:f,
+               park:near(c,r,parks,2), smog:near(c,r,works,1)};
+      h.live=h.road&&h.water&&h.power;
+      S.homes.push(h);
+      if(h.live) S.people+=6;
+    }
+    else if(k==='shop'  && road && has(c,r,pRoads)) S.jobs+=4;
+    else if(k==='work'  && road && has(c,r,pRoads) && has(c,r,wRoads)) S.jobs+=10;
+  }
+  const live=S.homes.filter(h=>h.live);
+  S.live=live;
+  if(live.length){
+    const frac=f=>live.filter(f).length/live.length;
+    const ratio=S.jobs/S.people;
+    const jobScore=ratio>=.35&&ratio<=1.05?1:ratio<.35?clamp(ratio/.35,0,1):clamp(2-ratio/1.05,0,1);
+    S.happy=Math.round(clamp(50+22*frac(h=>h.fire)+18*frac(h=>h.park)+10*jobScore-30*frac(h=>h.smog),0,100));
+  }
+  S.goals=[
+    {id:'people', ok:S.people>=18,                              txt:'👨‍👩‍👧 '+S.people+' / 18 people'},
+    {id:'served', ok:S.homes.length>0&&S.homes.every(h=>h.live), txt:'💧⚡ '+live.length+' / '+S.homes.length+' served'},
+    {id:'fire',   ok:S.homes.length>0&&S.homes.every(h=>h.fire), txt:'🚒 '+S.homes.filter(h=>h.fire).length+' / '+S.homes.length+' covered'},
+    {id:'happy',  ok:S.happy!==null&&S.happy>=70,                txt:'😀 '+(S.happy===null?'—':S.happy+'%')},
+  ];
+  S.done=S.goals.every(g=>g.ok);
+  S.advice=advise(S);
+  BUILD.sim=S;
+  return S;
+}
+/* One problem at a time, the most pressing one, and always where it is. */
+function advise(S){
+  const K=BUILD.cells;
+  if(!K.some(k=>k)) return '👷 Start with a road. In a city, everything hangs off a street.';
+  if(!S.roads) return '👷 Not one street yet. Nothing works until a road reaches it.';
+  if(S.orphans.length){ const o=S.orphans[0];
+    return '👷 The '+KINDS[o.k].icon+' '+placeName(o.c,o.r)+' has no street touching it.'; }
+  if(!S.homes.length) return '👷 Nowhere to live yet. Put down some 🏠 homes beside a road.';
+  if(!S.plants.length) return '👷 Nobody has water. A 💧 water plant has to sit on the river — the right-hand column.';
+  if(!S.wRoads.size) return '👷 Your 💧 plant is not touching a road, so the pipes go nowhere.';
+  if(!S.powers.length) return '👷 No electricity anywhere. Add an ⚡ power plant, and a road to it.';
+  if(!S.pRoads.size) return '👷 Your ⚡ plant is not touching a road, so the wires go nowhere.';
+  const dry=S.homes.filter(h=>!h.water), dark=S.homes.filter(h=>h.water&&!h.power);
+  if(dry.length) return '👷 The 🏠 '+placeName(dry[0].c,dry[0].r)+' has no water. Pipes run under the roads — the road has to get there from the plant.';
+  if(dark.length) return '👷 The 🏠 '+placeName(dark[0].c,dark[0].r)+' has no power. The wires follow the roads too.';
+  const smog=S.live.filter(h=>h.smog);
+  if(smog.length) return '👷 The 🏠 '+placeName(smog[0].c,smog[0].r)+' is right beside the 🏭 — smoke, noise and trucks. Factories belong at the edge, by the river.';
+  const cold=S.homes.filter(h=>!h.fire);
+  if(cold.length) return '👷 The 🏠 '+placeName(cold[0].c,cold[0].r)+' is too far from a 🚒. An engine has about four minutes.';
+  if(S.people<18) return '👷 '+S.people+' people live here. Keep adding 🏠 homes — each one needs a road, water and power.';
+  if(S.jobs<S.people*.35) return '👷 More people than jobs. Add 🏬 shops so they have somewhere to work.';
+  if(S.jobs>S.people*1.05) return '👷 More jobs than people to fill them. Add 🏠 homes.';
+  if(!S.parks.length) return '👷 Not one park. Every home should have green within a short walk.';
+  if(S.happy!==null&&S.happy<70) return '👷 Nearly. A 🌳 park near the homes lifts everybody.';
+  return '👷 Every light is green. That is a real city — well done.';
+}
+
+/* ---------- drawing the map ---------- */
+function drawBuild(){
+  const S=BUILD.sim||simulate();
+  ctx.fillStyle=GROUND; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* the river down the right-hand side, as in every other chapter */
+  ctx.fillStyle=RIVER; ctx.fillRect(RIVX,-DH,DW*2,DH*3);
+  for(let i=0;i<6;i++) path([[RIVX+16,60+i*94+Math.sin(now*.5+i)*5],[RIVX+52,74+i*94],[RIVX+96,58+i*94]],rgba('#ffffff',.4),5);
+  path([[RIVX,-40],[RIVX+9,180],[RIVX-6,380],[RIVX+8,600]],INK,5);
+  ctx.save(); ctx.translate(RIVX+62,330); ctx.rotate(-Math.PI/2);
+  label('the river',0,0,{size:20,display:true,color:WHITE,halo:RIVER_DK,haloW:7}); ctx.restore();
+  /* fire coverage, painted under everything */
+  S.fires.forEach(f=>{ const x=cellX(f[0])+CELLW/2, y=cellY(f[1])+CELLH/2;
+    ctx.save(); ctx.globalAlpha=.17; ellipse(x,y,2.2*CELLW,2.2*CELLH,0,ROCKET); ctx.restore(); });
+  /* the lots */
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    const x=cellX(c), y=cellY(r), k=BUILD.cells[gi(c,r)];
+    if(!k){ box(x+4,y+4,CELLW-8,CELLH-8,8,'#f4ead2',3,'#c9bda1'); continue; }
+    drawLot(c,r,k,x,y,S);
+  }
+  /* water and power, running along the streets — the point of the chapter */
+  for(let r=0;r<ROWS;r++) for(let c=0;c<COLS;c++){
+    if(BUILD.cells[gi(c,r)]!=='road') continue;
+    const i=gi(c,r), x=cellX(c), y=cellY(r);
+    if(S.wRoads.has(i)) line(x+10,y+CELLH-24,x+CELLW-10,y+CELLH-24,PIPE_WATER,7);
+    if(S.pRoads.has(i)) line(x+10,y+CELLH-13,x+CELLW-13,y+CELLH-13,GOLD,7);
+  }
+  /* the grid lines, so an empty map still reads as land waiting for streets */
+  ctx.save(); ctx.globalAlpha=.35;
+  for(let c=0;c<=COLS;c++) line(cellX(c),GY,cellX(c),GY+ROWS*CELLH,'#b9ac8e',2);
+  for(let r=0;r<=ROWS;r++) line(GX,cellY(r),GX+COLS*CELLW,cellY(r),'#b9ac8e',2);
+  ctx.restore();
+  /* the river column is where a water plant may go */
+  if(BUILD.tool==='water'){
+    ctx.save(); ctx.globalAlpha=.3; ctx.fillStyle=SKY;
+    ctx.fillRect(cellX(COLS-1),GY,CELLW,ROWS*CELLH); ctx.restore();
+    label('water plants go here',cellX(COLS-1)+CELLW/2,GY-16,{size:16,display:true,color:'#1d5a8f'});
+  }
+  /* the keyboard cursor */
+  if(BUILD.showCur){ const x=cellX(BUILD.cur.c), y=cellY(BUILD.cur.r);
+    ctx.save(); ctx.setLineDash([13,9]); ctx.lineDashOffset=-now*40;
+    box(x+2,y+2,CELLW-4,CELLH-4,9,null,6,ROCKET_DK); ctx.restore(); }
+  /* what you are about to build. Below the map, on the left: the instruction
+     bar owns the top and the goal pills own the bottom right. */
+  const t=KINDS[BUILD.tool];
+  box(GX,540,262,46,12,S.done?'#d6f5cd':rgba(WHITE,.95),4);
+  emoji(t?t.icon:'🧹',GX+28,563,26);
+  label(t?t.name:'Erase',GX+52,563,{size:18,display:true,align:'left'});
+}
+function drawLot(c,r,k,x,y,S){
+  const w=CELLW, h=CELLH;
+  if(k==='road'){
+    box(x,y,w,h,0,ASPHALT,0);
+    dash([[x,y+h/2],[x+w,y+h/2]],GOLD,3,[17,13]);
+    return;
+  }
+  box(x+4,y+4,w-8,h-8,8,KINDS[k].fill,3.5);
+  const cx=x+w/2, cy=y+h/2;
+  if(k==='home'){
+    const H=S.homes.find(q=>q.c===c&&q.r===r)||{};
+    for(let i=0;i<2;i++){ const hx=x+26+i*54;
+      box(hx,cy-22,38,34,4,H.live?BRICK:'#b6a99a',3);
+      poly([[hx-6,cy-22],[hx+19,cy-40],[hx+44,cy-22]],H.live?BRICK_DK:'#948878',3);
+      box(hx+13,cy-2,12,14,2,'#6f4a35',2); }
+    /* three little lights: water, power, fire cover */
+    [['💧',H.water],['⚡',H.power],['🚒',H.fire]].forEach((q,i)=>{
+      const lx=cx-40+i*40, ly=y+h-20;
+      disc(lx,ly,15,q[1]?'#7fd06a':'#e8c9c2',3);
+      emoji(q[0],lx,ly,15);
+      if(!q[1]) line(lx-9,ly+9,lx+9,ly-9,ROCKET_DK,4);
+    });
+    if(H.smog) emoji('😣',x+w-22,y+20,22);
+    else if(H.live&&H.park) emoji('😀',x+w-22,y+20,22);
+  }
+  else if(k==='shop'){
+    box(x+24,cy-24,w-48,42,4,'#f3e3cf',3);
+    for(let i=0;i<4;i++) box(x+30+i*20,cy+2,14,16,2,SKY,2);
+    for(let i=0;i<5;i++) box(x+24+i*17,cy-30,17,10,2,i%2?'#d9534f':WHITE,2);
+    emoji('🏬',cx,y+h-24,24);
+  }
+  else if(k==='work'){
+    box(x+22,cy-16,w-44,44,4,'#7f6f9c',3);
+    for(let i=0;i<2;i++){ const sx=x+38+i*42; box(sx,cy-52,16,38,2,'#6a5b86',3);
+      for(let p=0;p<3;p++) circle(sx+8+Math.sin(now*1.3+p+i)*7,cy-62-p*17-((now*22)%17),8+p*3,rgba('#cfc9dd',.55-p*.13)); }
+    emoji('🏭',cx,y+h-24,22);
+  }
+  else if(k==='park'){
+    const s=seeded(c*13+r*7+3);
+    for(let i=0;i<7;i++) emoji('🌳',x+22+s()*(w-44),y+22+s()*(h-44),21);
+    emoji('🛝',cx,y+h-26,20);
+  }
+  else if(k==='fire'){
+    box(x+26,cy-20,w-52,38,4,'#d9534f',3);
+    box(x+44,cy+2,34,16,2,'#7a2f2c',2);
+    emoji('🚒',cx,cy-26,26);
+  }
+  else if(k==='water'){
+    circle(x+44,cy,20,'#9ec9e4'); ring(x+44,cy,20,INK,3);
+    circle(x+84,cy,20,'#9ec9e4'); ring(x+84,cy,20,INK,3);
+    emoji('💧',cx,y+h-24,22);
+    if(!S.wRoads.size) emoji('⚠️',x+w-22,y+20,20);
+  }
+  else if(k==='power'){
+    poly([[x+34,cy+18],[x+44,cy-26],[x+72,cy-26],[x+82,cy+18]],'#cfc6b4',3);
+    for(let p=0;p<3;p++) circle(x+58+Math.sin(now+p)*6,cy-36-p*15-((now*18)%15),9+p*3,rgba('#e8e2d4',.5-p*.12));
+    emoji('⚡',cx,y+h-24,22);
+    if(!S.pRoads.size) emoji('⚠️',x+w-22,y+20,20);
+  }
+}
+/* ---------- painting ---------- */
+function paintCell(c,r,silent){
+  if(!inG(c,r)) return false;
+  const i=gi(c,r), tool=BUILD.tool;
+  if(tool==='erase'){
+    if(!BUILD.cells[i]) return false;
+    BUILD.cells[i]=null; afterBuild(); return true;
+  }
+  if(tool==='water'&&c!==COLS-1){
+    if(!silent) toast('💧 A water plant has to stand on the river — the right-hand column.',3800);
+    return false;
+  }
+  if(BUILD.cells[i]===tool) return false;
+  BUILD.cells[i]=tool; afterBuild(); return true;
+}
+function afterBuild(){
+  const before=BUILD.sim&&BUILD.sim.done;
+  const S=simulate();
+  refreshStat(); els.hint.textContent=S.advice;
+  if(S.done&&!before){ burstConfetti(); toast('🏆 Every light green — a real city!',6000); }
+  questWatch();
+}
+function clearMap(){ BUILD.cells.fill(null); afterBuild(); }
+function buildStat(){
+  const S=BUILD.sim||simulate();
+  return S.goals.map(g=>'<span class="'+(g.ok?'ok':'bad')+'">'+(g.ok?'✅ ':'')+g.txt+'</span>').join('');
+}
+
+/* =====================================================================
+   THE SCENES, AND WHAT MOVES IN THEM
+   ===================================================================== */
+const SCENES={
+  grid:{draw:drawGrid,items:gridItems},
+  homes:{draw:drawHomes,items:homesItems},
+  downtown:{draw:drawDowntown,items:downtownItems},
+  pipes:{draw:drawPipes,items:pipesItems},
+  help:{draw:drawHelp,items:helpItems},
+  green:{draw:drawGreen,items:greenItems},
+  build:{draw:drawBuild,items:()=>[]},
+};
+function items(){ return SCENES[CHAPTERS[current].id].items(); }
+function hitTest(x,y){ const L=items(); for(const it of L) if(hits(it.hit,x,y)) return it; return null; }
+
+function updateScenes(dt){
+  if(PIPES.tap>=0){ PIPES.tap+=dt*.42; if(PIPES.tap>1.5) PIPES.tap=-1; }
+  if(PIPES.flush>=0){ PIPES.flush+=dt*.46; if(PIPES.flush>1.4) PIPES.flush=-1; }
+  if(PIPES.power>=0){ PIPES.power+=dt*.6; if(PIPES.power>1.3){ PIPES.power=-1; PIPES.lit=true; } }
+  if(PIPES.stormOn){ PIPES.storm=Math.min(1.25,PIPES.storm+dt*.34);
+    if(PIPES.storm>=1&&!PIPES.overflow){ PIPES.overflow=1;
+      toast('🌧️ The pipe is full — and the extra goes straight to the river. That is a combined sewer overflow.',7000); } }
+  else PIPES.storm=Math.max(0,PIPES.storm-dt*.5);
+  if(HELP.call&&HELP.t<HELP.call.dur){
+    HELP.t=Math.min(HELP.call.dur,HELP.t+dt);
+    if(HELP.t>=HELP.call.dur&&!HELP.call.done){ HELP.call.done=true;
+      toast('🚒 On scene in '+HELP.call.mins+' minutes. The nearest engine went, not the biggest one.',5200); }
+  }
+  DT.shown=lerp(DT.shown===undefined?DT.extra:DT.shown,DT.extra,Math.min(1,dt*4));
+  BUILD.tick+=dt;
+}
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+function statFor(i){
+  const id=CHAPTERS[i].id;
+  if(id==='grid') return '<span>🕰️ '+ERAS[GRID.era].yr+'</span><span>🏙️ City <b>280,000</b> · metro <b>2.8 million</b></span>';
+  if(id==='homes') return '<span>🏘️ <b>79</b> neighborhoods</span><span>👨‍👩‍👧 This block: <b>'+DENS[HOMES.dens].people+'</b> people</span>';
+  if(id==='downtown') return '<span>🏢 Tallest tower: <b>'+(22+DT.extra*4)+'</b> floors</span><span>🌈 The Arch: <b>630</b> ft</span>';
+  if(id==='pipes') return '<span>💧 <b>360</b> million gallons a day</span><span>🚽 About <b>9,500</b> miles of sewer</span>';
+  if(id==='help') return '<span>🚒 Firehouses here: <b>'+HELP.fires.length+'</b></span><span>⭕ Covered: <b>'+coverPct()+'%</b></span>';
+  if(id==='green') return '<span>🌳 Forest Park: <b>1,326</b> acres</span><span>🎡 <b>13 million</b> visits a year</span>';
+  if(id==='build') return buildStat();
+  return '';
+}
+function refreshStat(){ setStat(statFor(current)); }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(item.emoji) emoji(item.emoji,42,44,48);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true; saveBadges(); updateWipe();
+  const c=CHAPTERS.find(c=>c.id===id); if(!c) return;
+  if(c.badgeEl) c.badgeEl.classList.add('won'); if(c.chip) c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🏙️ All 7 badges — you are a CITY PLANNER!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ----------
+   Three kinds of step: pick an answer, tap a thing in the picture, or —
+   new in this tool — `watch`, which waits for the map itself to reach a
+   state. Build a City needs the third kind: "get water to a house" is
+   not a question, it is a thing you do. */
+const quest={active:null,step:0,picked:0,waiting:false};
+function startQuest(id){
+  const c=CHAPTERS.find(c=>c.id===id); if(!c||!c.quest) return;
+  closeCard(); quest.active={id:c.id,title:c.questTitle,steps:c.quest}; quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true;
+  document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; quest.waiting=false; els.quest.hidden=true;
+  document.body.classList.remove('questing');
+  if(!els.card.hidden) return; els.hint.hidden=false; }
+function renderStep(){
+  const Q=quest.active, St=Q.steps[quest.step];
+  els.qDots.innerHTML='';
+  Q.steps.forEach((_,i)=>{ const d=document.createElement('span');
+    d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=St.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(St.options){ els.qOpts.hidden=false;
+    St.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.type='button';
+      b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); }); }
+  else els.qOpts.hidden=true;
+  quest.waiting=!!St.watch;
+  if(St.onShow) St.onShow();
+  if(St.watch) questWatch();
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); }
+function stepDone(){
+  const Q=quest.active; quest.step++; quest.waiting=false;
+  if(quest.step>=Q.steps.length) setTimeout(()=>{ endQuest(); award(Q.id); },1100);
+  else setTimeout(()=>{ if(quest.active) renderStep(); },1300);
+}
+function pick(i,btn){
+  const St=quest.active.steps[quest.step], o=St.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true);
+    if(quest.picked>=(St.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no');
+    feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const St=Q.steps[quest.step]; if(!St.tap) return false;
+  const r=St.tap(item);
+  if(r===true){ feedback(St.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(St.no||'Not that one. Look again!'),false);
+  return true;
+}
+/* the third kind of step: the map itself is the answer */
+function questWatch(){
+  if(!quest.active||!quest.waiting) return;
+  const St=quest.active.steps[quest.step];
+  if(!St.watch||!St.watch()) return;
+  quest.waiting=false;
+  feedback(St.yes||'That is it!',true);
+  stepDone();
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+const tapIs=(id,hint)=>it=>it&&it.id===id?true:hint;
+
+/* The challenges live on the chapters themselves, so the headless smoke check
+   can read every step without having to open the panel and walk it. */
+CHAPTERS[0].questTitle='🗺️ Reading the map';
+CHAPTERS[0].quest=[
+  {onShow:()=>{ if(GRID.era<3){ GRID.era=3; buildTapList(); } GRID.sizes=false; setSizes(false); },
+   prompt:'Tap the thing that decided <b>where</b> St. Louis would be built.',
+   tap:tapIs('river','Look down the right-hand side of the map.'),
+   yes:'Yes — the Mississippi. Boats could land there, and the bluff was high enough to stay dry.'},
+  {prompt:'A St. Louis block is about 300 feet across. What runs down the <b>middle</b> of one?',options:[
+    {text:'🗑️ An alley',ok:true,say:'Right — bins, garages and delivery vans all go round the back.'},
+    {text:'🛣️ A highway',say:'A highway is far too big to fit inside one block.'},
+    {text:'🌊 A river',say:'Only one river here, and it is over on the right.'}]},
+  {prompt:'Tap the part of the city where the <b>oldest</b> and most tightly packed streets are.',
+   tap:tapIs('downtown','It is the part nearest the water — the river came first.'),
+   yes:'Yes. The first streets ran parallel to the river, and the city grew west from there.'},
+];
+CHAPTERS[1].questTitle='🏘️ What makes a neighborhood';
+CHAPTERS[1].quest=[
+  {prompt:'Tap the building a neighborhood is usually <b>built around</b> — the one children walk to.',
+   tap:tapIs('school','It has a bell tower and a flag-yellow front.'),
+   yes:'Yes. Put the school where children can walk, and the streets, sidewalks and houses all follow from that.'},
+  {prompt:'Same block, three ways to build it. Which holds the <b>most people</b>?',options:[
+    {text:'🏢 Apartment buildings',ok:true,say:'About 180 on one block — seven times as many as houses.'},
+    {text:'🏘️ Two-family flats',say:'Closer — about 48. But there is one more that holds far more.'},
+    {text:'🏠 Single-family houses',say:'About 24. That is the fewest of the three.'}]},
+  {prompt:'Tap the shop you could walk to <b>without crossing a big road</b>.',
+   tap:tapIs('store','It is right on the corner at the end of the block.'),
+   yes:'Yes — the corner store. It only survives if enough people live within a couple of minutes\' walk.'},
+];
+CHAPTERS[2].questTitle='🏙️ Tall, short, and why';
+CHAPTERS[2].quest=[
+  {prompt:'Why are the <b>tallest</b> buildings right in the middle of downtown?',options:[
+    {text:'🏢 Land in the middle costs the most, so you build upwards',ok:true,say:'Exactly. Going up is how you fit more building onto expensive ground.'},
+    {text:'💨 It is windier in the middle',say:'Wind is a problem for tall buildings, not a reason for them.'},
+    {text:'🪨 The ground is harder there',say:'The ground is much the same all over downtown.'}]},
+  {prompt:'Tap the kind of building that wants to be near the <b>river and the railroad</b>.',
+   tap:tapIs('warehouse','Long, low, with a row of little peaks on the roof.'),
+   yes:'Yes. Heavy cargo moves cheapest by barge and by train, so industry sits where they are.'},
+  {prompt:'What is the city rulebook called that keeps factories away from houses?',options:[
+    {text:'🗺️ Zoning',ok:true,say:'Yes — the map of what may be built where. Press 🗺️ Show the zones and look.'},
+    {text:'🧲 Gravity',say:'That is a law of physics, not a law of the city!'},
+    {text:'📋 A census',say:'A census counts the people. It does not say what gets built.'}]},
+];
+CHAPTERS[3].questTitle='🚰 In the right order';
+CHAPTERS[3].quest=[
+  {prompt:'Five services share the trench. Which one must be the <b>deepest of all</b>?',options:[
+    {text:'🚽 The sewer',ok:true,say:'Yes — it has no pump. It runs downhill the whole way, so it must start below everything else.'},
+    {text:'🔥 The gas main',say:'Gas is pushed along under pressure, so it can go wherever there is room.'},
+    {text:'🌐 The internet cable',say:'That one is the shallowest — it arrived last and dug the least.'}]},
+  {prompt:'Tap the thing that keeps water pushing out of your faucet even when the <b>pumps stop</b>.',
+   tap:tapIs('tower','It is up on legs, higher than the houses.'),
+   yes:'Yes. Water sitting up high pushes down the pipes all by itself.'},
+  {prompt:'In the old part of St. Louis, rain and sewage share <b>one pipe</b>. What happens in a huge storm?',options:[
+    {text:'🌊 The pipe fills up and the extra runs into the river',ok:true,say:'Right. It is called a combined sewer overflow — press 🌧️ Big storm and watch.'},
+    {text:'☀️ The rain dries up before it gets there',say:'Not in a storm big enough to fill a sewer.'},
+    {text:'🎈 The pipe stretches to fit',say:'It is made of brick and concrete. It does not stretch.'}]},
+];
+CHAPTERS[4].questTitle='🚒 Minutes, not miles';
+CHAPTERS[4].quest=[
+  {prompt:'Why not put one <b>enormous</b> fire station in the middle of the city instead of 30 small ones?',options:[
+    {text:'⏱️ Because then it would be a long way from everywhere else',ok:true,say:'Yes. A fire doubles in size in about a minute, so the drive is what matters.'},
+    {text:'🏋️ Because one big building would be too heavy',say:'Cities build far heavier things than a fire station.'},
+    {text:'🔥 Because fires only happen at the edges',say:'Fires happen everywhere, which is exactly the problem.'}]},
+  {prompt:'Tap the thing that connects a fire engine to the <b>water main</b> under the street.',
+   tap:tapIs('hydrant','Small, red, and standing on the pavement.'),
+   yes:'Yes — a hydrant is a handle on the water main. An engine only carries a few hundred gallons of its own.'},
+  {onShow:()=>{ setReach(true); },
+   prompt:'Now press <b>➕ Add a firehouse</b> until at least <b>88%</b> of the homes are inside a circle.',
+   watch:()=>coverPct()>=88,
+   yes:'That is it. Notice you still cannot reach everybody — no city ever can.'},
+];
+CHAPTERS[5].questTitle='🌳 Big park, little park';
+CHAPTERS[5].quest=[
+  {prompt:'Tap the park most children actually use on a <b>Tuesday afternoon</b>.',
+   tap:tapIs('play','Small, over on the right, outside the big park.'),
+   yes:'Yes. A city needs both — the big one for Saturdays, the little one for after school.'},
+  {prompt:'Forest Park is <b>1,326 acres</b>. How does that compare with Central Park in New York?',options:[
+    {text:'🌳 About 500 acres bigger',ok:true,say:'Yes — one of the largest city parks in the country.'},
+    {text:'⚖️ Almost exactly the same',say:'Close, but Forest Park is quite a bit larger.'},
+    {text:'🤏 About half the size',say:'The other way round!'}]},
+  {prompt:'Why is a park <b>cooler</b> than the street beside it?',options:[
+    {text:'💧 Trees breathe out water, and dark pavement stores heat',ok:true,say:'Yes — the same way sweating cools you. Press 🌡️ Show the heat.'},
+    {text:'⛰️ Parks are higher up',say:'Forest Park is not on a mountain — it is the same ground as the streets.'},
+    {text:'💨 Parks are always windy',say:'Trees actually slow the wind down.'}]},
+];
+CHAPTERS[6].questTitle='🏗️ Make it work';
+CHAPTERS[6].quest=[
+  {prompt:'Put a <b>💧 water plant</b> on the river — that is the right-hand column of the map.',
+   watch:()=>!!(BUILD.sim&&BUILD.sim.plants.length),
+   yes:'Good. Every drop in the city starts there.'},
+  {prompt:'Now run <b>🛣️ roads</b> from the plant to a <b>🏠 home</b>, and get one home its water. Remember: the pipes run under the streets.',
+   watch:()=>!!(BUILD.sim&&BUILD.sim.homes.some(h=>h.water)),
+   yes:'There it is — the blue line along the road is the water finding its way.'},
+  {prompt:'Suppose you put a <b>🏭 factory</b> right beside the houses. What is the problem?',options:[
+    {text:'🏭 Smoke, noise and trucks — nobody wants to live next door',ok:true,say:'Yes. That is why zoning keeps them apart, and why factories sit by the river.'},
+    {text:'💧 Factories do not use any water',say:'They use a great deal of it.'},
+    {text:'📏 Factories are too short',say:'Height is not the trouble — it is what comes out of them.'}]},
+  {prompt:'Last one. Get the <b>first three lights green</b>: 18 people, every home served, every home covered by a 🚒.',
+   watch:()=>!!(BUILD.sim&&BUILD.sim.goals.slice(0,3).every(g=>g.ok)),
+   yes:'A working city. Roads, water, power, and help that arrives in time.'},
+];
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,
+    r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i];
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt;
+    if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+    ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+}
+
+/* =====================================================================
+   THE CHAPTER CONTROLS
+   ===================================================================== */
+/* --- ch.1 the street grid --- */
+function growLabel(){ $('btnGrow').textContent=GRID.era>=ERAS.length-1?'🕰️ Rewind to 1764':'🕰️ Grow the city'; }
+function setBlock(v){ GRID.block=v; $('togBlock').classList.toggle('on',v);
+  $('togBlock').textContent=v?'📏 Hide the measuring':'📏 Measure a block'; }
+function setSizes(v){ GRID.sizes=v; $('togSizes').classList.toggle('on',v);
+  $('togSizes').textContent=v?'🔍 Back to the map':'🔍 Compare city sizes';
+  document.body.classList.toggle('comparing',v);
+  /* nothing here is tappable, so the prompt says what this is instead of lying */
+  els.hint.textContent=v?'🔍 Four real places, each square drawn to scale':CHAPTERS[0].hint;
+  buildTapList(); }
+$('btnGrow').addEventListener('click',()=>{
+  GRID.era=GRID.era>=ERAS.length-1?0:GRID.era+1;
+  growLabel(); setSizes(false); toast(ERAS[GRID.era].say,6000); refreshStat(); buildTapList();
+});
+$('togBlock').addEventListener('click',()=>{ setBlock(!GRID.block);
+  if(GRID.block) toast('📏 About 300 feet on a side, with an alley down the middle and roughly 30 houses on it.',5500); });
+$('togSizes').addEventListener('click',()=>{ setSizes(!GRID.sizes);
+  if(GRID.sizes) toast('🔍 Each square holds that many people. Watch what a metropolis does to the other three.',6000); });
+$('btnGridReset').addEventListener('click',()=>{ GRID.era=ERAS.length-1; setBlock(false); setSizes(false);
+  growLabel(); toast('↺ Back to the city as it is today.',2600); refreshStat(); buildTapList(); });
+
+/* --- ch.2 neighborhoods --- */
+function setDens(k){ HOMES.dens=k;
+  document.querySelectorAll('[data-dens]').forEach(b=>b.classList.toggle('on',b.dataset.dens===k));
+  refreshStat(); buildTapList(); }
+document.querySelectorAll('[data-dens]').forEach(b=>b.addEventListener('click',()=>{
+  setDens(b.dataset.dens);
+  toast('🏘️ Rebuilt with '+DENS[b.dataset.dens].label+' — about '+DENS[b.dataset.dens].people+' people on this one block.',4800);
+}));
+function setWalk(v){ HOMES.walk=v; $('togWalk').classList.toggle('on',v);
+  $('togWalk').textContent=v?'🚶 Hide the walk':'🚶 Walk to school'; }
+$('togWalk').addEventListener('click',()=>{ setWalk(!HOMES.walk);
+  if(HOMES.walk) toast('🚶 About half a mile in ten minutes. That is the distance planners design a neighborhood around.',5500); });
+
+/* --- ch.3 downtown --- */
+function setZones(v){ DT.zones=v; $('togZones').classList.toggle('on',v);
+  $('togZones').textContent=v?'🗺️ Hide the zones':'🗺️ Show the zones'; }
+function setNight(v){ DT.night=v; $('togNight').classList.toggle('on',v);
+  $('togNight').textContent=v?'☀️ Day':'🌙 Night'; }
+$('togZones').addEventListener('click',()=>{ setZones(!DT.zones);
+  if(DT.zones) toast('🗺️ Every piece of land has a colour, and the colour says what may be built on it.',5500); });
+$('btnTaller').addEventListener('click',()=>{
+  if(DT.extra>=4){ toast('🏗️ That is as tall as this one goes!',2600); return; }
+  DT.extra++; refreshStat();
+  toast('🏗️ Four more floors — and about 160 more people working on the same patch of ground.',4800);
+});
+$('togNight').addEventListener('click',()=>{ setNight(!DT.night);
+  if(DT.night) toast('🌙 Downtown empties out. Most of the people you saw at lunchtime went home to a neighborhood.',5800); });
+$('btnDtReset').addEventListener('click',()=>{ DT.extra=0; setZones(false); setNight(false);
+  toast('↺ Downtown back the way it was.',2600); refreshStat(); });
+
+/* --- ch.4 under the street --- */
+$('btnTap').addEventListener('click',()=>{ PIPES.tap=0;
+  toast('💧 River → plant → main → up the service line → your faucet. Every glass of water in the city makes that trip.',6500); });
+$('btnFlush').addEventListener('click',()=>{ PIPES.flush=0;
+  toast('🚽 Downhill all the way to the clean-up plant. No pumps — just the slope of the pipe.',6000); });
+$('btnPower').addEventListener('click',()=>{ PIPES.power=0;
+  toast('⚡ Out of the plant at enormous voltage, down at the substation, down again in the grey can on the pole.',6500); });
+function setStorm(v){ PIPES.stormOn=v; $('btnStorm').classList.toggle('on',v);
+  $('btnStorm').textContent=v?'☀️ Stop the rain':'🌧️ Big storm';
+  if(!v){ PIPES.overflow=0; } }
+$('btnStorm').addEventListener('click',()=>{ setStorm(!PIPES.stormOn);
+  if(PIPES.stormOn) toast('🌧️ Rain pours into the storm drains — and in the old city, that is the same pipe as the sewage.',6000); });
+
+/* --- ch.5 who comes to help --- */
+function setReach(v){ HELP.reach=v; $('togReach').classList.toggle('on',v);
+  $('togReach').textContent=v?'⭕ Hide the circles':'⭕ Show how far they reach'; }
+$('togReach').addEventListener('click',()=>{ setReach(!HELP.reach);
+  if(HELP.reach) toast('⭕ Everything inside a circle is about four minutes away. Look for the houses that are in none of them.',6200); });
+$('btnCall').addEventListener('click',()=>{
+  const at=HOMES_GRID[Math.floor(rnd()*HOMES_GRID.length)];
+  let from=HELP.fires[0], best=1e9;
+  HELP.fires.forEach(f=>{ const d=Math.hypot(f[0]-at[0],f[1]-at[1]); if(d<best){ best=d; from=f; } });
+  const mins=Math.max(1,Math.round(best/REACH*4*10)/10);
+  HELP.call={at,from,dur:clamp(best/260,.8,3.4),mins,done:false}; HELP.t=0;
+  toast('📞 "9-1-1, what is your emergency?" The dispatcher sends the closest engine.',4200);
+});
+$('btnAddFire').addEventListener('click',()=>{
+  if(HELP.added>=STATION_SPOTS.length-2){ toast('🚒 This city has no money for another one!',3000); return; }
+  HELP.fires.push(STATION_SPOTS[2+HELP.added]); HELP.added++;
+  setReach(true); refreshStat(); buildTapList(); questWatch();
+  toast('🚒 A new firehouse — '+coverPct()+'% of homes are now within four minutes.',5000);
+});
+$('btnHelpReset').addEventListener('click',()=>{ HELP.fires=[STATION_SPOTS[0].slice(),STATION_SPOTS[1].slice()];
+  HELP.added=0; HELP.call=null; HELP.t=0; refreshStat(); buildTapList();
+  toast('↺ Back to two firehouses.',2600); });
+
+/* --- ch.6 green space --- */
+function setHeat(v){ GREEN.heat=v; $('togHeat').classList.toggle('on',v);
+  $('togHeat').textContent=v?'🌡️ Hide the heat':'🌡️ Show the heat'; }
+function setWalkPark(v){ GREEN.walk=v; $('togWalkPark').classList.toggle('on',v);
+  $('togWalkPark').textContent=v?'🚶 Hide the walk':'🚶 10-minute walk'; }
+function setFair(v){ GREEN.fair=v; $('togFair').classList.toggle('on',v);
+  $('togFair').textContent=v?'🎡 Back to today':'🎡 The 1904 World\'s Fair'; }
+$('togHeat').addEventListener('click',()=>{ setHeat(!GREEN.heat);
+  if(GREEN.heat) toast('🌡️ A built-up block can sit ten degrees hotter than a park a few streets away.',5800); });
+$('togWalkPark').addEventListener('click',()=>{ setWalkPark(!GREEN.walk);
+  if(GREEN.walk) toast('🚶 Half a mile. Compare the big park\'s circle with the little playground\'s.',5200); });
+$('togFair').addEventListener('click',()=>{ setFair(!GREEN.fair);
+  if(GREEN.fair) toast('🎡 Twenty million visitors in 1904 — and the Olympic swimming races were held here too.',6000); });
+
+/* --- ch.7 build a city --- */
+function setTool(k){
+  BUILD.tool=k;
+  document.querySelectorAll('#palette .tog').forEach(b=>{
+    const on=b.dataset.tool===k; b.classList.toggle('on',on);
+    /* the palette scrolls inside itself, so the chosen tool has to be dragged
+       back into view or a child cannot see which one is lit */
+    if(on&&b.scrollIntoView) b.scrollIntoView({block:'nearest',inline:'nearest'});
+  });
+}
+(function makePalette(){
+  const host=$('palette');
+  TOOLS.concat('erase').forEach(k=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='tog'+(k===BUILD.tool?' on':''); b.dataset.tool=k;
+    b.textContent=(k==='erase'?'🧹':KINDS[k].icon)+' '+(k==='erase'?'Erase':KINDS[k].name);
+    b.addEventListener('click',()=>setTool(k));
+    host.appendChild(b);
+  });
+})();
+$('btnClearMap').addEventListener('click',()=>{ clearMap(); toast('↺ Empty land again. Start with a road.',3000); });
+
+/* Everything a chapter switches on gets switched off again when the child
+   leaves it. Keeping this in one named function, rather than scattering
+   `if (id !== 'grid')` through goTo, is what stops a control quietly
+   following the child to the next chapter. The things a child has BUILT —
+   the grown city, the extra floors, the extra firehouses, the map in
+   chapter 7 — are deliberately not here: each has its own ↺ that says
+   what it puts back. */
+function resetTransient(){
+  setBlock(false); setSizes(false); setWalk(false); setZones(false); setNight(false);
+  setReach(false); setHeat(false); setWalkPark(false); setFair(false); setStorm(false);
+  PIPES.tap=-1; PIPES.flush=-1; PIPES.power=-1; PIPES.lit=false; PIPES.storm=0; PIPES.overflow=0;
+  HELP.call=null; HELP.t=0;
+  BUILD.showCur=false;
+}
+
+/* =====================================================================
+   MOVING BETWEEN CHAPTERS
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge';
+  els.badges.appendChild(b); c.badgeEl=b;
+  const t=document.createElement('button'); t.className='lvl'; t.type='button';
+  t.setAttribute('aria-label','Go to '+c.name);
+  t.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:c.icon}));
+  t.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
+  t.addEventListener('click',()=>goTo(i)); els.levels.appendChild(t); c.chip=t;
+});
+function buildTapList(){
+  const host=$('taplist'); if(!host) return;
+  host.innerHTML='';
+  const mk=(txt,fn)=>{ const b=document.createElement('button'); b.type='button'; b.textContent=txt;
+    b.addEventListener('click',fn); host.appendChild(b); return b; };
+  if(CHAPTERS[current].id==='build'){
+    /* sixty identical squares have no names, so the same off-screen list
+       becomes a cursor instead: move it, then build where it stands. */
+    const move=(dc,dr)=>()=>{ BUILD.showCur=true;
+      BUILD.cur.c=clamp(BUILD.cur.c+dc,0,COLS-1); BUILD.cur.r=clamp(BUILD.cur.r+dr,0,ROWS-1);
+      toast('📍 Builder is '+placeName(BUILD.cur.c,BUILD.cur.r),1800); };
+    mk('Move the builder left',move(-1,0));
+    mk('Move the builder right',move(1,0));
+    mk('Move the builder up',move(0,-1));
+    mk('Move the builder down',move(0,1));
+    mk('Build here',()=>{ BUILD.showCur=true; paintCell(BUILD.cur.c,BUILD.cur.r); });
+    host.querySelectorAll('button').forEach(b=>b.addEventListener('focus',()=>{ BUILD.showCur=true; }));
+    return;
+  }
+  items().forEach(it=>mk(it.name,()=>{
+    if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(it)) return; }
+    showCard(it);
+  }));
+}
+function updateChips(){
+  CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
+  const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?'🔁 Back to the start':'Next ▶';
+  els.btnNext.classList.toggle('home',last);
+  const c=CHAPTERS[current], won=!!badges[c.id];
+  els.btnQuest.textContent=won?'✅ Badge earned':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  ['grid','homes','downtown','pipes','help','green','build'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
+  document.body.classList.toggle('building',c.id==='build');
+}
+let trans=null;         // {to,t0,dur}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true;
+  resetTransient();
+  if(REDUCED){ switchTo(i); return; }
+  trans={to:i,t0:performance.now(),dur:700};
+}
+function switchTo(i){
+  current=i;
+  setCaption(i); updateChips(); updateButtons();
+  if(CHAPTERS[i].id==='build') simulate();
+  refreshStat();
+  els.hint.textContent=CHAPTERS[i].id==='build'?BUILD.sim.advice:CHAPTERS[i].hint;  /* every chapter says what to do */
+  els.hint.hidden=false;
+  buildTapList();
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ----------
+   Six chapters answer a tap with a card. The seventh answers it by
+   building something, and a drag lays a whole street at once, which is
+   the only way drawing roads with a finger is bearable. */
+let pDown=null, painting=false, lastPaint=null;
+function eventCell(e){
+  const r=view.getBoundingClientRect(), [wx,wy]=toDesign(e.clientX-r.left,e.clientY-r.top);
+  return cellAt(wx,wy);
+}
+view.addEventListener('pointerdown',e=>{
+  pDown={x:e.clientX,y:e.clientY};
+  if(CHAPTERS[current].id!=='build'||trans) return;
+  painting=true; lastPaint=null;
+  const c=eventCell(e); if(c){ lastPaint=c.c+','+c.r; paintCell(c.c,c.r); }
+  try{ view.setPointerCapture(e.pointerId); }catch(err){}
+});
+view.addEventListener('pointermove',e=>{
+  if(!painting) return;
+  const c=eventCell(e); if(!c) return;
+  const key=c.c+','+c.r; if(key===lastPaint) return;
+  lastPaint=key; paintCell(c.c,c.r,true);
+});
+const stopPaint=()=>{ painting=false; lastPaint=null; };
+view.addEventListener('pointerup',e=>{
+  const wasPainting=painting; stopPaint();
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(wasPainting||moved>12||trans) return;
+  const r=view.getBoundingClientRect(), [wx,wy]=toDesign(e.clientX-r.left,e.clientY-r.top);
+  const item=hitTest(wx,wy);
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item) showCard(item); else closeCard();
+});
+view.addEventListener('pointercancel',stopPaint);
+view.addEventListener('pointerleave',stopPaint);
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='7') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(240,Math.round(r.width)); V.h=Math.max(160,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  /* "contain": the whole picture is on screen at every size the layout check
+     throws at it, from a 320px phone to a 2000px window. The bands left over
+     are painted by each scene's own background, which is drawn well outside
+     the design box on purpose. */
+  S=Math.min(V.w/DW,V.h/DH); OX=(V.w-DW*S)/2; OY=(V.h-DH*S)/2;
+}
+let lastT=performance.now(), lastStat=0;
+function frame(nowMs){
+  const dt=Math.min(.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  updateScenes(dt);
+  if(nowMs-lastStat>250){ lastStat=nowMs; refreshStat(); questWatch(); }
+  let fade=0;
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    fade=1-Math.abs(k*2-1);
+    if(k>=.5&&current!==trans.to) switchTo(trans.to);
+    if(k>=1) trans=null;
+  }
+  ctx.setTransform(V.dpr*S,0,0,V.dpr*S,V.dpr*OX,V.dpr*OY);
+  SCENES[CHAPTERS[current].id].draw();
+  if(selected){ const m=selected.mark||markOf(selected.hit);
+    if(m){ ctx.save(); ctx.setLineDash([14,10]); ctx.lineDashOffset=-now*44;
+      ring(m[0],m[1],m[2],GOLD,7); ctx.restore(); } }
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  if(fade>0){ ctx.fillStyle='rgba(255,248,231,'+fade+')'; ctx.fillRect(0,0,V.w,V.h); }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.cityExplorer={CHAPTERS,goTo,award,startQuest,quest,badges,items,hitTest,simulate,paintCell,clearMap,
+  GRID,HOMES,DT,PIPES,HELP,GREEN,BUILD,coverPct};          // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+resize();
+
+/* =====================================================================
+   BADGES THAT SURVIVE A CLOSED TAB
+   A nine-year-old gets called to dinner mid-challenge. Losing every badge
+   to a reload is the quickest way to make the whole reward loop feel
+   pointless. The ↺ in the meter clears them so a second child can start
+   fresh — two taps, so it cannot happen by accident.
+   ===================================================================== */
+const SAVE_KEY='learningTools.cityExplorer.badges';
+function saveBadges(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(Object.keys(badges))); }catch(e){} }
+function restoreBadges(){
+  let saved=[];
+  try{ saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]'); }catch(e){ saved=[]; }
+  if(!Array.isArray(saved)) saved=[];
+  saved.forEach(id=>{ const c=CHAPTERS.find(x=>x.id===id); if(!c) return;
+    badges[id]=true;
+    if(c.badgeEl) c.badgeEl.classList.add('won');
+    if(c.chip) c.chip.classList.add('won'); });
+  if(Object.keys(badges).length===CHAPTERS.length) els.meter.classList.add('all');
+  updateWipe(); updateButtons();
+}
+function clearBadges(){
+  Object.keys(badges).forEach(k=>{ delete badges[k]; });
+  CHAPTERS.forEach(c=>{ if(c.badgeEl) c.badgeEl.classList.remove('won'); if(c.chip) c.chip.classList.remove('won'); });
+  els.meter.classList.remove('all');
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  updateWipe(); updateButtons();
+}
+let wipeArmed=false, wipeTimer=null;
+function updateWipe(){
+  const b=$('btnWipe'); if(!b) return;
+  const any=Object.keys(badges).length>0;
+  b.hidden=!any;
+  if(!any){ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); }
+}
+$('btnWipe').addEventListener('click',()=>{
+  const b=$('btnWipe');
+  if(!wipeArmed){
+    wipeArmed=true; b.textContent='Clear?'; b.classList.add('armed');
+    clearTimeout(wipeTimer);
+    wipeTimer=setTimeout(()=>{ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); },3500);
+    return;
+  }
+  clearTimeout(wipeTimer); wipeArmed=false; b.textContent='↺'; b.classList.remove('armed');
+  clearBadges(); toast('↺ Badges cleared — a fresh start.',3000);
+});
+growLabel(); simulate();
+setCaption(0); updateChips(); updateButtons(); refreshStat();
+els.hint.textContent=CHAPTERS[0].hint;
+buildTapList();
+restoreBadges();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

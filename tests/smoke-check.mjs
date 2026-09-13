@@ -90,7 +90,7 @@ await Promise.all(APPS.map(async app => {
   const quests = await p.evaluate(() => {
     const G = window.zoomOut || window.insideATree || window.forestElevator || window.howACarWorks
            || window.flowerExplorer || window.flyway || window.buildAHouse
-           || window.underYourFeet || window.eggToWings;
+           || window.underYourFeet || window.eggToWings || window.cityExplorer;
     if (!G) return { error: 'no test global' };
     const list = G.CHAPTERS || G.LEVELS || G.CH || G.chapters || [];
     return list.map(c => {
@@ -122,7 +122,7 @@ await Promise.all(APPS.map(async app => {
   const badgeId = await p.evaluate(() => {
     const G = window.zoomOut || window.insideATree || window.forestElevator || window.howACarWorks
            || window.flowerExplorer || window.flyway || window.buildAHouse
-           || window.underYourFeet || window.eggToWings;
+           || window.underYourFeet || window.eggToWings || window.cityExplorer;
     const list = G.CHAPTERS || G.LEVELS || G.CH || G.chapters || [];
     if (!list[0] || !G.award) return null;
     G.award(list[0].id); return list[0].id;

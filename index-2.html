@@ -1,0 +1,1773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Egg to Wings</title>
+<meta name="description" content="A monarch from egg to caterpillar to chrysalis to wings, the plants it needs, and the long flight to Mexico. Grades 1-3.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🦋%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;800&display=swap">
+<style>
+/* ---------- tokens: the Learning Tools sketchbook, plus the Earth's own colors ---------- */
+:root{
+  --ink:#2b2350;        /* indigo-plum, all text + outlines */
+  --paper:#fff8e7;      /* butter cream ground */
+  --paper-2:#ffefc2;    /* deeper butter for chrome */
+  --rocket:#ff6b35;     /* the one loud thing: GO DEEPER */
+  --rocket-dk:#c2431a;
+  --sky:#4fb3f6;
+  --grass:#63c64d;
+  --gold:#ffd23f;
+  --space:#12103a;
+  --white:#fffdf7;
+  --monarch:#f2801f;    /* the one colour the whole tool is about */
+  --monarch-dk:#bd550c;
+  --wing:#24201f;
+  --jade:#4ab892;
+  --jade-dk:#2a8468;
+  --leaf:#4ea84d;
+  --leaf-dk:#2f7a35;
+  --display:"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif;
+  --body:"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif;
+  --emoji:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  background:var(--paper);color:var(--ink);font-family:var(--body);
+  font-size:16px;line-height:1.3;-webkit-text-size-adjust:100%;overflow:hidden;
+}
+button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:4px solid var(--sky);outline-offset:3px}
+
+.app{
+  height:100vh;height:100dvh;
+  display:grid;grid-template-rows:auto 1fr auto;gap:10px;
+  padding:10px 14px 12px;max-width:1180px;margin:0 auto;
+}
+
+/* ---------- header ---------- */
+.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.brand h1{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;margin:0;
+  letter-spacing:.5px;color:var(--ink);text-shadow:3px 3px 0 var(--gold)}
+.brand .tagline{margin:4px 0 0;font-weight:800;font-size:15px;opacity:.85}
+.right{display:flex;align-items:center;gap:12px}
+.meter{
+  display:flex;align-items:center;gap:12px;
+  background:var(--paper-2);border:3px solid var(--ink);border-radius:18px;
+  padding:6px 14px;box-shadow:4px 4px 0 var(--ink);min-height:56px;transition:background .4s;
+}
+.meter.all{background:var(--gold)}
+.meter-label{font-family:var(--display);font-weight:600;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;line-height:1.1}
+.badges{display:flex;gap:6px}
+.badge{
+  width:38px;height:38px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);display:grid;place-items:center;font-size:19px;font-family:var(--emoji);line-height:1;
+  opacity:.28;filter:grayscale(1);transition:opacity .3s,filter .3s;
+}
+.badge.won{opacity:1;filter:none;background:var(--gold);animation:pop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+
+/* ---------- stage ---------- */
+.stage-wrap{min-height:0;display:flex}
+.stage{
+  position:relative;flex:1;min-height:160px;
+  border:5px solid var(--ink);border-radius:26px;overflow:hidden;
+  background:#d6f0ff;box-shadow:6px 6px 0 var(--ink);touch-action:none;
+}
+#view{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+.caption{
+  position:absolute;left:14px;top:12px;max-width:min(58%,460px);
+  background:var(--white);border:3px solid var(--ink);border-radius:18px;
+  padding:8px 14px 10px;box-shadow:4px 4px 0 var(--ink);pointer-events:none;
+  display:flex;gap:10px;align-items:flex-start;
+}
+.cap-body{min-width:0}
+.caption.bump{animation:bump .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes bump{0%{transform:scale(.85)}100%{transform:scale(1)}}
+.cap-level{font-family:var(--display);font-weight:700;font-size:24px;line-height:1.1}
+.cap-text{font-weight:800;font-size:15.5px;margin-top:3px;text-wrap:balance}
+.cap-text b{color:var(--rocket-dk)}
+
+.hint{
+  position:absolute;left:50%;transform:translateX(-50%);bottom:12px;
+  background:rgba(255,253,247,.92);border:3px solid var(--ink);border-radius:999px;
+  padding:6px 14px;font-weight:800;font-size:14px;pointer-events:none;box-shadow:3px 3px 0 var(--ink);
+}
+.stat{
+  position:absolute;right:14px;bottom:58px;display:flex;gap:8px;pointer-events:none;
+  flex-wrap:wrap;justify-content:flex-end;max-width:calc(100% - 28px);
+}
+.stat span{
+  background:rgba(255,253,247,.94);border:3px solid var(--ink);border-radius:999px;
+  padding:5px 12px;font-family:var(--display);font-weight:600;font-size:15px;box-shadow:3px 3px 0 var(--ink);
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+.stat[hidden]{display:none}
+
+.card{
+  position:absolute;right:14px;top:12px;width:min(350px,calc(100% - 28px));
+  display:flex;gap:12px;align-items:flex-start;
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.card[hidden]{display:none}
+.card-media{display:flex;flex-direction:column;gap:8px;align-items:center;flex:0 0 auto}
+.card-thumb{width:84px;height:84px;flex:0 0 84px;border-radius:14px;border:3px solid var(--ink);background:#e8f4ff}
+.card-body{min-width:0;flex:1}
+.card-name{font-family:var(--display);font-weight:700;font-size:22px;line-height:1.05}
+.card-sub{font-family:var(--display);font-weight:600;font-size:15px;color:var(--rocket-dk);margin-top:2px}
+.card-fact{font-weight:800;font-size:15.5px;margin-top:6px}
+.card-extra{font-weight:700;font-size:12.5px;margin-top:6px;opacity:.75}
+.card-x{
+  position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;
+  border:3px solid var(--ink);background:var(--gold);font-family:var(--display);font-weight:700;
+  font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink);
+}
+
+.toast{
+  position:absolute;left:50%;bottom:104px;transform:translateX(-50%);
+  background:var(--gold);border:3px solid var(--ink);border-radius:999px;
+  padding:8px 18px;font-family:var(--display);font-weight:700;font-size:19px;white-space:nowrap;
+  box-shadow:4px 4px 0 var(--ink);pointer-events:none;max-width:calc(100% - 28px);
+  overflow:hidden;text-overflow:ellipsis;animation:bump .5s cubic-bezier(.34,1.56,.64,1);
+}
+.toast[hidden]{display:none}
+
+/* ---------- the challenge panel ---------- */
+.quest{
+  position:absolute;left:14px;bottom:12px;width:min(420px,calc(100% - 28px));
+  background:var(--white);border:3px solid var(--ink);border-radius:20px;
+  padding:12px 14px;box-shadow:4px 4px 0 var(--ink);
+  animation:bump .4s cubic-bezier(.34,1.56,.64,1);
+}
+.quest[hidden]{display:none}
+.q-head{display:flex;align-items:center;gap:8px}
+.q-title{font-family:var(--display);font-weight:700;font-size:17px;flex:1}
+.dots{display:flex;gap:4px}
+.dot{width:11px;height:11px;border-radius:50%;border:2px solid var(--ink);background:var(--white)}
+.dot.done{background:var(--grass)}
+.dot.now{background:var(--gold)}
+.q-row{display:flex;gap:9px;align-items:flex-start}
+.q-text{font-weight:800;font-size:16px;margin-top:6px;text-wrap:balance}
+.q-row .q-text{flex:1;margin-top:0}
+.q-opts{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+.q-opts[hidden]{display:none}
+.opt{
+  font-family:var(--display);font-weight:600;font-size:16px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--paper-2);padding:8px 14px;line-height:1.1;box-shadow:0 3px 0 var(--ink);text-align:left;
+  transition:transform .08s,box-shadow .08s;
+}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt.yes{background:var(--grass);color:var(--white)}
+.opt.no{animation:shake .4s}
+.opt:disabled{cursor:default}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.q-fb{font-weight:800;font-size:14.5px;margin-top:8px;min-height:18px}
+.q-fb.good{color:#2e7d32}
+.q-fb.bad{color:var(--rocket-dk)}
+.q-x{position:absolute;right:-12px;top:-12px;width:34px;height:34px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--gold);font-family:var(--display);font-weight:700;font-size:20px;line-height:1;box-shadow:2px 2px 0 var(--ink)}
+
+/* ---------- dock ----------
+   The rail gets a row of its own and scrolls inside it; the buttons and the
+   chapter controls share the row below. Never size the rail's column to its
+   content: an `auto` track sizes to max-content and shoves the other columns
+   into each other. That is the bug tests/layout-check.mjs exists to catch. */
+.dock{
+  display:grid;grid-template-columns:auto minmax(0,1fr);
+  grid-template-areas:"levels levels" "buttons ctl";
+  align-items:center;gap:10px 14px;
+}
+.dock > .levels{grid-area:levels}
+.dock > .buttons{grid-area:buttons}
+.dock > .ctl{grid-area:ctl}
+.levels{display:flex;align-items:center;gap:6px;min-width:0;overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;max-width:100%;padding:3px 2px}
+.levels::-webkit-scrollbar{display:none}
+.lvl{
+  display:flex;align-items:center;gap:6px;flex:0 0 auto;min-height:44px;
+  padding:5px 13px 5px 9px;border-radius:999px;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:600;font-size:13px;
+  line-height:1;white-space:nowrap;box-shadow:3px 3px 0 var(--ink);
+  transition:transform .15s,background .15s;position:relative;
+}
+.lvl .ic{font-size:20px;font-family:var(--emoji);line-height:1}
+.lvl:hover{transform:translateY(-2px)}
+.lvl.on{background:var(--gold)}
+.lvl.done{background:var(--paper-2)}
+.lvl.won::after{content:"✓";position:absolute;right:-7px;top:-7px;width:18px;height:18px;border-radius:50%;
+  background:var(--grass);color:var(--white);border:2px solid var(--ink);font:700 11px/14px var(--display)}
+
+.buttons{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.btn{
+  font-family:var(--display);font-weight:700;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:10px 16px;font-size:16px;line-height:1;
+  box-shadow:0 5px 0 var(--ink);transition:transform .08s,box-shadow .08s,opacity .2s;white-space:nowrap;
+}
+.btn:active{transform:translateY(4px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:0 5px 0 var(--ink)}
+.btn.big{
+  background:var(--rocket);color:var(--white);font-size:23px;padding:12px 22px;
+  box-shadow:0 7px 0 var(--rocket-dk),0 7px 0 3px var(--ink);text-shadow:2px 2px 0 var(--rocket-dk);
+}
+.btn.big:active{transform:translateY(5px);box-shadow:0 2px 0 var(--rocket-dk),0 2px 0 3px var(--ink)}
+.btn.big.home{background:var(--sky);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 7px 0 #1f6fa8,0 7px 0 3px var(--ink)}
+.btn.big.home:active{box-shadow:0 2px 0 #1f6fa8,0 2px 0 3px var(--ink)}
+.btn.quest-btn{background:var(--gold)}
+.btn.quest-btn.won{background:var(--grass);color:var(--white)}
+/* Every .btn is nowrap so the labels read cleanly, but that stops the wide one
+   ("Back to the start") from ever shrinking. Let the big button wrap instead. */
+.btn.big{white-space:normal;text-wrap:balance}
+.buttons > .btn{min-width:0;max-width:100%}
+
+.ctl{display:flex;justify-content:flex-end;min-width:0;gap:10px;flex-wrap:wrap}
+.ctl-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.ctl-group[hidden]{display:none}
+.tog{
+  font-family:var(--display);font-weight:600;font-size:15px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--white);padding:8px 13px;line-height:1;box-shadow:0 4px 0 var(--ink);
+  transition:transform .08s,box-shadow .08s,background .15s;white-space:nowrap;
+}
+.tog:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.tog.on{background:var(--gold)}
+.tog.warm{background:var(--monarch);color:var(--white);text-shadow:1px 1px 0 var(--monarch-dk)}
+.tog.leafy{background:var(--leaf);color:var(--white);text-shadow:1px 1px 0 var(--leaf-dk)}
+.tog.bloom{background:#e2619f;color:var(--white);text-shadow:1px 1px 0 #a83668}
+.tog:disabled{opacity:.4;cursor:default;transform:none}
+
+/* ---------- small screens ---------- */
+@media (max-width:820px){
+  .app{padding:8px;gap:8px}
+  .top{flex-wrap:nowrap;gap:8px}
+  .brand h1{font-size:22px;text-shadow:2px 2px 0 var(--gold)}
+  .brand .tagline{display:none}
+  .meter{padding:3px 8px;min-height:40px;gap:6px;border-width:2.5px;box-shadow:3px 3px 0 var(--ink)}
+  .meter-label{display:none}
+  .badge{width:27px;height:27px;font-size:13px;border-width:2px}
+  .badges{gap:4px}
+  .dock{grid-template-columns:1fr;grid-template-areas:"buttons" "levels" "ctl";gap:8px}
+  .levels{grid-area:levels;gap:6px;justify-content:flex-start;flex-wrap:nowrap}
+  .lvl{font-size:12px;padding:5px 11px 5px 8px;box-shadow:2px 2px 0 var(--ink)}
+  .lvl .ic{font-size:18px}
+  .buttons{grid-area:buttons;justify-content:center;gap:8px}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:44px}
+  .ctl{grid-area:ctl;justify-content:center;align-items:center;gap:8px}
+  .ctl-group{justify-content:center;gap:6px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .btn{padding:8px 12px;font-size:14px;min-height:44px}
+  .tog{font-size:13.5px;padding:7px 12px;min-height:44px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  /* the tap prompt is the only thing that says the picture can be tapped,
+     and half the challenges ask for a tap — so it stays on every screen */
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:50px}
+  .toast{bottom:92px}
+  .card{width:calc(100% - 28px)}
+  .card-thumb{width:56px;height:56px;flex-basis:56px}
+  .card-name{font-size:17px}.card-sub{font-size:13px}.card-fact{font-size:13px}
+  .quest{width:calc(100% - 28px);left:14px;right:14px;top:12px;bottom:auto;padding:10px 12px}
+  .q-title{font-size:15px}.q-text{font-size:14px}.opt{font-size:14px;padding:8px 14px;min-height:44px}
+  body.questing .caption,body.carding .caption{display:none}
+  .stat span{font-size:12px;padding:4px 9px}
+}
+/* Any short viewport — a phone on its side, or a stubby desktop window. It may be
+   too wide for the rules above, so the compact dock is spelled out again here: a
+   partial override lands half a layout on top of the desktop one. */
+@media (max-height:560px){
+  .stage{min-height:0}
+  .dock{grid-template-columns:minmax(72px,1fr) auto;grid-template-areas:"levels buttons" "ctl ctl";gap:8px}
+  .levels{grid-area:levels;justify-content:flex-start;gap:5px;flex-wrap:nowrap}
+  .lvl{min-height:38px;font-size:11.5px;padding:4px 10px 4px 7px}
+  .lvl .ic{font-size:16px}
+  .buttons{grid-area:buttons;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+  .ctl{grid-area:ctl;justify-content:center}
+  #btnBack .bl{display:none}
+  #btnBack{min-width:38px}
+  .btn,.tog{min-height:38px}
+  .btn{padding:8px 11px;font-size:14px}
+  .btn.big{font-size:17px;padding:10px 14px}
+  .tog{font-size:13.5px;padding:7px 10px}
+  .caption{max-width:calc(100% - 28px);padding:6px 10px 8px}
+  .cap-level{font-size:17px}.cap-text{font-size:12.5px}
+  .hint{left:14px;right:14px;transform:none;bottom:10px;text-align:center;
+        font-size:12.5px;padding:5px 10px;border-width:2.5px}
+  .stat{bottom:44px}
+  .toast{bottom:80px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none !important;transition:none !important}}
+
+/* ---------- badges that survive a closed tab, and the way to clear them ---------- */
+.wipe{
+  width:34px;height:34px;flex:0 0 auto;border-radius:50%;border:3px solid var(--ink);
+  background:var(--white);font-family:var(--display);font-weight:700;font-size:15px;
+  line-height:1;padding:0;box-shadow:2px 2px 0 var(--ink);white-space:nowrap;
+}
+/* deliberately the one small target in the collection: it throws away a child's
+   badges, so it should be hard to hit by accident — and it takes two taps anyway */
+.wipe.armed{width:auto;padding:0 11px;height:34px;background:var(--rocket);color:var(--white);font-size:12.5px}
+.wipe[hidden]{display:none}
+
+/* ---------- read aloud ---------- */
+.spk{
+  flex:0 0 auto;width:44px;height:44px;border-radius:50%;border:3px solid var(--ink);
+  background:var(--sky);font-size:19px;font-family:var(--emoji);line-height:1;padding:0;
+  box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink);pointer-events:auto;
+  transition:transform .08s,box-shadow .08s;
+}
+.spk:active{transform:translateY(2px);box-shadow:0 1px 0 #1f6fa8,0 1px 0 2px var(--ink)}
+.spk.talking{background:var(--gold);box-shadow:0 3px 0 #c9a01d,0 3px 0 2px var(--ink);animation:wobble .6s infinite}
+@keyframes wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+body.nospeech .spk{display:none}
+.btn.read{background:var(--sky);color:var(--white);text-shadow:2px 2px 0 #1f6fa8;box-shadow:0 5px 0 #1f6fa8,0 5px 0 3px var(--ink)}
+.btn.read:active{box-shadow:0 1px 0 #1f6fa8,0 1px 0 3px var(--ink)}
+.btn.read .rd-icon{font-family:var(--emoji)}
+.btn.read .rd-word{margin-left:6px}
+.btn.read.off{background:var(--white);color:var(--ink);text-shadow:none;box-shadow:0 5px 0 var(--ink);opacity:.75}
+body.nospeech .btn.read{display:none}
+@media (max-width:860px){
+  .btn.read{padding:7px 10px;font-size:15px;min-width:44px;box-shadow:0 3px 0 #1f6fa8,0 3px 0 2px var(--ink)}
+  .btn.read .rd-word{display:none}
+}
+
+/* ---------- a keyboard path to everything the picture lets you tap ----------
+   About half of every challenge is "tap the …", and a canvas is invisible to the
+   keyboard, so those badges simply could not be earned without a pointer. These
+   buttons carry the same names as the things in the picture: off-screen until
+   focused, then a chip over the drawing, so Tab walks the scene and Enter opens
+   the card or answers the challenge. */
+.taplist{position:absolute;left:14px;bottom:58px;z-index:4;pointer-events:none}
+.taplist button{position:absolute;width:1px;height:1px;padding:0;margin:0;border:0;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.taplist button:focus-visible{
+  position:static;width:auto;height:auto;clip:auto;overflow:visible;pointer-events:auto;
+  padding:8px 14px;min-height:44px;border:3px solid var(--ink);border-radius:999px;
+  background:var(--gold);color:var(--ink);font-family:var(--display);font-weight:600;
+  font-size:14px;line-height:1;box-shadow:3px 3px 0 var(--ink);outline:3px solid var(--sky);outline-offset:3px;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Egg to Wings</h1>
+      <p class="tagline">One caterpillar, four shapes, and a flight to another country.</p>
+    </div>
+    <div class="right">
+      <button class="btn read off" id="btnRead" type="button" aria-pressed="false"><span class="rd-icon">🔇</span><span class="rd-word">Quiet</span></button>
+      <div class="meter" id="meter" aria-live="polite">
+        <div class="meter-label">Wing<br>badges</div>
+        <div class="badges" id="badges" aria-label="one badge for each stage of the monarch's life"></div>
+        <button class="wipe" id="btnWipe" type="button" hidden aria-label="Clear all badges and start fresh">↺</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="stage-wrap">
+    <div class="stage" id="stage">
+      <canvas id="view"></canvas>
+      <div class="caption" id="caption">
+        <button class="spk" id="spkCap" type="button" aria-label="Read this out loud">🔊</button>
+        <div class="cap-body">
+          <div class="cap-level" id="capLevel"></div>
+          <div class="cap-text" id="capText"></div>
+        </div>
+      </div>
+      <div class="stat" id="stat" hidden></div>
+      <div class="hint" id="hint">👆 Tap the egg, the leaf or the mother</div>
+      <div class="card" id="card" hidden>
+        <button class="card-x" id="cardClose" aria-label="Close">×</button>
+        <div class="card-media">
+          <canvas class="card-thumb" id="thumb" width="168" height="168"></canvas>
+          <button class="spk" id="spkCard" type="button" aria-label="Read this out loud">🔊</button>
+        </div>
+        <div class="card-body">
+          <div class="card-name" id="cardName"></div>
+          <div class="card-sub" id="cardSub"></div>
+          <div class="card-fact" id="cardFact"></div>
+          <div class="card-extra" id="cardExtra"></div>
+        </div>
+      </div>
+      <div class="quest" id="quest" hidden>
+        <button class="q-x" id="questClose" aria-label="Close the challenge">×</button>
+        <div class="q-head"><div class="q-title" id="qTitle"></div><div class="dots" id="qDots"></div></div>
+        <div class="q-row"><div class="q-text" id="qText"></div><button class="spk" id="spkQuest" type="button" aria-label="Read the question out loud">🔊</button></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-fb" id="qFb" role="status" aria-live="polite"></div>
+      </div>
+      <div class="taplist" id="taplist" role="group" aria-label="Things you can tap in this picture"></div>
+      <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+    </div>
+  </main>
+
+  <footer class="dock">
+    <div class="levels" id="levels"></div>
+    <div class="buttons">
+      <button class="btn" id="btnBack" aria-label="Back">◀ <span class="bl">Back</span></button>
+      <button class="btn big" id="btnNext">Next ▶</button>
+      <button class="btn quest-btn" id="btnQuest">🎯 Challenge!</button>
+    </div>
+    <div class="ctl" id="ctl">
+      <div class="ctl-group" id="ctl-egg" hidden>
+        <button class="tog" id="togGlass">🔍 Look closer</button>
+        <button class="tog warm" id="btnDay">📅 Next day</button>
+        <button class="tog" id="btnEggReset">↺ Start with a new egg</button>
+      </div>
+      <div class="ctl-group" id="ctl-cat" hidden>
+        <button class="tog warm" id="btnEat">🍽️ Eat and grow!</button>
+        <button class="tog" id="togSizes">📏 Line up the sizes</button>
+        <button class="tog" id="btnCatReset">↺ Back to a new hatchling</button>
+      </div>
+      <div class="ctl-group" id="ctl-chr" hidden>
+        <button class="tog warm" id="btnStep">🪝 Hang it up</button>
+        <button class="tog" id="togInside">🔍 Look inside</button>
+        <button class="tog" id="btnChrReset">↺ Back to the caterpillar</button>
+      </div>
+      <div class="ctl-group" id="ctl-wing" hidden>
+        <button class="tog warm" id="btnHatch">▶️ Next step</button>
+        <button class="tog" id="togTongue">👅 Watch the tongue</button>
+        <button class="tog" id="btnWingReset">↺ Back into the chrysalis</button>
+      </div>
+      <div class="ctl-group" id="ctl-gard" hidden>
+        <button class="tog leafy" id="btnMilk">🌱 Plant milkweed</button>
+        <button class="tog bloom" id="btnBloom">🌸 Plant flowers</button>
+        <button class="tog" id="btnGardReset">↺ Clear the garden</button>
+      </div>
+      <div class="ctl-group" id="ctl-trip" hidden>
+        <button class="tog warm" id="btnSouth">🍂 Fly south</button>
+        <button class="tog leafy" id="btnNorth">🌸 Fly north</button>
+        <button class="tog" id="btnTripReset">↺ Back to Missouri</button>
+      </div>
+    </div>
+  </footer>
+</div>
+<script>
+/* =====================================================================
+   EGG TO WINGS — a single file, no build step, no dependencies.
+
+   Six chapters, following one monarch: egg, caterpillar, chrysalis,
+   wings, the garden it needs, and the flight to Mexico.
+
+   The spine is complete metamorphosis — that an animal can be taken
+   apart and built again into something with a different body, different
+   food and a different job. Everything else hangs off that: the shed
+   skins are there because skin cannot stretch, the chrysalis is the
+   caterpillar's own skin rather than a cocoon, the crumpled wings have
+   to be pumped up, and the host plant matters precisely because the
+   caterpillar and the adult do not eat the same thing.
+
+   Drawing: everything is drawn in a fixed 1000x620 "design space" that
+   is scaled to fit inside the stage and centred, so the whole picture is
+   always on screen at every size. The canvas transform does the scaling,
+   so every coordinate below is a design coordinate and every line width
+   is a design line width.
+   ===================================================================== */
+const TAU=Math.PI*2;
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const smooth=t=>t*t*(3-2*t);
+const easeOut=t=>1-Math.pow(1-t,3);
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+const REDUCED=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const rnd=Math.random;
+function seeded(n){ let s=n*9301+49297; return ()=>{ s=(s*9301+49297)%233280; return s/233280; }; }
+const EMOJI_FONT='"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji","Twemoji Mozilla",sans-serif';
+const LABEL_FONT='"Nunito","Segoe UI Rounded",ui-rounded,"Segoe UI",system-ui,sans-serif';
+const DISPLAY_FONT='"Fredoka","Chalkboard SE","Comic Sans MS","Segoe UI Rounded",ui-rounded,system-ui,sans-serif';
+const INK='#2b2350', PAPER='#fff8e7', GOLD='#ffd23f', ROCKET='#ff6b35', ROCKET_DK='#c2431a',
+      SKY='#4fb3f6', GRASS='#63c64d', WHITE='#fffdf7', SPACE='#12103a';
+const SOIL='#8b5a2b', SEA='#2f9ada';
+
+/* ---------- canvas + the design-space transform ---------- */
+const DW=1000, DH=620;                 // the picture every scene is drawn in
+const stage=$('stage'), view=$('view');
+let ctx=view.getContext('2d');
+const V={w:900,h:560,dpr:1};
+let S=1, OX=0, OY=0;                   // scale + letterbox offsets, set in resize()
+let now=0;                             // seconds since load
+function toDesign(px,py){ return [(px-OX)/S,(py-OY)/S]; }
+function designToScreen(x,y){ return [OX+x*S,OY+y*S]; }
+
+/* ---------- drawing helpers (all write to whatever `ctx` is) ---------- */
+function circle(x,y,r,fill){ ctx.fillStyle=fill; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.fill(); }
+function ring(x,y,r,stroke,w){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.beginPath(); ctx.arc(x,y,r,0,TAU); ctx.stroke(); }
+function disc(x,y,r,fill,ol){ circle(x,y,r,fill); if(ol) ring(x,y,r,INK,ol); }
+function ellipse(x,y,rx,ry,rot,fill,ol){ ctx.beginPath(); ctx.ellipse(x,y,Math.max(.1,rx),Math.max(.1,ry),rot||0,0,TAU);
+  ctx.fillStyle=fill; ctx.fill(); if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function poly(P,fill,ol,close){ ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  if(close!==false) ctx.closePath(); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=INK; ctx.lineWidth=ol; ctx.lineJoin='round'; ctx.stroke(); } }
+function rrect(x,y,w,h,r){ r=Math.min(r,Math.abs(w)/2,Math.abs(h)/2); ctx.beginPath(); ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+function box(x,y,w,h,r,fill,ol,olc){ rrect(x,y,w,h,r); if(fill){ ctx.fillStyle=fill; ctx.fill(); }
+  if(ol){ ctx.strokeStyle=olc||INK; ctx.lineWidth=ol; ctx.stroke(); } }
+function line(x1,y1,x2,y2,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round';
+  ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2); ctx.stroke(); }
+function path(P,stroke,w,cap){ ctx.strokeStyle=stroke; ctx.lineWidth=w; ctx.lineCap=cap||'round'; ctx.lineJoin='round';
+  ctx.beginPath(); P.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.stroke(); }
+function emoji(ch,x,y,px,flip){ ctx.save(); ctx.translate(x,y); if(flip) ctx.scale(-1,1);
+  ctx.font=px+'px '+EMOJI_FONT; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#000';
+  ctx.fillText(ch,0,px*.06); ctx.restore(); }
+function label(txt,x,y,o){
+  o=o||{}; const size=o.size||26;
+  ctx.save(); ctx.font=(o.weight||800)+' '+size+'px '+(o.display?DISPLAY_FONT:LABEL_FONT);
+  ctx.textAlign=o.align||'center'; ctx.textBaseline=o.base||'middle';
+  if(o.halo!==false){ ctx.lineWidth=o.haloW||Math.max(4,size*.28); ctx.lineJoin='round';
+    ctx.strokeStyle=o.halo||(o.dark?PAPER:'rgba(255,253,247,.95)'); ctx.strokeText(txt,x,y); }
+  ctx.fillStyle=o.color||INK; ctx.fillText(txt,x,y); ctx.restore();
+}
+function arrow(x1,y1,x2,y2,color,w,head){
+  line(x1,y1,x2,y2,color,w); const a=Math.atan2(y2-y1,x2-x1), h=head||w*3.2;
+  poly([[x2,y2],[x2-h*Math.cos(a-.42),y2-h*Math.sin(a-.42)],[x2-h*Math.cos(a+.42),y2-h*Math.sin(a+.42)]],color,0);
+}
+function hexRgb(h){ return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]; }
+function rgba(h,a){ const c=hexRgb(h); return 'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'; }
+function mix(a,b,t){ const A=hexRgb(a),B=hexRgb(b);
+  return 'rgb('+Math.round(lerp(A[0],B[0],t))+','+Math.round(lerp(A[1],B[1],t))+','+Math.round(lerp(A[2],B[2],t))+')'; }
+function vgrad(x,y0,y1,stops){ const g=ctx.createLinearGradient(x,y0,x,y1); stops.forEach(s=>g.addColorStop(s[0],s[1])); return g; }
+/* a wobbly edge, for rock that should not look like a ruler drew it */
+function rough(x0,y0,x1,y1,amp,seed,n){
+  const r=seeded(seed||7), P=[]; n=n||Math.max(6,Math.round(Math.hypot(x1-x0,y1-y0)/28));
+  for(let i=0;i<=n;i++){ const t=i/n, e=(i===0||i===n)?0:1;
+    P.push([lerp(x0,x1,t)+(r()-.5)*amp*.4*e, lerp(y0,y1,t)+(r()-.5)*amp*e]); }
+  return P;
+}
+function hatch(x,y,w,h,color,gap,wid){
+  ctx.save(); ctx.beginPath(); ctx.rect(x,y,w,h); ctx.clip();
+  ctx.strokeStyle=color; ctx.lineWidth=wid||3;
+  for(let i=-h;i<w+h;i+=(gap||18)){ ctx.beginPath(); ctx.moveTo(x+i,y+h); ctx.lineTo(x+i+h,y); ctx.stroke(); }
+  ctx.restore();
+}
+/* a little person, drawn wherever a scale reference is needed */
+function person(x,y,h,color){
+  const hd=h*.22; line(x,y-h*.52,x,y-h*.18,color||INK,h*.15); disc(x,y-h*.66,hd,color||'#f0c39a',h*.06);
+  line(x,y-h*.44,x-h*.2,y-h*.3,color||INK,h*.09); line(x,y-h*.44,x+h*.2,y-h*.3,color||INK,h*.09);
+  line(x,y-h*.18,x-h*.14,y,color||INK,h*.1); line(x,y-h*.18,x+h*.14,y,color||INK,h*.1);
+}
+
+/* =====================================================================
+   HIT SHAPES
+   Every tappable thing in the picture carries one. They are deliberately
+   fat: at phone size the design space is scaled to about 0.37, so a 44px
+   finger target is roughly 120 design units across, and anything smaller
+   than that is only tappable by a mouse.
+   ===================================================================== */
+function hits(h,x,y){
+  if(!h) return false;
+  if(h.t==='r') return x>=h.x&&x<=h.x+h.w&&y>=h.y&&y<=h.y+h.h;
+  if(h.t==='c') return Math.hypot(x-h.x,y-h.y)<=h.r;
+  if(h.t==='ring'){ const d=Math.hypot(x-h.x,y-h.y); return d>=h.r0&&d<=h.r1; }
+  return false;
+}
+function markOf(h){
+  if(!h) return null;
+  if(h.t==='r') return [h.x+h.w/2,h.y+h.h/2,Math.max(h.w,h.h)*.55];
+  if(h.t==='c') return [h.x,h.y,h.r];
+  if(h.t==='ring') return [h.x,h.y,(h.r0+h.r1)/2];
+  return null;
+}
+
+/* =====================================================================
+   DRAWING A MONARCH, A CATERPILLAR AND A CHRYSALIS
+   Everything here is drawn in the same 1000x620 design space, so a
+   caterpillar can be 30 units long on one screen and 300 on the next
+   and the code does not have to know.
+   ===================================================================== */
+const ORANGE='#f2801f', ORANGE_DK='#bd550c', ORANGE_LT='#ffab4f', WINGK='#241f1e',
+      JADE='#4ab892', JADE_DK='#2a8468', GOLDY='#f5c518',
+      LEAFG='#4ea84d', LEAFG_DK='#2f7a35', STEM='#5f9c4a', MPINK='#e07ab0', CREAM='#fdf6e3';
+/* half a monarch, wings spread, drawn from the middle of the body outwards */
+const FORE=[[4,-8],[18,-34],[38,-54],[60,-58],[75,-46],[73,-22],[54,-4],[28,4],[10,3]];
+const HIND=[[8,0],[30,5],[50,17],[57,32],[47,45],[26,45],[12,30],[5,12]];
+function wingShape(P,x,y,s,dir,open){
+  const sq=lerp(.14,1,open);
+  return P.map(p=>[x+p[0]*s*dir*sq, y+p[1]*s]);
+}
+/* Three Missouri butterflies out of one pair of wing shapes: only the
+   colours change, which is roughly what happens in real life too. */
+const SPECIES={
+  monarch:{fill:ORANGE,dark:ORANGE_DK,rim:WINGK,spot:'#fffdf7',rimW:13},
+  swallowtail:{fill:'#2e2b33',dark:'#1b1920',rim:'#1b1920',spot:'#f5c518',rimW:9},
+  lady:{fill:'#d98a3f',dark:'#b06c2c',rim:'#3a2c22',spot:'#fffdf7',rimW:11},
+};
+function drawWing(P,x,y,s,dir,open,shade,sp){
+  sp=sp||SPECIES.monarch;
+  const Q=wingShape(P,x,y,s,dir,open);
+  poly(Q,shade?sp.dark:sp.fill,0);
+  ctx.save(); poly(Q,null,0); ctx.clip();
+  ctx.strokeStyle=sp.rim; ctx.lineWidth=s*sp.rimW; ctx.lineJoin='round';
+  ctx.beginPath(); Q.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1])); ctx.closePath(); ctx.stroke();
+  /* the veins that make a monarch a monarch and not an orange blob */
+  for(let i=1;i<Q.length-1;i+=1) line(Q[0][0],Q[0][1],Q[i][0],Q[i][1],sp.rim,s*2.2);
+  ctx.restore();
+  poly(Q,null,Math.max(1.2,s*2.4));
+  /* spots, set just inside the rim */
+  for(let i=1;i<Q.length-1;i++){ const q=Q[i];
+    circle(q[0]+(x-q[0])*.11,q[1]+(y-q[1])*.11,Math.max(.8,s*2.1),sp.spot); }
+  return Q;
+}
+function drawMonarch(x,y,s,open,male,flap,kind){
+  const f=flap||0, o=clamp(open+f*.12,0,1), sp=SPECIES[kind||'monarch']||SPECIES.monarch;
+  drawWing(HIND,x,y,s,-1,o,true,sp); drawWing(HIND,x,y,s,1,o,true,sp);
+  drawWing(FORE,x,y,s,-1,o,false,sp); drawWing(FORE,x,y,s,1,o,false,sp);
+  if(male){ const q=wingShape(HIND,x,y,s,1,o), r=wingShape(HIND,x,y,s,-1,o);
+    disc(lerp(q[0][0],q[3][0],.45),lerp(q[0][1],q[3][1],.45),s*4.5,WINGK,0);
+    disc(lerp(r[0][0],r[3][0],.45),lerp(r[0][1],r[3][1],.45),s*4.5,WINGK,0); }
+  /* body */
+  ellipse(x,y+s*10,s*5,s*22,0,WINGK,Math.max(1,s*2));
+  for(let i=0;i<5;i++){ circle(x-s*2.6,y+s*(2+i*7),Math.max(.7,s*1.5),'#fffdf7');
+    circle(x+s*2.6,y+s*(2+i*7),Math.max(.7,s*1.5),'#fffdf7'); }
+  disc(x,y-s*12,s*6,WINGK,Math.max(1,s*2));
+  circle(x-s*3,y-s*13,Math.max(.9,s*2),'#6b6360'); circle(x+s*3,y-s*13,Math.max(.9,s*2),'#6b6360');
+  line(x-s*2,y-s*16,x-s*13,y-s*32,WINGK,Math.max(1,s*1.8)); disc(x-s*13,y-s*33,Math.max(1.2,s*2.6),WINGK,0);
+  line(x+s*2,y-s*16,x+s*13,y-s*32,WINGK,Math.max(1,s*1.8)); disc(x+s*13,y-s*33,Math.max(1.2,s*2.6),WINGK,0);
+}
+/* the caterpillar: bands across a fat body, two long whips at the front and
+   two short ones at the back — they are not antennae, and the card says so */
+function drawCat(x,y,len,dir,bend){
+  dir=dir||1;
+  const th=len*.26, P=[];
+  for(let i=0;i<=24;i++){ const t=i/24; P.push([x+dir*len*t, y-Math.sin(t*Math.PI)*len*(bend==null?.09:bend)]); }
+  path(P,INK,th+Math.max(2.5,th*.22));
+  path(P,CREAM,th);
+  /* a ring is a short stroke ACROSS the body. Drawing them as pieces of the
+     body path instead made twelve round-capped blobs that merged into one
+     solid black sausage — which is how the first version came out. */
+  const band=(idx,color,w)=>{
+    const a=P[Math.max(0,idx-1)], b=P[Math.min(24,idx+1)], q=P[clamp(idx,0,24)];
+    const ang=Math.atan2(b[1]-a[1],b[0]-a[0])+Math.PI/2, hx=Math.cos(ang)*th*.5, hy=Math.sin(ang)*th*.5;
+    line(q[0]-hx,q[1]-hy,q[0]+hx,q[1]+hy,color,w,'butt');
+  };
+  for(let i=1;i<=12;i++){
+    const idx=Math.min(23,Math.round(i/12.6*24));
+    band(idx,'#1d1a19',Math.max(2,th*.20));
+    band(idx+1,'#f7c73b',Math.max(1.6,th*.13));
+  }
+  const h=P[0], t2=P[24];
+  disc(h[0],h[1],th*.46,'#1d1a19',Math.max(1.5,th*.12));
+  circle(h[0]-dir*th*.10,h[1]-th*.14,th*.10,'#f7c73b');
+  circle(h[0]-dir*th*.16,h[1]+th*.04,th*.07,CREAM);
+  /* filaments */
+  const fl=(px,py,L,ang)=>{ const ex=px+Math.cos(ang)*L, ey=py+Math.sin(ang)*L;
+    path([[px,py],[lerp(px,ex,.5)+dir*L*.12,lerp(py,ey,.5)],[ex,ey]],'#1d1a19',Math.max(1.6,th*.13)); };
+  fl(h[0]+dir*th*.2,h[1]-th*.3,len*.30,-1.15*1+(dir>0?0:0)); fl(h[0]+dir*th*.05,h[1]-th*.36,len*.24,-1.7);
+  fl(t2[0]-dir*th*.16,t2[1]-th*.32,len*.19,-1.95); fl(t2[0]-dir*th*.02,t2[1]-th*.34,len*.14,-1.35);
+  /* prolegs */
+  for(let i=3;i<10;i+=2){ const p=P[Math.round(i/12*24)];
+    line(p[0],p[1]+th*.4,p[0],p[1]+th*.66,'#1d1a19',Math.max(1.6,th*.16)); }
+}
+/* the chrysalis: a jade jar with a gold necklace, hanging by its tail */
+/* Hanging head-DOWN: the narrow end at the top is the tail hook it is glued
+   up by, the widest part is the shoulder a third of the way down, and the
+   bottom is round. The first version tapered to a point at the bottom and
+   came out looking like a Christmas bauble. */
+const CHRYS_W=[[0,.09],[.07,.26],[.15,.40],[.26,.48],[.40,.50],[.55,.49],[.68,.46],[.80,.40],[.90,.30],[.97,.16],[1,.02]];
+const CHRYS_K=.54;
+function chrysW(u){
+  for(let i=1;i<CHRYS_W.length;i++) if(u<=CHRYS_W[i][0]){
+    const a=CHRYS_W[i-1], b=CHRYS_W[i];
+    return lerp(a[1],b[1],(u-a[0])/(b[0]-a[0]))*CHRYS_K; }
+  return .02*CHRYS_K;
+}
+function chrysOutline(x,y,h){
+  const L=[],R=[];
+  for(let i=0;i<=22;i++){ const u=i/22, w=chrysW(u)*h;
+    L.push([x-w,y+u*h]); R.push([x+w,y+u*h]); }
+  return [...L,...R.reverse()];
+}
+function drawChrys(x,y,h,clear,dark){
+  const O=chrysOutline(x,y,h);
+  line(x,y-h*.14,x,y+h*.02,'#3a2f20',Math.max(2,h*.035));            /* the tail hook */
+  circle(x,y-h*.15,h*.045,'#fff8e7');                                  /* the silk button */
+  poly(O,clear?'#cfe6dd':(dark?JADE_DK:JADE),Math.max(1.5,h*.028));
+  ctx.save(); poly(O,null,0); ctx.clip();
+  if(clear){
+    /* the wings show through in the last day — the chrysalis has not changed
+       colour, it has gone see-through */
+    poly([[x-h*.23,y+h*.34],[x-h*.04,y+h*.30],[x-h*.04,y+h*.78],[x-h*.24,y+h*.68]],ORANGE,0);
+    poly([[x+h*.23,y+h*.34],[x+h*.04,y+h*.30],[x+h*.04,y+h*.78],[x+h*.24,y+h*.68]],ORANGE,0);
+    for(let i=0;i<4;i++){ line(x-h*.23,y+h*(.40+i*.09),x-h*.05,y+h*(.38+i*.09),WINGK,Math.max(1,h*.016));
+      line(x+h*.23,y+h*(.40+i*.09),x+h*.05,y+h*(.38+i*.09),WINGK,Math.max(1,h*.016)); }
+  } else {
+    ctx.fillStyle='rgba(255,255,255,.22)'; ctx.fillRect(x-h*.34,y,h*.13,h);
+    for(let i=0;i<5;i++) path([[x-h*.3,y+h*(.50+i*.09)],[x+h*.3,y+h*(.53+i*.09)]],'rgba(20,80,60,.22)',Math.max(1,h*.016));
+  }
+  ctx.restore();
+  poly(O,null,Math.max(1.5,h*.028));
+  /* the gold necklace, and the scatter of dots below it */
+  const gw=chrysW(.30)*h;
+  path([[x-gw*.96,y+h*.295],[x,y+h*.315],[x+gw*.96,y+h*.295]],GOLDY,Math.max(2,h*.038));
+  for(let i=0;i<5;i++){ const t=(i-2)/2.4;
+    circle(x+t*chrysW(.42)*h*.78,y+h*(.42+Math.abs(t)*.045),Math.max(1.2,h*.023),GOLDY); }
+}
+/* plants */
+function drawLeaf(x,y,L,ang,chew,seed){
+  ctx.save(); ctx.translate(x,y); ctx.rotate(ang);
+  ellipse(0,0,L,L*.38,0,LEAFG,Math.max(1.5,L*.05));
+  line(-L*.9,0,L*.9,0,LEAFG_DK,Math.max(1.2,L*.035));
+  for(let i=-3;i<=3;i++) line(i*L*.24,0,i*L*.24+L*.1,-Math.sign(i||1)*L*.26,rgba(LEAFG_DK,.6),Math.max(1,L*.022));
+  if(chew){ const r=seeded(seed||3);
+    for(let i=0;i<chew;i++){ const cx=(r()-.5)*L*1.5, cy=(r()-.5)*L*.5;
+      circle(cx,cy,L*(.09+r()*.09),'#d6f0ff'); ring(cx,cy,L*(.09+r()*.09),INK,Math.max(1,L*.03)); } }
+  ctx.restore();
+}
+function drawMilkweed(x,base,h,chew,flower){
+  line(x,base,x,base-h,STEM,Math.max(3,h*.035));
+  for(let i=0;i<3;i++){ const y=base-h*(.3+i*.22), L=h*(.26-i*.03);
+    drawLeaf(x-L*.75,y,L,.18,chew?2:0,i+7); drawLeaf(x+L*.75,y,L,-.18,chew?1:0,i+21); }
+  if(flower!==false){ const fy=base-h;
+    for(let k=0;k<9;k++){ const a=k/9*TAU, r=h*.07;
+      disc(x+Math.cos(a)*r,fy+Math.sin(a)*r*.7,h*.032,MPINK,Math.max(1,h*.012)); }
+    disc(x,fy,h*.034,'#f3a7cd',Math.max(1,h*.012)); }
+}
+function drawConeflower(x,base,h){
+  line(x,base,x,base-h,STEM,Math.max(2.5,h*.03));
+  const y=base-h;
+  for(let k=0;k<11;k++){ const a=k/11*TAU;
+    ellipse(x+Math.cos(a)*h*.13,y+Math.sin(a)*h*.13,h*.10,h*.035,a,'#c97bd6',Math.max(1,h*.014)); }
+  disc(x,y,h*.075,'#e08a2c',Math.max(1,h*.016));
+  for(let i=0;i<7;i++) circle(x+(rnd()-.5)*h*.06,y+(rnd()-.5)*h*.06,h*.01,'#8a4b12');
+}
+function drawBlazingStar(x,base,h){
+  line(x,base,x,base-h,STEM,Math.max(2.5,h*.03));
+  for(let i=0;i<9;i++){ const y=base-h*(.46+i*.06);
+    disc(x,y,h*(.07-i*.005),'#9b5fc4',Math.max(1,h*.012)); }
+}
+function drawEgg(x,y,r,hatched){
+  if(hatched){ poly([[x-r,y+r*.8],[x-r*.5,y-r*.2],[x,y-r*.9],[x+r*.6,y-r*.1],[x+r,y+r*.8]],'#fff6d8',Math.max(1.2,r*.14));
+    return; }
+  ctx.save(); ctx.beginPath(); ctx.ellipse(x,y,r*.78,r,0,0,TAU); ctx.fillStyle='#fdf3c8'; ctx.fill();
+  ctx.clip();
+  for(let i=-4;i<=4;i++) line(x+i*r*.2,y-r,x+i*r*.22,y+r,'rgba(190,160,60,.55)',Math.max(1,r*.09));
+  for(let i=-2;i<=2;i++) line(x-r,y+i*r*.34,x+r,y+i*r*.34,'rgba(190,160,60,.35)',Math.max(1,r*.07));
+  ctx.restore();
+  ctx.beginPath(); ctx.ellipse(x,y,r*.78,r,0,0,TAU); ctx.strokeStyle=INK; ctx.lineWidth=Math.max(1.2,r*.13); ctx.stroke();
+}
+
+/* =====================================================================
+   CHAPTERS
+   ===================================================================== */
+const CHAPTERS=[
+  {id:'egg', icon:'🥚', name:'The egg', title:'🥚 One Tiny Egg', ctls:['egg'],
+   caption:'A monarch mother lays her eggs one at a time, always under a <b>milkweed</b> leaf. Each egg is about as big as the dot on this letter <b>i</b>.',
+   hint:'👆 Tap the egg, the leaf or the mother'},
+  {id:'cat', icon:'🐛', name:'Caterpillar', title:'🐛 The Eating Machine', ctls:['cat'],
+   caption:'A caterpillar does one job: <b>eat</b>. It gets about two thousand times heavier — and because its skin cannot stretch, it climbs out of it five times.',
+   hint:'👆 Tap the caterpillar, a chewed leaf or a shed skin'},
+  {id:'chrysalis', icon:'🔮', name:'Chrysalis', title:'🔮 Inside the Chrysalis', ctls:['chr'],
+   caption:'It hangs up in a <b>J</b>, wriggles out of its skin one last time, and there is a jade chrysalis. Inside, almost the whole caterpillar comes apart and is built again.',
+   hint:'👆 Tap the chrysalis, the silk button or the grasshopper'},
+  {id:'wings', icon:'🦋', name:'Wings', title:'🦋 Out Come the Wings', ctls:['wing'],
+   caption:'The chrysalis goes <b>see-through</b> — those are the wings showing. Out climbs a butterfly with a fat body and crumpled wings, and it has to <b>pump them up</b>.',
+   hint:'👆 Tap the wings, the fat body or the empty case'},
+  {id:'garden', icon:'🌼', name:'Garden', title:'🌼 A Garden They Can Use', ctls:['gard'],
+   caption:'Caterpillars eat <b>leaves</b> of one special plant. Grown-up butterflies drink <b>nectar</b> from flowers. A garden needs both, or it only feeds half a butterfly.',
+   hint:'👆 Tap a plant, a caterpillar or a butterfly'},
+  {id:'journey', icon:'🗺️', name:'The trip', title:'🗺️ The Long Way South', ctls:['trip'],
+   caption:'One special batch hatches in late summer and lives for <b>months</b> instead of weeks. It flies from Missouri all the way to the mountains of <b>Mexico</b>.',
+   hint:'👆 Tap Missouri, the route or the roosting trees'},
+];
+const narrowMQ=matchMedia('(max-width:820px)');
+let current=0;
+const badges={};
+let selected=null;
+
+const els={ capLevel:$('capLevel'), capText:$('capText'), caption:$('caption'), hint:$('hint'), stat:$('stat'),
+  card:$('card'), cardName:$('cardName'), cardSub:$('cardSub'), cardFact:$('cardFact'), cardExtra:$('cardExtra'),
+  cardClose:$('cardClose'), thumb:$('thumb'), toast:$('toast'), levels:$('levels'),
+  btnBack:$('btnBack'), btnNext:$('btnNext'), btnQuest:$('btnQuest'),
+  quest:$('quest'), qTitle:$('qTitle'), qDots:$('qDots'), qText:$('qText'), qOpts:$('qOpts'), qFb:$('qFb'),
+  questClose:$('questClose'), badges:$('badges'), meter:$('meter') };
+
+/* =====================================================================
+   SCENE 1 — ONE TINY EGG
+   ===================================================================== */
+const EG={day:0, glass:false};
+const EGG_XY=[428,404];
+function eggR(){ return EG.glass?46:13; }
+function eggReset(){ EG.day=0; }
+function eggItems(){
+  const r=eggR(), out=[];
+  if(EG.day>=4) out.push({id:'hatchling', name:'The hatchling', sub:'Smaller than a grain of rice', emoji:'🐛', bg:CREAM,
+    fact:'Out it comes, and the first thing it eats is its own empty eggshell. Then it starts on the leaf and does not really stop.',
+    extra:'It is so small that its first meal is about the size of a full stop.',
+    hit:{t:'c',x:EGG_XY[0]+72,y:EGG_XY[1]+8,r:86}, mark:[EGG_XY[0]+72,EGG_XY[1]+8,64]});
+  out.push(
+    {id:'egg', name:'The egg', sub:'About one millimetre tall', emoji:'🥚', bg:'#fdf3c8',
+     fact:'Cream coloured, shaped like a tiny ribbed football standing on end, glued to the leaf with a dab of glue the mother makes. It hatches in three to five days.',
+     extra:'One mother can lay several hundred of them, one at a time, on different plants.',
+     hit:{t:'c',x:EGG_XY[0],y:EGG_XY[1],r:Math.max(72,r+40)}, mark:[EGG_XY[0],EGG_XY[1],Math.max(40,r+16)]},
+    {id:'under', name:'The underside of the leaf', sub:'The safest address there is', emoji:'🍃', bg:LEAFG,
+     fact:'She always lays underneath. Up top an egg is in plain sight of every hungry bird, and rain would wash it off. Underneath it is hidden and dry.',
+     extra:'If you want to find one, turn the milkweed leaves over and look near the top of the plant.',
+     hit:{t:'r',x:560,y:380,w:340,h:150}, mark:[730,450,150]},
+    {id:'mother', name:'The mother monarch', sub:'Choosing with her feet', emoji:'🦋', bg:ORANGE,
+     fact:'She drums on a leaf with her front feet, which can taste. If it tastes like milkweed she lays an egg. If not, she flies on.',
+     extra:'Her wings are wider than your hand, and she weighs less than a paper clip.',
+     hit:{t:'c',x:718,y:170,r:120}, mark:[718,170,96]},
+    {id:'sap', name:'Milkweed milk', sub:'Why it is called milkweed', emoji:'🥛', bg:'#f2f2ea',
+     fact:'Break a milkweed leaf and white sticky sap leaks out. It is a poison, and it is glue — a newly hatched caterpillar can be stuck fast by it.',
+     extra:'Do not get it in your eyes. Wash your hands after handling milkweed.',
+     hit:{t:'c',x:196,y:512,r:96}, mark:[196,512,72]});
+  return out;
+}
+function drawEggScene(){
+  ctx.fillStyle='#d6f0ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  for(let i=0;i<5;i++) emoji('☁️',110+i*210,92+((i*37)%40),52);
+  /* one huge milkweed leaf, seen from below */
+  ctx.save(); ctx.translate(500,432); ctx.rotate(-.06);
+  ellipse(0,0,390,118,0,LEAFG,6);
+  line(-370,0,370,0,LEAFG_DK,9);
+  for(let i=-4;i<=4;i++) if(i) line(i*80,0,i*80+34,-Math.sign(i)*82,rgba(LEAFG_DK,.6),5);
+  ctx.restore();
+  line(500,550,500,470,STEM,14);
+  /* the sap, leaking from a torn leaf edge */
+  poly([[146,470],[176,486],[158,506],[186,516]],'#f2f2ea',7);
+  disc(196,522,15,'#fbfbf4',4); disc(214,556,10,'#fbfbf4',4);
+  label('sticky white sap',186,588,{size:19,display:true});
+  /* the egg */
+  const r=eggR();
+  if(EG.glass){ disc(EGG_XY[0],EGG_XY[1],104,'rgba(255,255,255,.35)',0); ring(EGG_XY[0],EGG_XY[1],104,'#b9d7e8',10); ring(EGG_XY[0],EGG_XY[1],104,INK,4); }
+  drawEgg(EGG_XY[0],EGG_XY[1]-r*.4,r,EG.day>=4);
+  if(EG.day>0&&EG.day<4){
+    /* the black head shows through in the last day before it hatches */
+    if(EG.day>=3) circle(EGG_XY[0],EGG_XY[1]-r*1.05,r*.34,'rgba(30,26,25,.75)');
+    label('day '+EG.day,EGG_XY[0],EGG_XY[1]+r+34,{size:21,display:true});
+  }
+  if(EG.day>=4){ drawCat(EGG_XY[0]+36,EGG_XY[1]+4,72,1,.12);
+    label('hatched!',EGG_XY[0]+72,EGG_XY[1]-48,{size:23,display:true,color:ORANGE_DK}); }
+  if(!EG.glass) label('the egg is here 👇 — really, that speck',EGG_XY[0],EGG_XY[1]-70,{size:21,display:true});
+  else label('about 1 mm — a pinhead',EGG_XY[0],EGG_XY[1]-142,{size:21,display:true});
+  /* the mother, hovering */
+  const fl=Math.sin(now*7)*.5+.5;
+  drawMonarch(718,170+Math.sin(now*1.6)*10,1.08,lerp(.55,1,fl),false,0);
+  label('the mother',718,268,{size:20,display:true});
+  label('MILKWEED — the underside of one leaf',702,494,{size:21,display:true,color:WHITE,halo:'rgba(43,35,80,.75)'});
+}
+
+/* =====================================================================
+   SCENE 2 — THE EATING MACHINE
+   ===================================================================== */
+const CT={inst:1, skins:0, sizes:false};
+const CAT_LEN=[0,34,58,92,136,190], CAT_MASS=[0,1,8,50,300,1500];
+function catReset(){ CT.inst=1; CT.skins=0; }
+function catItems(){
+  const L=CAT_LEN[CT.inst], cx=520, cy=306;
+  const out=[
+    {id:'cat', name:'The caterpillar', sub:'Stripes that shout "do not eat me"', emoji:'🐛', bg:'#f7c73b',
+     fact:'Yellow, black and white rings. Milkweed is poisonous, and the caterpillar stores the poison in itself, so a bird that tries one is sick and never tries another.',
+     extra:'The stripes are a warning sign. Lots of harmless insects copy the idea.',
+     hit:{t:'r',x:cx-34,y:cy-70,w:L+78,h:150}, mark:[cx+L/2,cy,Math.max(70,L*.6)]},
+    {id:'whips', name:'The black whips', sub:'Not antennae!', emoji:'〰️', bg:'#1d1a19',
+     fact:'Two long ones at the front and two short ones at the back. They are not antennae and not eyes — they are feelers, and waving them makes a bird think twice.',
+     extra:'The long pair is at the head end. That is the easy way to tell which end is which.',
+     hit:{t:'c',x:cx-8,y:cy-56,r:76}, mark:[cx-8,cy-52,60]},
+    {id:'chewed', name:'A chewed leaf', sub:'The evidence', emoji:'🍃', bg:LEAFG,
+     fact:'Look for leaves with holes and edges nibbled away. If you find those on a milkweed, there is a caterpillar close by — usually underneath.',
+     extra:'A big caterpillar can eat a whole leaf in a few minutes.',
+     hit:{t:'c',x:790,y:352,r:98}, mark:[790,352,80]},
+    {id:'frass', name:'Frass', sub:'Caterpillar droppings', emoji:'💩', bg:'#6b5636',
+     fact:'Little green-black pellets. An eating machine that big makes a lot of them, and finding a pile of frass under a plant is how people know to look up.',
+     hit:{t:'c',x:600,y:470,r:84}, mark:[600,470,66]},
+    {id:'sap2', name:'The milkweed', sub:'The only food on the menu', emoji:'🌱', bg:STEM,
+     fact:'A monarch caterpillar eats milkweed and nothing else. No milkweed, no monarchs — that is the whole story, and it is why people plant it.',
+     hit:{t:'r',x:44,y:168,w:190,h:350}, mark:[139,344,140]}];
+  if(CT.skins>0) out.unshift({id:'skin', name:'A shed skin', sub:'The old suit, left behind', emoji:'👕', bg:'#e6dfcb',
+    fact:'Skin does not stretch, so when the caterpillar fills it up it splits down the back and the caterpillar walks out in a new one. That happens five times.',
+    extra:'The caterpillar usually turns round and eats the old skin. Nothing is wasted.',
+    hit:{t:'c',x:872,y:288,r:84}, mark:[872,288,64]});
+  return out;
+}
+function drawCatScene(){
+  ctx.fillStyle='#d6f0ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  ctx.fillStyle='#bfe3a0'; ctx.fillRect(-DW,548,DW*3,DH);
+  path(rough(-100,548,1100,548,10,4),LEAFG_DK,6);
+  drawMilkweed(139,548,382,true,true);
+  /* the leaf it is sitting on, and the caterpillar on top of it */
+  drawLeaf(640,352,172,-.07,3,19);
+  const L=CAT_LEN[CT.inst];
+  drawCat(520,306,L,1,.10);
+  label('size '+CT.inst+' of 5',560,222,{size:23,display:true});
+  /* frass under the leaf */
+  for(let i=0;i<CT.inst*3;i++) ellipse(556+((i*37)%96),452+((i*53)%36),7,5,0,'#4a4227',2);
+  label('frass',600,502,{size:18,display:true});
+  /* the skins it climbed out of, hung up in a row */
+  for(let i=0;i<CT.skins;i++){
+    const x=846+((i%2)*48), y=252+Math.floor(i/2)*48;
+    path([[x-13,y-13],[x+2,y-2],[x-6,y+8],[x+11,y+15]],'#e6dfcb',10);
+    path([[x-13,y-13],[x+2,y-2],[x-6,y+8],[x+11,y+15]],'rgba(90,80,50,.55)',3);
+  }
+  if(CT.skins>0) label('skins it climbed out of',870,204,{size:19,display:true});
+  if(CT.sizes){
+    /* all five, lined up, because the growing is the whole point */
+    box(56,150,530,160,18,'rgba(255,253,247,.95)',5);
+    label('how it grows, size 1 to 5',320,176,{size:20,display:true});
+    for(let i=1;i<=5;i++){ const x=84+(i-1)*104;
+      drawCat(x,268,CAT_LEN[i]*.52,1,.1);
+      label(String(i),x+CAT_LEN[i]*.26,294,{size:16,display:true}); }
+  }
+}
+
+/* =====================================================================
+   SCENE 3 — INSIDE THE CHRYSALIS
+   ===================================================================== */
+const CH={ph:0, day:0, look:false};
+const CH_STEPS=['🪝 Hang it up','🔄 Make the chrysalis','📅 Next day','📅 Next day'];
+function chrReset(){ CH.ph=0; CH.day=0; }
+function chrItems(){
+  const out=[
+    {id:'button', name:'The silk button', sub:'One knot, holding everything', emoji:'⚪', bg:'#fff8e7',
+     fact:'It spins a little pad of silk on a twig, grabs it with the hooks on its back end, and lets go with every other leg. That knot holds it for the next two weeks.',
+     extra:'If the button comes unstuck, the chrysalis falls and that is that. It is a lot of trust in one knot.',
+     hit:{t:'c',x:460,y:142,r:78}, mark:[460,150,56]},
+    {id:'grass', name:'A grasshopper', sub:'Doing it the other way', emoji:'🦗', bg:'#cfe3a8',
+     fact:'A baby grasshopper looks like a small grown-up grasshopper. It just gets bigger. No chrysalis, no coming apart — that is called INcomplete metamorphosis.',
+     extra:'Butterflies, moths, beetles, bees and flies do the full four-stage version. Grasshoppers, crickets and dragonflies do not.',
+     hit:{t:'r',x:742,y:186,w:226,h:170}, mark:[855,271,118]}];
+  if(CH.ph<2) out.unshift({id:'jcat', name:CH.ph===0?'The caterpillar':'Hanging in a J', sub:CH.ph===0?'Looking for a quiet twig':'The last day as a caterpillar',
+     emoji:'🐛', bg:'#f7c73b',
+     fact:CH.ph===0?'When it has eaten enough it stops eating and wanders off, sometimes a long way, to find somewhere safe and out of sight.'
+       :'It hangs head-down in the shape of a letter J for about a day. Then its skin splits behind its head and it wriggles out of it one last time.',
+     extra:'The whips go limp and stop waving. That is the sign it is nearly time.',
+     hit:{t:'c',x:440,y:300,r:118}, mark:[440,300,94]});
+  else out.unshift({id:'chrysalis', name:'The chrysalis', sub:'Jade green with real gold', emoji:'🔮', bg:JADE,
+     fact:'Not a cocoon — a cocoon is a silk bag a moth spins around itself. This is the animal\'s own skin, gone hard and smooth. It is called a chrysalis.',
+     extra:'The gold spots really do shine like metal, and nobody is completely sure what they are for.',
+     hit:{t:'c',x:460,y:300,r:118}, mark:[460,300,94]});
+  if(CH.ph>=2&&CH.look) out.unshift({id:'soup', name:'What is going on in there', sub:'Taken apart, then built again', emoji:'🫧', bg:'#cfe6dd',
+     fact:'Most of the caterpillar dissolves into a thick soup. Small patches of cells that were there all along use the soup as building material and grow the wings, the legs and the long tongue.',
+     extra:'It keeps some of its memories through all that, which is one of the strangest facts in biology.',
+     hit:{t:'c',x:460,y:310,r:104}, mark:[460,310,84]});
+  return out;
+}
+function drawChrScene(){
+  ctx.fillStyle='#e7f6d9'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  /* the twig it hangs from */
+  path([[60,132],[300,120],[700,124],[950,112]],'#8a6a45',22);
+  path([[300,120],[340,80]],'#8a6a45',12); drawLeaf(372,64,54,-.3,0,2);
+  if(CH.ph===0){
+    drawCat(360,300,170,1,.10);
+    label('looking for a safe twig…',450,398,{size:22,display:true});
+  } else if(CH.ph===1){
+    circle(460,142,11,'#fff8e7'); ring(460,142,11,INK,3);
+    ctx.save(); ctx.translate(460,150); ctx.rotate(1.42);
+    drawCat(0,0,182,1,-.42); ctx.restore();
+    label('hanging in a J',596,300,{size:23,display:true,color:ORANGE_DK});
+  } else {
+    circle(460,140,11,'#fff8e7'); ring(460,140,11,INK,3);
+    drawChrys(460,160,272,false,CH.day>=2);
+    if(CH.look){
+      /* clipped to the chrysalis: as a free circle it bulged out of the sides
+         and the whole thing read as a bauble rather than an animal */
+      ctx.save(); poly(chrysOutline(460,160,272),null,0); ctx.clip();
+      ctx.fillStyle='rgba(223,240,233,.96)'; ctx.fillRect(300,160,320,300);
+      for(let i=0;i<18;i++){ const a=i/18*TAU+now*.4;
+        circle(460+Math.cos(a)*(22+((i*13)%30)),330+Math.sin(a)*(22+((i*17)%42)),9,'rgba(120,180,150,.85)'); }
+      poly([[434,286],[456,280],[456,378],[426,360]],ORANGE,3);
+      poly([[486,286],[464,280],[464,378],[494,360]],ORANGE,3);
+      ctx.restore();
+      label('wings, being built',460,396,{size:19,display:true});
+    }
+    label(CH.day>=2?'nearly ready':'brand new',240,300,{size:22,display:true,color:ORANGE_DK});
+  }
+  /* the grasshopper, doing it the other way */
+  box(742,186,226,170,18,'rgba(255,253,247,.94)',5);
+  label('not everybody',855,212,{size:18,display:true});
+  label('does this:',855,234,{size:18,display:true});
+  emoji('🦗',814,286,46); emoji('🦗',896,292,32);
+  label('just gets bigger',855,334,{size:17,display:true});
+}
+
+/* =====================================================================
+   SCENE 4 — OUT COME THE WINGS
+   Five presses, five real stages: see-through, split, climb out, pump,
+   hang and dry. The pumping is the part people never expect, so it gets
+   its own step and its own meter.
+   ===================================================================== */
+const WG={ph:0, tongue:false, pump:0};
+const WG_STEPS=['👀 Go see-through','✂️ Split it open','💧 Pump the wings','🌬️ Hang up to dry','🦋 Off it goes!'];
+const WG_NAME=['Waiting','See-through','Just out — all crumpled','Pumping up','Drying','Ready to fly'];
+function wingReset(){ WG.ph=0; WG.pump=0; }
+function wingItems(){
+  const out=[];
+  if(WG.ph>=2) out.push({id:'case', name:'The empty case', sub:'What is left behind', emoji:'🥚', bg:'#cfe6dd',
+    fact:'A clear, crumpled little bag, still hanging on its silk button. That is the whole chrysalis, now with nothing in it.',
+    extra:'Find one on a twig and you have just missed a butterfly by about an hour.',
+    hit:{t:'c',x:460,y:186,r:76}, mark:[460,186,56]});
+  if(WG.ph>=2&&WG.ph<4) out.push({id:'body', name:'The fat body', sub:'Full of pumping fluid', emoji:'💧', bg:ORANGE_DK,
+    fact:'It comes out with a swollen body and tiny crumpled wings. The body is full of fluid, and it squeezes that fluid out into the veins of the wings to unfold them.',
+    extra:'If it cannot hang free while it does this, the wings dry crumpled and it will never fly.',
+    hit:{t:'c',x:700,y:330,r:90}, mark:[700,330,66]});
+  if(WG.ph>=2) out.push({id:'wings', name:WG.ph<3?'The crumpled wings':'The wings', sub:WG.ph<3?'Wet, soft and folded up':'Pumped up and hardening',
+    emoji:'🦋', bg:ORANGE,
+    fact:WG.ph<3?'They look far too small and far too wrinkled to be any use. They are soft as wet paper.'
+      :'It takes a few minutes to pump them out and a couple of hours hanging still for them to harden. Only then can it fly.',
+    extra:'A monarch\'s wings are covered in tiny scales, like roof tiles. That is where the orange is.',
+    hit:{t:'c',x:700,y:252,r:108}, mark:[700,252,86]});
+  if(WG.tongue) out.push({id:'tongue', name:'The tongue', sub:'It comes in two halves', emoji:'👅', bg:'#f6e6c8',
+    fact:'The long drinking straw arrives as two separate halves. The butterfly curls and uncurls them over and over until they zip together into one tube.',
+    extra:'If they do not zip up properly it cannot drink, and it will not last long.',
+    hit:{t:'r',x:56,y:344,w:286,h:174}, mark:[199,431,124]});
+  out.push({id:'chrys2', name:'The chrysalis', sub:WG.ph===0?'Still jade green':'Gone see-through', emoji:'🔮', bg:JADE,
+    fact:WG.ph===0?'Two weeks of looking like a small green jewel, and then in a few hours it turns clear.'
+      :'It has not changed colour — it has gone transparent. The orange you can see is the folded wings pressed against the inside.',
+    hit:{t:'c',x:460,y:300,r:118}, mark:[460,300,94]});
+  return out;
+}
+function drawWingScene(){
+  ctx.fillStyle='#e7f6d9'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  path([[60,132],[300,120],[700,124],[950,112]],'#8a6a45',22);
+  circle(460,140,11,'#fff8e7'); ring(460,140,11,INK,3);
+  if(WG.ph<2){ drawChrys(460,160,272,WG.ph>=1,false);
+    label(WG.ph>=1?'see-through — those are the wings!':'a jade chrysalis',460,472,{size:22,display:true,color:WG.ph>=1?ORANGE_DK:INK});
+  } else {
+    /* the split, empty case */
+    poly([[438,150],[424,232],[450,248],[460,212],[470,248],[496,232],[482,150]],'rgba(207,230,221,.92)',4);
+    label('the empty case',460,282,{size:18,display:true});
+    /* the butterfly, hanging alongside it */
+    const p=clamp(WG.pump,0,1), sz=lerp(.34,1.45,p);
+    ctx.save(); ctx.translate(700,300); ctx.rotate(lerp(.5,0,p)); ctx.translate(-700,-300);
+    drawMonarch(700,300,sz,lerp(.30,.96,p),false,WG.ph>=5?Math.sin(now*6)*.5+.5:0);
+    if(p<.5){ ellipse(700,318,26*(1-p*.7)+10,40,0,WINGK,3);
+      for(let i=0;i<4;i++) circle(691,300+i*12,3,'#fffdf7'); }
+    ctx.restore();
+    label(WG_NAME[Math.min(5,WG.ph)],700,424,{size:23,display:true,color:ORANGE_DK});
+    if(WG.ph===3){
+      box(576,452,262,30,15,'rgba(255,253,247,.94)',4);
+      box(580,456,clamp(p,0,1)*254,22,11,ORANGE,0);
+      label('💧 pumping the wings up',700,502,{size:19,display:true});
+    }
+    if(WG.ph===4) label('now it hangs still for a couple of hours',700,466,{size:19,display:true});
+    if(WG.ph>=5) label('ready to fly',700,466,{size:19,display:true});
+  }
+  if(WG.tongue){
+    box(56,344,286,174,18,'rgba(255,253,247,.95)',5);
+    label('the tongue zips up',199,370,{size:19,display:true});
+    const z=(Math.sin(now*1.6)*.5+.5), y0=430;
+    path([[92,y0],[136,y0+20],[180,y0],[224,y0+20],[268,y0]],'#8a6a45',8);
+    path([[92,y0+lerp(30,0,z)],[136,y0+20+lerp(30,0,z)],[180,y0+lerp(30,0,z)],[224,y0+20+lerp(30,0,z)],[268,y0+lerp(30,0,z)]],'#c79a5c',8);
+    label(z>.8?'…zipped into one straw!':'two separate halves',199,494,{size:18,display:true});
+  }
+  drawLeaf(140,220,86,.2,0,3); drawLeaf(900,196,80,-.2,0,9);
+}
+
+/* =====================================================================
+   SCENE 5 — A GARDEN THEY CAN USE
+   Plant only flowers and butterflies visit but nothing is ever born
+   there. Plant only milkweed and the caterpillars grow up hungry. The
+   counter only really moves when both are in.
+   ===================================================================== */
+const GD={milk:0, bloom:0, flyers:[], cats:[]};
+const GD_SLOTS=[110,220,330,440,550,660,770,880];
+function gardReset(){ GD.milk=0; GD.bloom=0; GD.flyers.length=0; GD.cats.length=0; }
+function gardScore(){ return Math.min(GD.milk,3)*GD.bloom>0?Math.min(GD.milk*2,6)+Math.min(GD.bloom*2,6):0; }
+function gardItems(){
+  const out=[];
+  if(GD.milk>0) out.push({id:'milkweed', name:'Milkweed', sub:'A HOST plant', emoji:'🌱', bg:STEM,
+    fact:'A host plant is where a butterfly lays its eggs, because it is what her caterpillars can eat. For a monarch that means milkweed and only milkweed.',
+    extra:'Butterfly weed is a milkweed with orange flowers, so it does both jobs at once.',
+    hit:{t:'r',x:60,y:250,w:260,h:300}, mark:[190,400,140]});
+  if(GD.bloom>0) out.push({id:'nectar', name:'Nectar flowers', sub:'Food for the grown-ups', emoji:'🌸', bg:'#c97bd6',
+    fact:'Grown-up butterflies do not eat leaves at all — they drink sugary nectar through their tongue. Coneflower, blazing star, ironweed and goldenrod are all Missouri favourites.',
+    extra:'Flowers with flat tops are easiest to land on.',
+    hit:{t:'r',x:560,y:250,w:340,h:300}, mark:[730,400,150]});
+  if(GD.cats.length) out.push({id:'gcat', name:'A caterpillar', sub:'Born right here', emoji:'🐛', bg:'#f7c73b',
+    fact:'This is the bit a flower-only garden never gets. Eggs, caterpillars, chrysalises — a garden with host plants makes new butterflies instead of just feeding passing ones.',
+    hit:{t:'c',x:GD.cats[0].x,y:GD.cats[0].y,r:86}, mark:[GD.cats[0].x,GD.cats[0].y,68]});
+  if(GD.flyers.length){ const f=GD.flyers[0];
+    out.push({id:'visitor', name:'The visitors', sub:'Missouri butterflies', emoji:'🦋', bg:ORANGE,
+      fact:'Monarchs on milkweed, black swallowtails on dill and parsley, painted ladies on thistle. Every butterfly has its own host plant, and most gardens have none of them.',
+      extra:'Plant dill and parsley and you will get black swallowtail caterpillars. They are worth the parsley.',
+      hit:{t:'c',x:f.x,y:f.y,r:96}, mark:[f.x,f.y,76]}); }
+  out.push({id:'puddle', name:'A muddy puddle', sub:'Butterflies drink from mud', emoji:'💧', bg:'#9a8a6a',
+    fact:'They gather on damp mud to sip up salt and minerals they cannot get from nectar. It is called puddling, and a shallow dish of wet sand will do it.',
+    hit:{t:'c',x:250,y:558,r:82}, mark:[250,558,64]});
+  return out;
+}
+function drawGardScene(){
+  ctx.fillStyle='#d6f0ff'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  emoji('☀️',96,96,60);
+  ctx.fillStyle='#8b5a2b'; ctx.fillRect(-DW,532,DW*3,DH);
+  ctx.fillStyle='#a8d47f'; ctx.fillRect(-DW,520,DW*3,20);
+  path(rough(-100,522,1100,522,8,4),LEAFG_DK,6);
+  for(let i=0;i<GD.milk;i++) drawMilkweed(GD_SLOTS[i],524,250+((i*31)%50),GD.cats.length>0,true);
+  for(let i=0;i<GD.bloom;i++){ const x=GD_SLOTS[7-i];
+    if(i%2) drawBlazingStar(x,524,216+((i*23)%40)); else drawConeflower(x,524,224+((i*17)%40)); }
+  /* the muddy puddle */
+  ellipse(250,560,64,18,0,'#7d6a4a',4); ellipse(234,556,20,7,0,'#b6a382',0);
+  label('a muddy puddle',190,596,{size:17,display:true});
+  GD.cats.forEach(c=>drawCat(c.x-30,c.y,62,1,.1));
+  GD.flyers.forEach(f=>{
+    const fl=Math.sin(now*6+f.ph)*.5+.5;
+    drawMonarch(f.x,f.y,f.kind==='monarch'?.92:.78,lerp(.5,1,fl),f.male,0,f.kind);
+  });
+  if(!GD.milk&&!GD.bloom) label('👉 Plant something!',560,320,{size:30,display:true});
+  else if(!GD.milk) label('Flowers to drink from — but nowhere to lay an egg.',560,176,{size:22,display:true,color:ORANGE_DK});
+  else if(!GD.bloom) label('Somewhere to lay eggs — but nothing to drink.',560,176,{size:22,display:true,color:ORANGE_DK});
+  else label('Both! Now the garden makes butterflies of its own.',560,176,{size:23,display:true,color:'#2e7d32'});
+  label('HOST PLANTS 🌱',150,506,{size:19,display:true});
+  label('NECTAR PLANTS 🌸',846,506,{size:19,display:true});
+}
+
+/* =====================================================================
+   SCENE 6 — THE LONG WAY SOUTH
+   ===================================================================== */
+/* A deliberately simple North America: the Canadian border straight across
+   the top, the east coast stepping down to Florida, a bite out of the bottom
+   for the Gulf, and Mexico tapering away south-east. Laid out so the map
+   clears the caption above it and the two panels on the right. */
+const NA=[[150,178],[555,178],[582,194],[564,224],[546,257],[527,287],[518,310],
+          [532,330],[536,376],[509,369],[500,323],
+          [463,320],[426,330],[398,320],[366,350],
+          [352,383],[371,416],[403,449],[426,468],[394,475],[357,442],
+          [325,416],[286,388],[250,356],[216,326],[196,318],[180,272],[168,226],[158,196]];
+const MO=[380,257], MX=[302,402];
+const JR={pos:0, t:0, dir:0, gen:1, moving:false};
+function tripReset(){ JR.pos=0; JR.t=0; JR.dir=0; JR.gen=1; JR.moving=false; }
+function routePt(u){
+  const a=MO, b=MX, c=[343,336];                   /* one gentle bend, through Texas */
+  const k=1-u; return [k*k*a[0]+2*k*u*c[0]+u*u*b[0], k*k*a[1]+2*k*u*c[1]+u*u*b[1]];
+}
+function tripItems(){
+  return [
+    {id:'missouri', name:'Missouri', sub:'Where the summer monarchs are', emoji:'⭐', bg:'#a8d47f',
+     fact:'Missouri sits right in the middle of the monarchs\' route. They come north through it in spring and stream back south through it in September and October.',
+     extra:'Watch for them over fields of goldenrod in the fall. That is them fuelling up.',
+     hit:{t:'c',x:MO[0],y:MO[1],r:92}, mark:[MO[0],MO[1],66]},
+    {id:'roost', name:'The roosting trees', sub:'Oyamel firs, high in the mountains', emoji:'🌲', bg:'#2f6b4a',
+     fact:'They spend the winter packed onto fir trees on a few mountainsides in central Mexico — so many on one branch that the branch bends. It is cool and damp up there, which is exactly what they need.',
+     extra:'Almost every monarch from east of the Rockies goes to the same handful of hillsides.',
+     hit:{t:'c',x:MX[0],y:MX[1],r:96}, mark:[MX[0],MX[1],72]},
+    {id:'route', name:'The route', sub:'Roughly 1,800 miles', emoji:'➡️', bg:'#ffd23f',
+     fact:'From Missouri it is about as far as driving to the west coast. They do it on wings the weight of a paper clip, riding the warm air upwards and gliding.',
+     extra:'The birds in the Flyway tool are doing the same trip. The butterflies are doing it without ever having been.',
+     hit:{t:'c',x:routePt(.5)[0],y:routePt(.5)[1],r:86}, mark:[routePt(.5)[0],routePt(.5)[1],64]},
+    {id:'super', name:'The super generation', sub:'Lives for months, not weeks', emoji:'💪', bg:ORANGE,
+     fact:'Summer monarchs live two to six weeks. The batch that hatches in late summer is different: it lives six to eight months, does not lay eggs yet, and flies the whole way to Mexico.',
+     extra:'It is the great-great-grandchild of the one that flew north in the spring — and it goes to a place it has never been.',
+     hit:{t:'r',x:660,y:344,w:290,h:166}, mark:[805,427,128]},
+    {id:'relay', name:'Coming back in spring', sub:'A relay race, not a round trip', emoji:'🔁', bg:'#9b5fc4',
+     fact:'In spring they fly north to Texas, lay eggs on new milkweed and die. Their children carry on north, and their children after that. It takes three or four generations to reach Missouri again.',
+     extra:'So the butterfly in your garden in July is the great-grandchild of the one that left last fall.',
+     hit:{t:'r',x:660,y:168,w:290,h:156}, mark:[805,246,128]},
+  ];
+}
+function drawTripScene(){
+  ctx.fillStyle='#bfe0f5'; ctx.fillRect(-DW,-DH,DW*3,DH*3);
+  poly(NA,'#cfe6a8',6);
+  label('U S A',286,262,{size:26,display:true,color:'#5a7a3a'});
+  label('Gulf of Mexico',452,372,{size:17,display:true,color:'#4a86b0'});
+  /* the route */
+  ctx.save(); ctx.setLineDash([14,11]); ctx.lineDashOffset=-now*30;
+  const R=[]; for(let i=0;i<=28;i++) R.push(routePt(i/28));
+  path(R,rgba(ORANGE_DK,.85),7); ctx.restore();
+  arrow(routePt(.86)[0],routePt(.86)[1],routePt(.97)[0],routePt(.97)[1],ORANGE_DK,7);
+  label('about 1,800 miles',206,362,{size:19,display:true,align:'right'});
+  /* the fir forest */
+  for(let i=0;i<5;i++){ const x=MX[0]-46+i*23, y=MX[1]+26;
+    poly([[x,y-54],[x-15,y],[x+15,y]],'#2f6b4a',3); line(x,y,x,y+9,'#6b4a2c',5); }
+  for(let i=0;i<14;i++) circle(MX[0]-44+((i*29)%92),MX[1]-16+((i*17)%34),6,rgba(ORANGE,.95));
+  label('🌲 winter roost — MEXICO',MX[0]+6,MX[1]+70,{size:19,display:true});
+  /* Missouri */
+  disc(MO[0],MO[1],13,GOLDY,4); label('⭐ Missouri',MO[0]+18,MO[1]-26,{size:21,display:true,align:'left'});
+  /* the travelling monarch */
+  const u=clamp(JR.pos,0,1), P=routePt(u);
+  drawMonarch(P[0],P[1]-18,.62,Math.sin(now*7)*.35+.62,false,0);
+  /* the two panels on the right: who makes the trip, and who comes back */
+  box(660,168,290,156,18,'rgba(255,253,247,.94)',5);
+  label('coming back is a relay',805,192,{size:19,display:true});
+  for(let i=0;i<4;i++){ drawMonarch(702+i*48,244,.28,.9,false,0); label(String(i+1),702+i*48,278,{size:16,display:true}); }
+  label('3 or 4 generations north',805,306,{size:17,display:true});
+  box(660,344,290,166,18,'rgba(255,253,247,.94)',5);
+  label('the super generation',805,368,{size:19,display:true});
+  drawMonarch(805,420,.52,.95,false,0);
+  label('lives 6–8 months',805,464,{size:17,display:true});
+  label('summer ones: 2–6 weeks',805,490,{size:16,display:true});
+  label(JR.pos>.9?'🌲 Wintering in Mexico':JR.pos<.1?'🌻 Summer in Missouri':'🍂 On the way…',
+    196,572,{size:21,display:true,color:ORANGE_DK});
+}
+
+/* =====================================================================
+   THE SCENES, AND WHAT EACH ONE DOES EVERY FRAME
+   ===================================================================== */
+const SCENES={
+  egg:{draw:drawEggScene,items:eggItems},
+  cat:{draw:drawCatScene,items:catItems},
+  chrysalis:{draw:drawChrScene,items:chrItems},
+  wings:{draw:drawWingScene,items:wingItems},
+  garden:{draw:drawGardScene,items:gardItems},
+  journey:{draw:drawTripScene,items:tripItems},
+};
+function items(){ return SCENES[CHAPTERS[current].id].items(); }
+function hitTest(x,y){ const L=items(); for(const it of L) if(hits(it.hit,x,y)) return it; return null; }
+
+const GD_KINDS=[{kind:'monarch',male:false},{kind:'swallowtail'},{kind:'monarch',male:true},{kind:'lady'}];
+function updateScenes(dt){
+  /* pumping up the wings is the step people never expect, so it is the one
+     thing in this tool that takes visible time rather than happening on a click */
+  const want=WG.ph<=2?.05:1;
+  if(WG.ph===3) WG.pump=Math.min(1,WG.pump+dt*.34);
+  else WG.pump+=(want-WG.pump)*Math.min(1,dt*3);
+  /* the garden fills up only when it has both kinds of plant */
+  const room=(GD.milk&&GD.bloom)?Math.min(6,GD.milk+GD.bloom):0;
+  while(GD.flyers.length<room){
+    const k=GD_KINDS[GD.flyers.length%GD_KINDS.length];
+    GD.flyers.push(Object.assign({},k,{hx:140+rnd()*720,hy:210+rnd()*200,x:0,y:0,t:rnd()*9,ph:rnd()*6}));
+  }
+  while(GD.flyers.length>room) GD.flyers.pop();
+  GD.flyers.forEach(f=>{ f.t+=dt; f.x=f.hx+Math.sin(f.t*.55+f.ph)*110; f.y=f.hy+Math.sin(f.t*1.15+f.ph)*38; });
+  const wantCats=(GD.milk&&GD.bloom)?Math.min(3,GD.milk):0;
+  while(GD.cats.length<wantCats) GD.cats.push({x:GD_SLOTS[GD.cats.length]+34,y:382+((GD.cats.length*23)%40)});
+  while(GD.cats.length>wantCats) GD.cats.pop();
+  /* the long flight */
+  JR.pos+=(JR.dir-JR.pos)*Math.min(1,dt*.5);
+}
+
+/* =====================================================================
+   READ ALOUD — the same machinery as Flower Explorer and Forest
+   Elevator, because a child who has used one should not have to learn a
+   second way of turning the voice on. Starts quiet: a voice that begins
+   talking the moment a page opens is a surprise in a classroom and talks
+   over whoever is helping. If the browser has no speech at all, every 🔊
+   hides itself and the tool works exactly as before.
+   ===================================================================== */
+const Speech=(()=>{
+  const has=('speechSynthesis' in window)&&('SpeechSynthesisUtterance' in window);
+  if(!has) document.body.classList.add('nospeech');
+  let on=false, voice=null, btn=null, cur=null, pending=null, unlocked=false;
+  function pickVoice(){
+    if(!has) return;
+    const vs=speechSynthesis.getVoices(); if(!vs.length) return;
+    const want=[/samantha/i,/karen/i,/moira/i,/google us english/i,/zira/i,/female/i];
+    for(const w of want){ const v=vs.find(v=>/^en/i.test(v.lang)&&w.test(v.name)); if(v){ voice=v; return; } }
+    voice=vs.find(v=>/^en-US/i.test(v.lang))||vs.find(v=>/^en/i.test(v.lang))||vs[0];
+  }
+  if(has){ pickVoice(); speechSynthesis.onvoiceschanged=pickVoice; }
+  /* strip markup, pronunciation hints and emoji — a screen voice happily reads
+     "mountain, tap the peak" as "mountain snow capped, tap the peak" */
+  function plain(html){
+    return String(html).replace(/<[^>]*>/g,'').replace(/\s*\((?=[A-Z]{2,})[^)]*\)/g,'')
+      .replace(/[\u{1F000}-\u{1FAFF}\u{1F1E6}-\u{1F1FF}\u{2190}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{20E3}]/gu,'')
+      .replace(/&amp;/g,'and').replace(/&nbsp;/g,' ').replace(/[·•]/g,',').replace(/\s+/g,' ').trim();
+  }
+  function stop(){ if(!has) return; cur=null; speechSynthesis.cancel(); if(btn){ btn.classList.remove('talking'); btn=null; } }
+  function say(text,fromBtn){
+    if(!has) return;
+    const t=plain(text); if(!t) return;
+    stop();
+    const u=new SpeechSynthesisUtterance(t);
+    try{ if(voice) u.voice=voice; }catch(e){}      /* a bad voice must never take the page down with it */
+    u.rate=.88; u.pitch=1.1; u.volume=1;
+    btn=fromBtn||null; if(btn) btn.classList.add('talking');
+    u.onend=u.onerror=()=>{ if(btn){ btn.classList.remove('talking'); btn=null; } cur=null; };
+    cur=u;
+    setTimeout(()=>{ if(cur===u) speechSynthesis.speak(u); },REDUCED?0:60);   /* Chrome wants a tick after cancel() */
+  }
+  /* iOS will not speak until the child has touched something, so the opening line
+     used to vanish silently. Try it, and if nothing is actually speaking by the
+     first tap, say it then instead. */
+  function unlock(){ if(unlocked) return; unlocked=true; const t=pending; pending=null;
+    if(t&&on&&has&&!speechSynthesis.speaking) say(t); }
+  if(has){ addEventListener('pointerdown',unlock,{once:true}); addEventListener('keydown',unlock,{once:true}); }
+  function auto(text){ if(!on) return; say(text); if(!unlocked) pending=text; }
+  return { has, say, auto, stop, plain, get on(){ return on; }, set on(v){ on=v; if(!v) stop(); } };
+})();
+
+/* ---------- words on the screen ---------- */
+function setCaption(i){
+  const c=CHAPTERS[i]; els.capLevel.textContent=c.title; els.capText.innerHTML=c.caption;
+  if(!REDUCED){ els.caption.classList.remove('bump'); void els.caption.offsetWidth; els.caption.classList.add('bump'); }
+  Speech.auto(c.title+'. '+c.caption);
+}
+let toastTimer=null;
+function toast(msg,ms){ els.toast.textContent=msg; els.toast.hidden=false; clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{ els.toast.hidden=true; },ms||4000); Speech.auto(msg); }
+function setStat(html){ if(!html){ els.stat.hidden=true; return; } els.stat.innerHTML=html; els.stat.hidden=false; }
+function statFor(i){
+  const id=CHAPTERS[i].id;
+  if(id==='egg') return '<span>📅 Day <b>'+Math.min(EG.day,4)+'</b> of 4</span><span>'+(EG.day>=4?'🐛 <b>Hatched!</b>':'🥚 About <b>1 mm</b> tall')+'</span>';
+  if(id==='cat') return '<span>🐛 Size <b>'+CT.inst+'</b> of 5</span><span>👕 Skins shed: <b>'+CT.skins+'</b></span>'
+    +'<span>⚖️ About <b>'+CAT_MASS[CT.inst].toLocaleString()+'×</b> heavier</span>';
+  if(id==='chrysalis') return '<span>'+(CH.ph===0?'🐛 <b>Still eating</b>':CH.ph===1?'🪝 <b>Hanging in a J</b>':'🔮 <b>Chrysalis</b>')+'</span>'
+    +(CH.ph>=2?'<span>📅 Day <b>'+(CH.day*6+1)+'</b> of about 12</span>':'');
+  if(id==='wings') return '<span>🦋 <b>'+WG_NAME[Math.min(5,WG.ph)]+'</b></span>'
+    +'<span>💧 Wings pumped: <b>'+Math.round(clamp(WG.pump,0,1)*100)+'%</b></span>';
+  if(id==='garden') return '<span>🌱 Milkweed: <b>'+GD.milk+'</b></span><span>🌸 Flowers: <b>'+GD.bloom+'</b></span>'
+    +'<span>🦋 Visitors: <b>'+GD.flyers.length+'</b></span><span>🐛 Born here: <b>'+GD.cats.length+'</b></span>';
+  if(id==='journey') return '<span>'+(JR.pos>.9?'🌲 <b>In Mexico</b>':JR.pos<.1?'🌻 <b>In Missouri</b>':'🍂 <b>On the way…</b>')+'</span>'
+    +'<span>🧬 Generation <b>'+JR.gen+'</b></span>';
+  return '';
+}
+function refreshStat(){ setStat(statFor(current)); }
+
+/* ---------- the info card ---------- */
+const tctx=els.thumb.getContext('2d');
+function showCard(item){
+  selected=item;
+  els.cardName.textContent=item.name; els.cardSub.textContent=item.sub||''; els.cardSub.hidden=!item.sub;
+  els.cardFact.textContent=item.fact; els.cardExtra.textContent=item.extra||''; els.cardExtra.hidden=!item.extra;
+  const real=ctx; ctx=tctx; ctx.setTransform(2,0,0,2,0,0); ctx.clearRect(0,0,84,84);
+  ctx.fillStyle=item.bg||'#e8f4ff'; ctx.fillRect(0,0,84,84);
+  if(item.emoji) emoji(item.emoji,42,44,48);
+  ctx=real;
+  els.card.hidden=false; els.hint.hidden=true; document.body.classList.add('carding');
+  Speech.auto(item.name+'. '+(item.sub?item.sub+'. ':'')+item.fact);
+}
+function closeCard(){ selected=null; els.card.hidden=true; document.body.classList.remove('carding'); }
+els.cardClose.addEventListener('click',closeCard);
+
+/* ---------- badges ---------- */
+function award(id){
+  if(badges[id]) return; badges[id]=true; saveBadges(); updateWipe();
+  const c=CHAPTERS.find(c=>c.id===id); if(!c) return;
+  if(c.badgeEl) c.badgeEl.classList.add('won'); if(c.chip) c.chip.classList.add('won');
+  updateButtons();
+  const n=Object.keys(badges).length;
+  if(n===CHAPTERS.length){ els.meter.classList.add('all'); burstConfetti(); toast('🦋 All 6 badges — you are a LEPIDOPTERIST!',7000); }
+  else toast(c.icon+' Badge earned! '+(CHAPTERS.length-n)+' to go.',4000);
+}
+
+/* ---------- the challenge panel ---------- */
+const quest={active:null,step:0,picked:0};
+function startQuest(id){
+  const c=CHAPTERS.find(c=>c.id===id); if(!c||!c.quest) return;
+  closeCard(); quest.active={id:c.id,title:c.questTitle,steps:c.quest}; quest.step=0; quest.picked=0;
+  els.qTitle.textContent=quest.active.title; els.quest.hidden=false; els.hint.hidden=true;
+  document.body.classList.add('questing');
+  renderStep();
+}
+function endQuest(){ quest.active=null; els.quest.hidden=true; document.body.classList.remove('questing');
+  if(!els.card.hidden) return; els.hint.hidden=false; }
+function renderStep(){
+  const Q=quest.active, S=Q.steps[quest.step];
+  els.qDots.innerHTML='';
+  Q.steps.forEach((_,i)=>{ const d=document.createElement('span');
+    d.className='dot'+(i<quest.step?' done':i===quest.step?' now':''); els.qDots.appendChild(d); });
+  els.qText.innerHTML=S.prompt; els.qFb.textContent=''; els.qFb.className='q-fb'; quest.picked=0;
+  els.qOpts.innerHTML='';
+  if(S.options){ els.qOpts.hidden=false;
+    S.options.forEach((o,i)=>{ const b=document.createElement('button'); b.className='opt'; b.type='button';
+      b.textContent=o.text; b.addEventListener('click',()=>pick(i,b)); els.qOpts.appendChild(b); }); }
+  else els.qOpts.hidden=true;
+  if(S.onShow) S.onShow();
+  Speech.auto(questSpeech());
+}
+function feedback(msg,good){ els.qFb.textContent=msg; els.qFb.className='q-fb '+(good?'good':'bad'); Speech.auto(msg); }
+function stepDone(){
+  const Q=quest.active; quest.step++;
+  if(quest.step>=Q.steps.length) setTimeout(()=>{ endQuest(); award(Q.id); },1100);
+  else setTimeout(renderStep,1300);
+}
+function pick(i,btn){
+  const S=quest.active.steps[quest.step], o=S.options[i];
+  if(btn.disabled) return;
+  if(o.ok){ btn.classList.add('yes'); btn.disabled=true; quest.picked++; feedback(o.say||'Yes!',true);
+    if(quest.picked>=(S.need||1)){ els.qOpts.querySelectorAll('.opt').forEach(b=>b.disabled=true); stepDone(); } }
+  else{ btn.classList.remove('no'); void btn.offsetWidth; btn.classList.add('no');
+    feedback(o.say||'Not that one. Try again!',false); }
+}
+function questTap(item){
+  const Q=quest.active; if(!Q) return false;
+  const S=Q.steps[quest.step]; if(!S.tap) return false;
+  const r=S.tap(item);
+  if(r===true){ feedback(S.yes||'Yes!',true); stepDone(); return true; }
+  feedback(typeof r==='string'?r:(S.no||'Not that one. Look again!'),false);
+  return true;
+}
+els.questClose.addEventListener('click',endQuest);
+els.btnQuest.addEventListener('click',()=>{ if(quest.active) endQuest(); else startQuest(CHAPTERS[current].id); });
+const tapIs=(id,hint)=>it=>it&&it.id===id?true:hint;
+
+/* The challenges live on the chapters themselves, so the headless smoke check
+   can read every step without having to open the panel and walk it. */
+/* The challenges live on the chapters themselves, so the headless smoke check
+   can read every step without having to open the panel and walk it. */
+CHAPTERS[0].questTitle='🥚 Under the right leaf';
+CHAPTERS[0].quest=[
+  {prompt:'Why does she only lay eggs on <b>milkweed</b>?',options:[
+    {text:'🌱 It is the only thing her caterpillars can eat',ok:true,say:'Yes! Wrong plant, and the caterpillar starves.'},
+    {text:'🛏️ Milkweed leaves are the softest',say:'Soft has nothing to do with it. Think about eating.'},
+    {text:'👃 Milkweed flowers smell nicest',say:'She is not choosing for herself — she is choosing for her babies.'}]},
+  {prompt:'Now tap the <b>egg</b>. It is tiny — press 🔍 Look closer if you need to.',
+   tap:it=>it&&it.id==='egg'?true:(it&&it.id==='under'?'Close! It is the little speck ON the leaf.':'Look on the underside of the big leaf for a pale speck.'),
+   yes:'Found it! About one millimetre tall, and ribbed like a tiny football.'},
+];
+CHAPTERS[1].questTitle='🐛 Growing out of your clothes';
+CHAPTERS[1].quest=[
+  {prompt:'Why does a caterpillar have to <b>shed its skin</b>?',options:[
+    {text:'👕 Its skin cannot stretch, so it climbs out of it',ok:true,say:'Yes! Five times, on the way to being two thousand times heavier.'},
+    {text:'🧼 To get clean',say:'Nothing to do with being clean. Think about growing.'},
+    {text:'🥶 Because it gets too hot',say:'Not the weather — think about what happens when it gets bigger.'}]},
+  {prompt:'Press <b>🍽️ Eat and grow!</b> a couple of times, then tap a skin it climbed out of.',
+   tap:it=>it&&it.id==='skin'?true:(CT.skins===0?'Press 🍽️ Eat and grow! first — it has not shed one yet.':'Look for the crumpled old skins stuck on the right.'),
+   yes:'Yes! The old suit, left hanging. It usually turns round and eats it.'},
+];
+CHAPTERS[2].questTitle='🔮 Not a cocoon';
+CHAPTERS[2].quest=[
+  {prompt:'What is a chrysalis actually <b>made of</b>?',options:[
+    {text:'🐛 The caterpillar\'s own skin, gone hard',ok:true,say:'Yes! It is the caterpillar, not a bag around the caterpillar.'},
+    {text:'🧵 Silk it spins around itself',say:'That is a cocoon — that is what a moth makes. A butterfly does not.'},
+    {text:'🍃 Leaves stuck together',say:'No leaves involved. It comes from the caterpillar itself.'}]},
+  {prompt:'Tap the animal in this picture that <b>never</b> makes a chrysalis.',
+   tap:it=>it&&it.id==='grass'?true:'Look in the little box at the bottom right.',
+   yes:'Yes! A baby grasshopper is just a small grasshopper. No chrysalis needed.'},
+];
+CHAPTERS[3].questTitle='🦋 Pump them up';
+CHAPTERS[3].quest=[
+  {prompt:'A butterfly comes out with a <b>fat body</b> and tiny crumpled wings. Why is the body so fat?',options:[
+    {text:'💧 It is full of fluid to pump into the wings',ok:true,say:'Yes! The body squeezes it out into the wing veins and they unfold.'},
+    {text:'🍽️ It ate a huge breakfast',say:'It has not eaten anything for two weeks!'},
+    {text:'🎈 It is full of air to help it float',say:'Not air — something it needs to push into the wings.'}]},
+  {prompt:'Press <b>▶️ Next step</b> until it is out, then tap its <b>wings</b>.',
+   tap:it=>it&&it.id==='wings'?true:(WG.ph<2?'Keep pressing ▶️ Next step until it climbs out.':'Tap the orange wings on the butterfly.'),
+   yes:'Yes! Soft as wet paper at first, then pumped up and left to harden.'},
+];
+CHAPTERS[4].questTitle='🌼 Half a butterfly';
+CHAPTERS[4].quest=[
+  {prompt:'A caterpillar and a grown-up butterfly want different food. What does the <b>caterpillar</b> need?',options:[
+    {text:'🌱 Leaves of one special plant',ok:true,say:'Yes! That plant is called its host plant.'},
+    {text:'🌸 Nectar from flowers',say:'That is what the grown-up drinks. The caterpillar cannot.'},
+    {text:'💧 Muddy water',say:'Grown-ups sip mud for minerals. Caterpillars eat leaves.'}]},
+  {prompt:'Plant <b>milkweed AND flowers</b>, then tap a caterpillar that was born in your garden.',
+   tap:it=>it&&it.id==='gcat'?true:((!GD.milk||!GD.bloom)?'Plant both kinds first — it needs somewhere to lay eggs AND something to drink.':'Look on the milkweed for a stripy caterpillar.'),
+   yes:'Yes! That is a garden that makes butterflies instead of just feeding them.'},
+];
+CHAPTERS[5].questTitle='🗺️ Nobody showed it the way';
+CHAPTERS[5].quest=[
+  {prompt:'The monarch that flies to Mexico has <b>never been there</b>. So how does it find the way?',options:[
+    {text:'🧭 It is born knowing — it steers by the sun',ok:true,say:'Yes! A sun compass and a clock in its head, both built in.'},
+    {text:'👨‍👩‍👧 Its parents show it the way',say:'Its parents never went. They lived and died up north.'},
+    {text:'🐦 It follows the birds',say:'Birds fly far too fast for a butterfly to keep up!'}]},
+  {prompt:'Press <b>🍂 Fly south</b>, then tap the trees it spends the whole winter in.',
+   tap:it=>it&&it.id==='roost'?true:(JR.dir<.5?'Press 🍂 Fly south first and watch where it goes.':'Tap the little fir trees down in Mexico.'),
+   yes:'Yes! Oyamel firs, high in the mountains, packed so thick the branches bend.'},
+];
+
+/* ---------- the read-aloud switch and the 🔊 buttons ---------- */
+function questSpeech(){
+  const S=quest.active&&quest.active.steps[quest.step]; if(!S) return '';
+  let t=Speech.plain(S.prompt);
+  if(S.options) t+=' Is it: '+S.options.map(o=>Speech.plain(o.text)).join('… or… ')+'?';
+  return t;
+}
+const READ_KEY='learningTools.eggToWings.readAloud';
+function applyRead(on,announce){
+  const r=$('btnRead');
+  Speech.on=on;
+  r.querySelector('.rd-icon').textContent=on?'🔊':'🔇';
+  r.querySelector('.rd-word').textContent=on?'Reading':'Quiet';
+  r.classList.toggle('off',!on);
+  r.setAttribute('aria-pressed',String(on));
+  if(on&&announce) Speech.say('Reading is on. I will read the words to you.');
+}
+$('btnRead').addEventListener('click',()=>{ applyRead(!Speech.on,true);
+  try{ localStorage.setItem(READ_KEY,Speech.on?'on':'off'); }catch(e){} });
+/* restored without the spoken confirmation — that would be talking on load again */
+try{ if(localStorage.getItem(READ_KEY)==='on') applyRead(true,false); }catch(e){}
+$('spkCap').addEventListener('click',()=>Speech.say(CHAPTERS[current].title+'. '+CHAPTERS[current].caption,$('spkCap')));
+$('spkCard').addEventListener('click',()=>{ if(selected)
+  Speech.say(selected.name+'. '+(selected.sub?selected.sub+'. ':'')+selected.fact+' '+(selected.extra||''),$('spkCard')); });
+$('spkQuest').addEventListener('click',()=>Speech.say(questSpeech(),$('spkQuest')));
+
+/* ---------- confetti ---------- */
+const confetti=[];
+function burstConfetti(){
+  if(REDUCED) return;
+  const rr=seeded(Date.now()%977+1), cols=[ROCKET,GOLD,SKY,GRASS,WHITE,'#ff4fa3'];
+  for(let i=0;i<120;i++) confetti.push({x:rr()*V.w,y:-10-rr()*120,vx:(rr()-.5)*80,vy:60+rr()*90,
+    r:rr()*TAU,vr:(rr()-.5)*8,c:cols[i%cols.length],s:7+rr()*7});
+}
+function drawConfetti(dt){
+  for(let i=confetti.length-1;i>=0;i--){ const p=confetti[i];
+    p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=70*dt; p.r+=p.vr*dt;
+    if(p.y>V.h+20){ confetti.splice(i,1); continue; }
+    ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+    ctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); ctx.restore(); }
+}
+
+/* =====================================================================
+   THE CHAPTER CONTROLS
+   ===================================================================== */
+function setGlass(v){ EG.glass=v; $('togGlass').classList.toggle('on',v);
+  $('togGlass').textContent=v?'🔍 Put the glass away':'🔍 Look closer'; }
+$('togGlass').addEventListener('click',()=>{ setGlass(!EG.glass);
+  if(EG.glass) toast('🔍 That is life size — about one millimetre. A pinhead.',5000); });
+$('btnDay').addEventListener('click',()=>{
+  if(EG.day>=4){ toast('🐛 It has already hatched! Press ↺ for a new egg.',3000); return; }
+  EG.day++;
+  toast(EG.day>=4?'🐛 It hatched! First meal: its own eggshell.'
+       :EG.day===3?'📅 Day 3 — you can see the caterpillar\'s black head through the shell.'
+       :'📅 Day '+EG.day+' — still an egg. They hatch in three to five days.',4500);
+  refreshStat(); buildTapList();
+});
+$('btnEggReset').addEventListener('click',()=>{ eggReset(); toast('↺ A brand new egg.',2500); refreshStat(); buildTapList(); });
+
+function setSizes(v){ CT.sizes=v; $('togSizes').classList.toggle('on',v);
+  $('togSizes').textContent=v?'📏 Hide the sizes':'📏 Line up the sizes'; }
+$('btnEat').addEventListener('click',()=>{
+  if(CT.inst>=5){ toast('🐛 Full size! It has stopped eating and gone looking for a twig.',4000); return; }
+  CT.inst++; CT.skins++;
+  toast('👕 Split! Out it climbs in a bigger skin. Now about '+CAT_MASS[CT.inst]+'× heavier than when it hatched.',5000);
+  refreshStat(); buildTapList();
+});
+$('togSizes').addEventListener('click',()=>{ setSizes(!CT.sizes);
+  if(CT.sizes) toast('📏 From a speck to a fat stripy sausage, in about two weeks.',5000); });
+$('btnCatReset').addEventListener('click',()=>{ catReset(); toast('↺ Back to a brand new hatchling.',2500); refreshStat(); buildTapList(); });
+
+function setLook(v){ CH.look=v; $('togInside').classList.toggle('on',v);
+  $('togInside').textContent=v?'🔍 Close it up':'🔍 Look inside'; }
+function chrLabel(){ return CH.ph===0?'🪝 Hang it up':CH.ph===1?'🔄 Make the chrysalis':'📅 Next day'; }
+$('btnStep').addEventListener('click',()=>{
+  if(CH.ph===0){ CH.ph=1; toast('🪝 It spins a silk button, grabs on and hangs in a J.',5000); }
+  else if(CH.ph===1){ CH.ph=2; CH.day=0; toast('🔄 Its skin splits behind the head and it wriggles out. A chrysalis!',5500); }
+  else if(CH.day<2){ CH.day++; toast(CH.day>=2?'📅 Over a week now. Almost time.':'📅 Another day. Inside, it is being rebuilt.',4000); }
+  else toast('🔮 Ready! The next chapter is what happens next.',3500);
+  $('btnStep').textContent=chrLabel(); refreshStat(); buildTapList();
+});
+$('togInside').addEventListener('click',()=>{
+  if(CH.ph<2){ toast('🔍 Make the chrysalis first — there is nothing to look inside yet.',3500); return; }
+  setLook(!CH.look);
+  if(CH.look) toast('🔍 Most of the caterpillar comes apart. The wings are built out of the pieces.',6000);
+});
+$('btnChrReset').addEventListener('click',()=>{ chrReset(); setLook(false);
+  $('btnStep').textContent=chrLabel(); toast('↺ Back to the caterpillar.',2500); refreshStat(); buildTapList(); });
+
+function setTongue(v){ WG.tongue=v; $('togTongue').classList.toggle('on',v);
+  $('togTongue').textContent=v?'👅 Hide the tongue':'👅 Watch the tongue'; }
+$('btnHatch').addEventListener('click',()=>{
+  if(WG.ph>=5){ toast('🦋 It has already flown off! Press ↺ to start again.',3000); return; }
+  WG.ph++; closeCard();
+  const say=['','👀 It has gone see-through. That orange is the folded wings.',
+    '✂️ Out it climbs — fat body, crumpled little wings.',
+    '💧 Pumping! Fluid from the body goes out into the wing veins.',
+    '🌬️ Now it hangs still for a couple of hours while the wings harden.',
+    '🦋 Ready. First flight.'][WG.ph];
+  toast(say,5000);
+  $('btnHatch').textContent=WG.ph>=5?'🦋 Off it goes!':'▶️ Next step';
+  refreshStat(); buildTapList();
+});
+$('togTongue').addEventListener('click',()=>{ setTongue(!WG.tongue);
+  if(WG.tongue) toast('👅 The tongue arrives in two halves. It curls them until they zip together.',6000); buildTapList(); });
+$('btnWingReset').addEventListener('click',()=>{ wingReset(); setTongue(false);
+  $('btnHatch').textContent='▶️ Next step'; toast('↺ Back into the chrysalis.',2500); refreshStat(); buildTapList(); });
+
+$('btnMilk').addEventListener('click',()=>{
+  if(GD.milk>=4){ toast('🌱 That is plenty of milkweed!',2500); return; }
+  GD.milk++;
+  toast(GD.bloom?'🌱 Milkweed in. Now there is somewhere to lay eggs AND something to drink.'
+       :'🌱 Milkweed in — somewhere to lay eggs. But nothing for the grown-ups to drink yet.',5000);
+  refreshStat(); setTimeout(buildTapList,60);
+});
+$('btnBloom').addEventListener('click',()=>{
+  if(GD.bloom>=4){ toast('🌸 The bed is full of flowers!',2500); return; }
+  GD.bloom++;
+  toast(GD.milk?'🌸 Flowers in. Butterflies will come — and stay.'
+       :'🌸 Flowers in. Butterflies will visit for a drink, but no eggs without a host plant.',5000);
+  refreshStat(); setTimeout(buildTapList,60);
+});
+$('btnGardReset').addEventListener('click',()=>{ gardReset(); toast('↺ Bare earth again.',2500); refreshStat(); buildTapList(); });
+
+$('btnSouth').addEventListener('click',()=>{
+  if(JR.dir>.5){ toast('🌲 It is already down in Mexico for the winter.',3000); return; }
+  JR.dir=1; closeCard();
+  toast('🍂 Off it goes — about 1,800 miles, on wings lighter than a paper clip.',5500);
+  refreshStat();
+});
+$('btnNorth').addEventListener('click',()=>{
+  if(JR.dir<.5){ toast('🌻 It is already up here in Missouri.',3000); return; }
+  JR.dir=0; JR.gen++; closeCard();
+  toast('🌸 North again — but as a relay. It takes three or four generations to get back.',6000);
+  refreshStat();
+});
+$('btnTripReset').addEventListener('click',()=>{ tripReset(); toast('↺ Back to a Missouri summer.',2500); refreshStat(); });
+
+/* Everything a chapter switches on gets switched off again when the child
+   leaves it. Keeping this in one named function, rather than scattering
+   `if (id !== 'cat')` through goTo, is what stops a control quietly
+   following the child to the next chapter. The things a child has BUILT —
+   the grown caterpillar, the chrysalis, the planted garden — are
+   deliberately not here: each has its own ↺ that says what it puts back. */
+function resetTransient(){
+  setGlass(false); setSizes(false); setLook(false); setTongue(false);
+}
+
+/* =====================================================================
+   MOVING BETWEEN CHAPTERS
+   ===================================================================== */
+CHAPTERS.forEach((c,i)=>{
+  const b=document.createElement('span'); b.className='badge'; b.textContent=c.icon; b.title=c.name+' badge';
+  els.badges.appendChild(b); c.badgeEl=b;
+  const t=document.createElement('button'); t.className='lvl'; t.type='button';
+  t.setAttribute('aria-label','Go to '+c.name);
+  t.appendChild(Object.assign(document.createElement('span'),{className:'ic',textContent:c.icon}));
+  t.appendChild(Object.assign(document.createElement('span'),{className:'nm',textContent:c.name}));
+  t.addEventListener('click',()=>goTo(i)); els.levels.appendChild(t); c.chip=t;
+});
+function buildTapList(){
+  const host=$('taplist'); if(!host) return;
+  host.innerHTML='';
+  items().forEach(it=>{
+    const b=document.createElement('button'); b.type='button'; b.textContent=it.name;
+    b.addEventListener('click',()=>{
+      if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(it)) return; }
+      showCard(it);
+    });
+    host.appendChild(b);
+  });
+}
+function updateChips(){
+  CHAPTERS.forEach((c,k)=>{ c.chip.classList.toggle('on',k===current); c.chip.classList.toggle('done',k<current); });
+  const on=CHAPTERS[current].chip;                 /* keep the current one in view when the rail scrolls */
+  if(on&&on.scrollIntoView) on.scrollIntoView({block:'nearest',inline:'center'});
+}
+function updateButtons(){
+  els.btnBack.disabled=(current===0);
+  const last=(current===CHAPTERS.length-1);
+  els.btnNext.textContent=last?'🔁 Back to the start':'Next ▶';
+  els.btnNext.classList.toggle('home',last);
+  const c=CHAPTERS[current], won=!!badges[c.id];
+  els.btnQuest.textContent=won?'✅ Badge earned':'🎯 Challenge!';
+  els.btnQuest.classList.toggle('won',won);
+  ['egg','cat','chr','wing','gard','trip'].forEach(g=>{ $('ctl-'+g).hidden=!c.ctls.includes(g); });
+}
+let trans=null;         // {to,t0,dur}
+function goTo(i){
+  i=clamp(i,0,CHAPTERS.length-1); if(i===current||trans) return;
+  closeCard(); endQuest(); els.hint.hidden=true;
+  resetTransient();
+  if(REDUCED){ switchTo(i); return; }
+  trans={to:i,t0:performance.now(),dur:700};
+}
+function switchTo(i){
+  current=i;
+  setCaption(i); updateChips(); updateButtons(); refreshStat();
+  els.hint.textContent=CHAPTERS[i].hint; els.hint.hidden=false;   /* every chapter says what to tap */
+  buildTapList();
+}
+els.btnNext.addEventListener('click',()=>goTo(current===CHAPTERS.length-1?0:current+1));
+els.btnBack.addEventListener('click',()=>goTo(current-1));
+
+/* ---------- taps ---------- */
+let pDown=null;
+view.addEventListener('pointerdown',e=>{ pDown={x:e.clientX,y:e.clientY}; });
+view.addEventListener('pointerup',e=>{
+  if(!pDown) return; const moved=Math.hypot(e.clientX-pDown.x,e.clientY-pDown.y); pDown=null;
+  if(moved>12||trans) return;
+  const r=view.getBoundingClientRect(), [wx,wy]=toDesign(e.clientX-r.left,e.clientY-r.top);
+  const item=hitTest(wx,wy);
+  if(quest.active&&quest.active.steps[quest.step].tap){ if(questTap(item)) return; }
+  if(item) showCard(item); else closeCard();
+});
+window.addEventListener('keydown',e=>{
+  const tag=e.target.tagName; if(tag==='INPUT') return;
+  if((e.key===' '||e.key==='Enter')&&tag==='BUTTON') return;
+  if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); els.btnNext.click(); }
+  else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); els.btnBack.click(); }
+  else if(e.key==='Escape'){ closeCard(); endQuest(); }
+  else if(e.key>='1'&&e.key<='6') goTo(+e.key-1);
+});
+
+/* ---------- sizing + the frame loop ---------- */
+function placeQuestBtn(){ if(narrowMQ.matches) $('ctl').prepend(els.btnQuest); else els.btnNext.after(els.btnQuest); updateButtons(); }
+narrowMQ.addEventListener('change',placeQuestBtn); placeQuestBtn();
+function resize(){
+  const r=stage.getBoundingClientRect();
+  V.w=Math.max(240,Math.round(r.width)); V.h=Math.max(160,Math.round(r.height));
+  V.dpr=Math.min(2,window.devicePixelRatio||1);
+  view.width=Math.round(V.w*V.dpr); view.height=Math.round(V.h*V.dpr);
+  /* "contain": the whole picture is on screen at every size the layout check
+     throws at it, from a 320px phone to a 2000px window. The bands left over
+     are painted by each scene's own background, which is drawn well outside
+     the design box on purpose. */
+  S=Math.min(V.w/DW,V.h/DH); OX=(V.w-DW*S)/2; OY=(V.h-DH*S)/2;
+}
+let lastT=performance.now(), lastStat=0;
+function frame(nowMs){
+  const dt=Math.min(.05,(nowMs-lastT)/1000); lastT=nowMs; now=nowMs/1000;
+  updateScenes(dt);
+  if(nowMs-lastStat>250){ lastStat=nowMs; refreshStat(); }
+  let fade=0;
+  if(trans){
+    const k=clamp((nowMs-trans.t0)/trans.dur,0,1);
+    fade=1-Math.abs(k*2-1);
+    if(k>=.5&&current!==trans.to) switchTo(trans.to);
+    if(k>=1) trans=null;
+  }
+  ctx.setTransform(V.dpr*S,0,0,V.dpr*S,V.dpr*OX,V.dpr*OY);
+  SCENES[CHAPTERS[current].id].draw();
+  if(selected){ const m=selected.mark||markOf(selected.hit);
+    if(m){ ctx.save(); ctx.setLineDash([14,10]); ctx.lineDashOffset=-now*44;
+      ring(m[0],m[1],m[2],GOLD,7); ctx.restore(); } }
+  ctx.setTransform(V.dpr,0,0,V.dpr,0,0);
+  if(fade>0){ ctx.fillStyle='rgba(255,248,231,'+fade+')'; ctx.fillRect(0,0,V.w,V.h); }
+  drawConfetti(dt);
+  requestAnimationFrame(frame);
+}
+if(document.fonts&&document.fonts.load){ document.fonts.load('800 13px Nunito'); document.fonts.load('700 20px Fredoka'); }
+window.eggToWings={CHAPTERS,goTo,award,startQuest,quest,badges,items,hitTest,
+  EG,CT,CH,WG,GD,JR};                                     // handy for testing and tinkering
+new ResizeObserver(resize).observe(stage);
+resize();
+
+/* =====================================================================
+   BADGES THAT SURVIVE A CLOSED TAB
+   A seven-year-old gets called to dinner mid-challenge. Losing every badge
+   to a reload is the quickest way to make the whole reward loop feel
+   pointless. The ↺ in the meter clears them so a second child can start
+   fresh — two taps, so it cannot happen by accident.
+   ===================================================================== */
+const SAVE_KEY='learningTools.eggToWings.badges';
+function saveBadges(){ try{ localStorage.setItem(SAVE_KEY,JSON.stringify(Object.keys(badges))); }catch(e){} }
+function restoreBadges(){
+  let saved=[];
+  try{ saved=JSON.parse(localStorage.getItem(SAVE_KEY)||'[]'); }catch(e){ saved=[]; }
+  if(!Array.isArray(saved)) saved=[];
+  saved.forEach(id=>{ const c=CHAPTERS.find(x=>x.id===id); if(!c) return;
+    badges[id]=true;
+    if(c.badgeEl) c.badgeEl.classList.add('won');
+    if(c.chip) c.chip.classList.add('won'); });
+  if(Object.keys(badges).length===CHAPTERS.length) els.meter.classList.add('all');
+  updateWipe(); updateButtons();
+}
+function clearBadges(){
+  Object.keys(badges).forEach(k=>{ delete badges[k]; });
+  CHAPTERS.forEach(c=>{ if(c.badgeEl) c.badgeEl.classList.remove('won'); if(c.chip) c.chip.classList.remove('won'); });
+  els.meter.classList.remove('all');
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+  updateWipe(); updateButtons();
+}
+let wipeArmed=false, wipeTimer=null;
+function updateWipe(){
+  const b=$('btnWipe'); if(!b) return;
+  const any=Object.keys(badges).length>0;
+  b.hidden=!any;
+  if(!any){ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); }
+}
+$('btnWipe').addEventListener('click',()=>{
+  const b=$('btnWipe');
+  if(!wipeArmed){
+    wipeArmed=true; b.textContent='Clear?'; b.classList.add('armed');
+    clearTimeout(wipeTimer);
+    wipeTimer=setTimeout(()=>{ wipeArmed=false; b.textContent='↺'; b.classList.remove('armed'); },3500);
+    return;
+  }
+  clearTimeout(wipeTimer); wipeArmed=false; b.textContent='↺'; b.classList.remove('armed');
+  clearBadges(); toast('↺ Badges cleared — a fresh start.',3000);
+});
+setCaption(0); updateChips(); updateButtons(); refreshStat();
+els.hint.textContent=CHAPTERS[0].hint;
+buildTapList();
+restoreBadges();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

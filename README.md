@@ -14,6 +14,7 @@ Small, playful, single-file web pages for big ideas. Served with GitHub Pages at
 | **Build a House** | 3–4 | [build-a-house/](https://zacharyklein.github.io/learning-tools/build-a-house/) |
 | **Under Your Feet** | 1–3 | [under-your-feet/](https://zacharyklein.github.io/learning-tools/under-your-feet/) |
 | **Egg to Wings** | 1–3 | [egg-to-wings/](https://zacharyklein.github.io/learning-tools/egg-to-wings/) |
+| **City Explorer** | 3–4 | [city-explorer/](https://zacharyklein.github.io/learning-tools/city-explorer/) |
 
 What each one is about lives in the `TOOLS` array in the root `index.html`, and
 the landing page renders its cards from there. This table deliberately does not
@@ -87,7 +88,10 @@ are all `aria-live` regions.
 **Keyboard.** Each chapter renders a list of buttons named for the things in the
 picture, off-screen until focused, wired to the same handler as a tap — so a
 "tap the ..." challenge step can be answered without a pointer. Done in Flower
-Explorer and Forest Elevator, Under Your Feet and Egg to Wings; the other five still need it.
+Explorer and Forest Elevator, Under Your Feet, Egg to Wings and City Explorer;
+the other five still need it. Where a scene has no nameable things — City
+Explorer's build grid is sixty identical squares — the same list becomes a
+cursor instead: move it, then build where it stands.
 
 **What you can tap.** A chapter's hit list is tried in order and the first
 match wins, so it goes **small things first, big background regions last**. A
@@ -95,10 +99,12 @@ caterpillar sitting on a milkweed has to be listed before the milkweed, or the
 plant swallows it and a "tap the ..." challenge step becomes unanswerable.
 
 **Testing.** Every tool exposes `window.<toolName>` for the headless tests, and
-the two newest also expose `items()` and `hitTest()` so `tests/tap-check.mjs`
-can check that everything in the picture is actually reachable. Run
-`node tests/layout-check.mjs`, `node tests/smoke-check.mjs` and
-`node tests/tap-check.mjs` before pushing.
+the three newest also expose `items()` and `hitTest()` so `tests/tap-check.mjs`
+can check that everything in the picture is actually reachable. A new tool has
+to be added by name in two places or it is silently skipped or fails: the `G`
+chain in `smoke-check.mjs`, and `TESTABLE` + `WARMUP` + the `G` chains in
+`tap-check.mjs`. Run `node tests/layout-check.mjs`, `node tests/smoke-check.mjs`
+and `node tests/tap-check.mjs` before pushing.
 
 ## Publishing
 

@@ -34,7 +34,7 @@ const APPS = fs.readdirSync(ROOT, { withFileTypes: true })
 /* Only the tools that expose items()/hitTest() can be checked this way. The
    older five hit-test against their own scene data and are skipped rather
    than reported as failures. */
-const TESTABLE = ['under-your-feet', 'egg-to-wings'];
+const TESTABLE = ['under-your-feet', 'egg-to-wings', 'city-explorer'];
 
 /* What to press before the second pass, so the pictures are full rather than
    empty. Every one of these is a chapter control; a selector that is not on
@@ -47,6 +47,16 @@ const WARMUP = {
     '#btnEat', '#btnEat', '#btnEat', '#btnEat', '#togSizes',
     '#btnStep', '#btnStep', '#togInside', '#btnHatch', '#btnHatch', '#btnHatch', '#togTongue',
     '#btnMilk', '#btnMilk', '#btnMilk', '#btnBloom', '#btnBloom', '#btnSouth'],
+  /* City Explorer: btnGrow cycles 1764 → today and back, so four presses end
+     where they started with every era's items having been built along the way;
+     togSizes appears twice so the comparison overlay is opened and closed. */
+  'city-explorer': ['#btnGrow', '#btnGrow', '#btnGrow', '#btnGrow', '#togBlock',
+    '#togSizes', '#togSizes',
+    '[data-dens="flat"]', '[data-dens="apt"]', '#togWalk',
+    '#togZones', '#btnTaller', '#btnTaller', '#togNight',
+    '#btnTap', '#btnFlush', '#btnPower', '#btnStorm',
+    '#togReach', '#btnAddFire', '#btnAddFire', '#btnCall',
+    '#togHeat', '#togWalkPark', '#togFair'],
 };
 
 const TYPES = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
@@ -75,7 +85,7 @@ const BASE = `http://127.0.0.1:${server.address().port}`;
    match on id counts — it is the card that opens that matters. */
 const NEED = 0.25;
 const PROBE = `(()=>{
-  const G = window.underYourFeet || window.eggToWings;
+  const G = window.underYourFeet || window.eggToWings || window.cityExplorer;
   if (!G || !G.items || !G.hitTest) return { error: 'no test global' };
   const pts = h => {
     const P = [];
@@ -111,7 +121,7 @@ const PROBE = `(()=>{
    Reported separately from the overlap failures — a small card is a wart, a
    swallowed one is a bug. */
 const SIZE_PROBE = `(()=>{
-  const G = window.underYourFeet || window.eggToWings;
+  const G = window.underYourFeet || window.eggToWings || window.cityExplorer;
   const MIN = 118, out = [];
   G.items().forEach(it => {
     const h = it.hit; if (!h) return;
@@ -145,7 +155,7 @@ await Promise.all(APPS.filter(a => TESTABLE.includes(a)).map(async app => {
         await p.waitForTimeout(500);
       }
       const id = await p.evaluate(() => {
-        const G = window.underYourFeet || window.eggToWings;
+        const G = window.underYourFeet || window.eggToWings || window.cityExplorer;
         const k = [...document.querySelectorAll('.lvl')].findIndex(b => b.classList.contains('on'));
         return G.CHAPTERS[k].id;
       });
