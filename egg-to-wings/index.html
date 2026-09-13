@@ -797,11 +797,11 @@ function eggR(){ return EG.glass?46:13; }
 function eggReset(){ EG.day=0; }
 function eggItems(){
   const r=eggR(), out=[];
-  if(EG.day>=4) out.push({id:'hatchling', name:'The hatchling', sub:'Smaller than a grain of rice', emoji:'🐛', bg:CREAM,
+  if(EG.day>=4) out.unshift({id:'hatchling', name:'The hatchling', sub:'Smaller than a grain of rice', emoji:'🐛', bg:CREAM,
     fact:'Out it comes, and the first thing it eats is its own empty eggshell. Then it starts on the leaf and does not really stop.',
     extra:'It is so small that its first meal is about the size of a full stop.',
-    hit:{t:'c',x:EGG_XY[0]+72,y:EGG_XY[1]+8,r:86}, mark:[EGG_XY[0]+72,EGG_XY[1]+8,64]});
-  out.push(
+    hit:{t:'c',x:EGG_XY[0]+112,y:EGG_XY[1]+8,r:78}, mark:[EGG_XY[0]+112,EGG_XY[1]+8,64]});
+  out.unshift(
     {id:'egg', name:'The egg', sub:'About one millimetre tall', emoji:'🥚', bg:'#fdf3c8',
      fact:'Cream coloured, shaped like a tiny ribbed football standing on end, glued to the leaf with a dab of glue the mother makes. It hatches in three to five days.',
      extra:'One mother can lay several hundred of them, one at a time, on different plants.',
@@ -843,8 +843,8 @@ function drawEggScene(){
     if(EG.day>=3) circle(EGG_XY[0],EGG_XY[1]-r*1.05,r*.34,'rgba(30,26,25,.75)');
     label('day '+EG.day,EGG_XY[0],EGG_XY[1]+r+34,{size:21,display:true});
   }
-  if(EG.day>=4){ drawCat(EGG_XY[0]+36,EGG_XY[1]+4,72,1,.12);
-    label('hatched!',EGG_XY[0]+72,EGG_XY[1]-48,{size:23,display:true,color:ORANGE_DK}); }
+  if(EG.day>=4){ drawCat(EGG_XY[0]+76,EGG_XY[1]+4,72,1,.12);
+    label('hatched!',EGG_XY[0]+112,EGG_XY[1]-48,{size:23,display:true,color:ORANGE_DK}); }
   if(!EG.glass) label('the egg is here 👇 — really, that speck',EGG_XY[0],EGG_XY[1]-70,{size:21,display:true});
   else label('about 1 mm — a pinhead',EGG_XY[0],EGG_XY[1]-142,{size:21,display:true});
   /* the mother, hovering */
@@ -862,19 +862,23 @@ const CAT_LEN=[0,34,58,92,136,190], CAT_MASS=[0,1,8,50,300,1500];
 function catReset(){ CT.inst=1; CT.skins=0; }
 function catItems(){
   const L=CAT_LEN[CT.inst], cx=520, cy=306;
+  /* whips before the caterpillar: they sit on its head, inside its own
+     rectangle, so listed the other way round the body swallowed them. And
+     kept clear of the body's centre at size 1, where the whole animal is
+     barely longer than the whips are. */
   const out=[
+    {id:'whips', name:'The black whips', sub:'Not antennae!', emoji:'〰️', bg:'#1d1a19',
+     fact:'Two long ones at the front and two short ones at the back. They are not antennae and not eyes — they are feelers, and waving them makes a bird think twice.',
+     extra:'The long pair is at the head end. That is the easy way to tell which end is which.',
+     hit:{t:'c',x:cx+2,y:cy-78,r:64}, mark:[cx+2,cy-78,58]},
     {id:'cat', name:'The caterpillar', sub:'Stripes that shout "do not eat me"', emoji:'🐛', bg:'#f7c73b',
      fact:'Yellow, black and white rings. Milkweed is poisonous, and the caterpillar stores the poison in itself, so a bird that tries one is sick and never tries another.',
      extra:'The stripes are a warning sign. Lots of harmless insects copy the idea.',
      hit:{t:'r',x:cx-34,y:cy-70,w:L+78,h:150}, mark:[cx+L/2,cy,Math.max(70,L*.6)]},
-    {id:'whips', name:'The black whips', sub:'Not antennae!', emoji:'〰️', bg:'#1d1a19',
-     fact:'Two long ones at the front and two short ones at the back. They are not antennae and not eyes — they are feelers, and waving them makes a bird think twice.',
-     extra:'The long pair is at the head end. That is the easy way to tell which end is which.',
-     hit:{t:'c',x:cx-8,y:cy-56,r:76}, mark:[cx-8,cy-52,60]},
     {id:'chewed', name:'A chewed leaf', sub:'The evidence', emoji:'🍃', bg:LEAFG,
      fact:'Look for leaves with holes and edges nibbled away. If you find those on a milkweed, there is a caterpillar close by — usually underneath.',
      extra:'A big caterpillar can eat a whole leaf in a few minutes.',
-     hit:{t:'c',x:790,y:352,r:98}, mark:[790,352,80]},
+     hit:{t:'c',x:766,y:406,r:82}, mark:[766,406,74]},
     {id:'frass', name:'Frass', sub:'Caterpillar droppings', emoji:'💩', bg:'#6b5636',
      fact:'Little green-black pellets. An eating machine that big makes a lot of them, and finding a pile of frass under a plant is how people know to look up.',
      hit:{t:'c',x:600,y:470,r:84}, mark:[600,470,66]},
@@ -884,7 +888,7 @@ function catItems(){
   if(CT.skins>0) out.unshift({id:'skin', name:'A shed skin', sub:'The old suit, left behind', emoji:'👕', bg:'#e6dfcb',
     fact:'Skin does not stretch, so when the caterpillar fills it up it splits down the back and the caterpillar walks out in a new one. That happens five times.',
     extra:'The caterpillar usually turns round and eats the old skin. Nothing is wasted.',
-    hit:{t:'c',x:872,y:288,r:84}, mark:[872,288,64]});
+    hit:{t:'c',x:904,y:268,r:76}, mark:[904,268,62]});
   return out;
 }
 function drawCatScene(){
@@ -902,11 +906,11 @@ function drawCatScene(){
   label('frass',600,502,{size:18,display:true});
   /* the skins it climbed out of, hung up in a row */
   for(let i=0;i<CT.skins;i++){
-    const x=846+((i%2)*48), y=252+Math.floor(i/2)*48;
+    const x=880+((i%2)*48), y=232+Math.floor(i/2)*48;
     path([[x-13,y-13],[x+2,y-2],[x-6,y+8],[x+11,y+15]],'#e6dfcb',10);
     path([[x-13,y-13],[x+2,y-2],[x-6,y+8],[x+11,y+15]],'rgba(90,80,50,.55)',3);
   }
-  if(CT.skins>0) label('skins it climbed out of',870,204,{size:19,display:true});
+  if(CT.skins>0) label('skins it climbed out of',898,186,{size:19,display:true});
   if(CT.sizes){
     /* all five, lined up, because the growing is the whole point */
     box(56,150,530,160,18,'rgba(255,253,247,.95)',5);
@@ -942,11 +946,11 @@ function chrItems(){
   else out.unshift({id:'chrysalis', name:'The chrysalis', sub:'Jade green with real gold', emoji:'🔮', bg:JADE,
      fact:'Not a cocoon — a cocoon is a silk bag a moth spins around itself. This is the animal\'s own skin, gone hard and smooth. It is called a chrysalis.',
      extra:'The gold spots really do shine like metal, and nobody is completely sure what they are for.',
-     hit:{t:'c',x:460,y:300,r:118}, mark:[460,300,94]});
+     hit:{t:'c',x:460,y:300,r:118}, mark:[460,222,70]});
   if(CH.ph>=2&&CH.look) out.unshift({id:'soup', name:'What is going on in there', sub:'Taken apart, then built again', emoji:'🫧', bg:'#cfe6dd',
      fact:'Most of the caterpillar dissolves into a thick soup. Small patches of cells that were there all along use the soup as building material and grow the wings, the legs and the long tongue.',
      extra:'It keeps some of its memories through all that, which is one of the strangest facts in biology.',
-     hit:{t:'c',x:460,y:310,r:104}, mark:[460,310,84]});
+     hit:{t:'c',x:460,y:330,r:88}, mark:[460,330,80]});
   return out;
 }
 function drawChrScene(){
@@ -1003,21 +1007,27 @@ function wingItems(){
     fact:'A clear, crumpled little bag, still hanging on its silk button. That is the whole chrysalis, now with nothing in it.',
     extra:'Find one on a twig and you have just missed a butterfly by about an hour.',
     hit:{t:'c',x:460,y:186,r:76}, mark:[460,186,56]});
+  /* One item per wing, either side of the body, instead of one big circle
+     with the body sitting in the middle of it. "Tap the wings" is a challenge
+     step, and it was opening the fat-body card every single time. */
+  if(WG.ph>=2){
+    const wing={id:'wings', name:WG.ph<3?'The crumpled wings':'The wings',
+      sub:WG.ph<3?'Wet, soft and folded up':'Pumped up and hardening', emoji:'🦋', bg:ORANGE,
+      fact:WG.ph<3?'They look far too small and far too wrinkled to be any use. They are soft as wet paper.'
+        :'It takes a few minutes to pump them out and a couple of hours hanging still for them to harden. Only then can it fly.',
+      extra:'A monarch\'s wings are covered in tiny scales, like roof tiles. That is where the orange is.'};
+    out.push(Object.assign({},wing,{hit:{t:'c',x:622,y:276,r:72}, mark:[622,276,68]}));
+    out.push(Object.assign({},wing,{hit:{t:'c',x:778,y:276,r:72}, mark:[778,276,68]}));
+  }
   if(WG.ph>=2&&WG.ph<4) out.push({id:'body', name:'The fat body', sub:'Full of pumping fluid', emoji:'💧', bg:ORANGE_DK,
     fact:'It comes out with a swollen body and tiny crumpled wings. The body is full of fluid, and it squeezes that fluid out into the veins of the wings to unfold them.',
     extra:'If it cannot hang free while it does this, the wings dry crumpled and it will never fly.',
-    hit:{t:'c',x:700,y:330,r:90}, mark:[700,330,66]});
-  if(WG.ph>=2) out.push({id:'wings', name:WG.ph<3?'The crumpled wings':'The wings', sub:WG.ph<3?'Wet, soft and folded up':'Pumped up and hardening',
-    emoji:'🦋', bg:ORANGE,
-    fact:WG.ph<3?'They look far too small and far too wrinkled to be any use. They are soft as wet paper.'
-      :'It takes a few minutes to pump them out and a couple of hours hanging still for them to harden. Only then can it fly.',
-    extra:'A monarch\'s wings are covered in tiny scales, like roof tiles. That is where the orange is.',
-    hit:{t:'c',x:700,y:252,r:108}, mark:[700,252,86]});
+    hit:{t:'c',x:700,y:322,r:60}, mark:[700,322,58]});
   if(WG.tongue) out.push({id:'tongue', name:'The tongue', sub:'It comes in two halves', emoji:'👅', bg:'#f6e6c8',
     fact:'The long drinking straw arrives as two separate halves. The butterfly curls and uncurls them over and over until they zip together into one tube.',
     extra:'If they do not zip up properly it cannot drink, and it will not last long.',
     hit:{t:'r',x:56,y:344,w:286,h:174}, mark:[199,431,124]});
-  out.push({id:'chrys2', name:'The chrysalis', sub:WG.ph===0?'Still jade green':'Gone see-through', emoji:'🔮', bg:JADE,
+  if(WG.ph<2) out.push({id:'chrys2', name:'The chrysalis', sub:WG.ph===0?'Still jade green':'Gone see-through', emoji:'🔮', bg:JADE,
     fact:WG.ph===0?'Two weeks of looking like a small green jewel, and then in a few hours it turns clear.'
       :'It has not changed colour — it has gone transparent. The orange you can see is the folded wings pressed against the inside.',
     hit:{t:'c',x:460,y:300,r:118}, mark:[460,300,94]});
@@ -1071,7 +1081,25 @@ const GD_SLOTS=[110,220,330,440,550,660,770,880];
 function gardReset(){ GD.milk=0; GD.bloom=0; GD.flyers.length=0; GD.cats.length=0; }
 function gardScore(){ return Math.min(GD.milk,3)*GD.bloom>0?Math.min(GD.milk*2,6)+Math.min(GD.bloom*2,6):0; }
 function gardItems(){
+  /* Order matters, and this is where it went wrong: the plants are big
+     background rectangles and the caterpillars and butterflies sit inside
+     them, so the small moving things have to be checked FIRST or the plant
+     swallows every tap. "Tap a caterpillar" is a challenge step, and it was
+     opening the milkweed card, which made that badge unearnable with a
+     pointer. One entry per caterpillar and per butterfly as well — only the
+     first of each was tappable before. */
   const out=[];
+  GD.cats.forEach(c=>out.push({id:'gcat', name:'A caterpillar', sub:'Born right here', emoji:'🐛', bg:'#f7c73b',
+    fact:'This is the bit a flower-only garden never gets. Eggs, caterpillars, chrysalises — a garden with host plants makes new butterflies instead of just feeding passing ones.',
+    extra:'Look under the milkweed leaves in June and July. They are easier to find than you would think.',
+    hit:{t:'c',x:c.x,y:c.y,r:78}, mark:[c.x,c.y,66]}));
+  GD.flyers.forEach(f=>out.push({id:'visitor', name:'The visitors', sub:'Missouri butterflies', emoji:'🦋', bg:ORANGE,
+    fact:'Monarchs on milkweed, black swallowtails on dill and parsley, painted ladies on thistle. Every butterfly has its own host plant, and most gardens have none of them.',
+    extra:'Plant dill and parsley and you will get black swallowtail caterpillars. They are worth the parsley.',
+    hit:{t:'c',x:f.x,y:f.y,r:74}, mark:[f.x,f.y,66]}));
+  out.push({id:'puddle', name:'A muddy puddle', sub:'Butterflies drink from mud', emoji:'💧', bg:'#9a8a6a',
+    fact:'They gather on damp mud to sip up salt and minerals they cannot get from nectar. It is called puddling, and a shallow dish of wet sand will do it.',
+    hit:{t:'c',x:250,y:558,r:82}, mark:[250,558,64]});
   if(GD.milk>0) out.push({id:'milkweed', name:'Milkweed', sub:'A HOST plant', emoji:'🌱', bg:STEM,
     fact:'A host plant is where a butterfly lays its eggs, because it is what her caterpillars can eat. For a monarch that means milkweed and only milkweed.',
     extra:'Butterfly weed is a milkweed with orange flowers, so it does both jobs at once.',
@@ -1080,17 +1108,6 @@ function gardItems(){
     fact:'Grown-up butterflies do not eat leaves at all — they drink sugary nectar through their tongue. Coneflower, blazing star, ironweed and goldenrod are all Missouri favourites.',
     extra:'Flowers with flat tops are easiest to land on.',
     hit:{t:'r',x:560,y:250,w:340,h:300}, mark:[730,400,150]});
-  if(GD.cats.length) out.push({id:'gcat', name:'A caterpillar', sub:'Born right here', emoji:'🐛', bg:'#f7c73b',
-    fact:'This is the bit a flower-only garden never gets. Eggs, caterpillars, chrysalises — a garden with host plants makes new butterflies instead of just feeding passing ones.',
-    hit:{t:'c',x:GD.cats[0].x,y:GD.cats[0].y,r:86}, mark:[GD.cats[0].x,GD.cats[0].y,68]});
-  if(GD.flyers.length){ const f=GD.flyers[0];
-    out.push({id:'visitor', name:'The visitors', sub:'Missouri butterflies', emoji:'🦋', bg:ORANGE,
-      fact:'Monarchs on milkweed, black swallowtails on dill and parsley, painted ladies on thistle. Every butterfly has its own host plant, and most gardens have none of them.',
-      extra:'Plant dill and parsley and you will get black swallowtail caterpillars. They are worth the parsley.',
-      hit:{t:'c',x:f.x,y:f.y,r:96}, mark:[f.x,f.y,76]}); }
-  out.push({id:'puddle', name:'A muddy puddle', sub:'Butterflies drink from mud', emoji:'💧', bg:'#9a8a6a',
-    fact:'They gather on damp mud to sip up salt and minerals they cannot get from nectar. It is called puddling, and a shallow dish of wet sand will do it.',
-    hit:{t:'c',x:250,y:558,r:82}, mark:[250,558,64]});
   return out;
 }
 function drawGardScene(){
@@ -1138,19 +1155,22 @@ function routePt(u){
   const k=1-u; return [k*k*a[0]+2*k*u*c[0]+u*u*b[0], k*k*a[1]+2*k*u*c[1]+u*u*b[1]];
 }
 function tripItems(){
+  /* The route runs between Missouri and the roost by definition, so it is
+     checked first and kept small; the two places then get everything else. */
+  const mid=routePt(.35);
   return [
-    {id:'missouri', name:'Missouri', sub:'Where the summer monarchs are', emoji:'⭐', bg:'#a8d47f',
-     fact:'Missouri sits right in the middle of the monarchs\' route. They come north through it in spring and stream back south through it in September and October.',
-     extra:'Watch for them over fields of goldenrod in the fall. That is them fuelling up.',
-     hit:{t:'c',x:MO[0],y:MO[1],r:92}, mark:[MO[0],MO[1],66]},
-    {id:'roost', name:'The roosting trees', sub:'Oyamel firs, high in the mountains', emoji:'🌲', bg:'#2f6b4a',
-     fact:'They spend the winter packed onto fir trees on a few mountainsides in central Mexico — so many on one branch that the branch bends. It is cool and damp up there, which is exactly what they need.',
-     extra:'Almost every monarch from east of the Rockies goes to the same handful of hillsides.',
-     hit:{t:'c',x:MX[0],y:MX[1],r:96}, mark:[MX[0],MX[1],72]},
     {id:'route', name:'The route', sub:'Roughly 1,800 miles', emoji:'➡️', bg:'#ffd23f',
      fact:'From Missouri it is about as far as driving to the west coast. They do it on wings the weight of a paper clip, riding the warm air upwards and gliding.',
      extra:'The birds in the Flyway tool are doing the same trip. The butterflies are doing it without ever having been.',
-     hit:{t:'c',x:routePt(.5)[0],y:routePt(.5)[1],r:86}, mark:[routePt(.5)[0],routePt(.5)[1],64]},
+     hit:{t:'c',x:mid[0],y:mid[1],r:62}, mark:[mid[0],mid[1],58]},
+    {id:'missouri', name:'Missouri', sub:'Where the summer monarchs are', emoji:'⭐', bg:'#a8d47f',
+     fact:'Missouri sits right in the middle of the monarchs\' route. They come north through it in spring and stream back south through it in September and October.',
+     extra:'Watch for them over fields of goldenrod in the fall. That is them fuelling up.',
+     hit:{t:'c',x:MO[0],y:MO[1],r:84}, mark:[MO[0],MO[1],66]},
+    {id:'roost', name:'The roosting trees', sub:'Oyamel firs, high in the mountains', emoji:'🌲', bg:'#2f6b4a',
+     fact:'They spend the winter packed onto fir trees on a few mountainsides in central Mexico — so many on one branch that the branch bends. It is cool and damp up there, which is exactly what they need.',
+     extra:'Almost every monarch from east of the Rockies goes to the same handful of hillsides.',
+     hit:{t:'c',x:MX[0],y:MX[1],r:88}, mark:[MX[0],MX[1],72]},
     {id:'super', name:'The super generation', sub:'Lives for months, not weeks', emoji:'💪', bg:ORANGE,
      fact:'Summer monarchs live two to six weeks. The batch that hatches in late summer is different: it lives six to eight months, does not lay eggs yet, and flies the whole way to Mexico.',
      extra:'It is the great-great-grandchild of the one that flew north in the spring — and it goes to a place it has never been.',

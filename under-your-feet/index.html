@@ -642,20 +642,31 @@ const DRILL_STOPS=[{r:.965,km:35,say:'🕳️ 35 km down — out the bottom of t
                    {r:.192,km:5150,say:'🕳️ 5,150 km — splash! Into the melted metal of the outer core.'},
                    {r:0,   km:6371,say:'🕳️ 6,371 km — the middle of the Earth. You cannot go any deeper.'}];
 const INS={stop:-1, r:1, heat:false, spin:0};
+/* pad is in LAYERS order — inner, outer, mantle, crust — so it is indexed
+   with i. It was indexed with 3-i, which handed the inner core the outermost
+   band and the crust the innermost one: tapping the middle of the Earth
+   opened "The crust" and tapping the ground opened "Inner core". Nothing on
+   screen looked wrong, because the drawing does not use these numbers. */
+const LAYER_PAD=[[0,.24],[.24,.58],[.58,.93],[.93,1.14]];
 function insideItems(){
   const {cx,cy,R}=EARTH;
-  const pad=[[0,.24],[.24,.58],[.58,.93],[.93,1.14]];
-  const out=LAYERS.map((L,i)=>Object.assign({},L,{
-    emoji:['⚪','🟠','🟥','🟫'][i],
-    bg:[INNER,OUTER,MANTLE,GRANITE][i],
-    hit:{t:'ring',x:cx,y:cy,r0:pad[3-i][0]*R,r1:pad[3-i][1]*R},
-    mark:[cx,cy-(pad[3-i][0]+pad[3-i][1])/2*R,26],
-  }));
+  const out=LAYERS.map((L,i)=>{
+    const mid=(LAYER_PAD[i][0]+LAYER_PAD[i][1])/2*R;
+    return Object.assign({},L,{
+      emoji:['⚪','🟠','🟥','🟫'][i],
+      bg:[INNER,OUTER,MANTLE,GRANITE][i],
+      hit:{t:'ring',x:cx,y:cy,r0:LAYER_PAD[i][0]*R,r1:LAYER_PAD[i][1]*R},
+      /* off the vertical, because straight up from the middle is where the
+         drill hole is and the drill would swallow every layer's own centre */
+      mark:[cx+Math.cos(-.6)*mid,cy+Math.sin(-.6)*mid,26],
+    });
+  });
   out.reverse();                                  /* crust first: the outermost band wins a tap on the edge */
-  out.push({id:'you', name:'You, standing on it', sub:'On the very top of the crust', emoji:'🧒', bg:'#bfe4ff',
+  /* the person stands to one side of the shaft, for the same reason */
+  out.unshift({id:'you', name:'You, standing on it', sub:'On the very top of the crust', emoji:'🧒', bg:'#bfe4ff',
     fact:'Everything you have ever done happened on the outside of the thin skin. The deepest hole anybody has ever drilled did not even get through it.',
     extra:'That hole took twenty years of drilling and stopped about a third of the way through the crust.',
-    hit:{t:'c',x:cx,y:cy-R-46,r:74}, mark:[cx,cy-R-30,44]});
+    hit:{t:'c',x:cx+96,y:cy-R-40,r:74}, mark:[cx+96,cy-R-40,46]});
   if(INS.stop>=0) out.unshift({id:'drill', name:'The drill', sub:'Going where nobody can go', emoji:'🕳️', bg:SOIL,
     fact:'Pretend drilling. In real life the rock gets too hot and too squeezed long before you reach the mantle — it closes the hole behind you.',
     hit:{t:'c',x:cx,y:cy-(EARTH.R*INS.r+EARTH.R)/2,r:60}, mark:[cx,cy-EARTH.R*(INS.r+1)/2,40]});
@@ -695,14 +706,15 @@ function drawInside(){
     line(cx,y0-6,cx,y1,'#3a2a18',15); line(cx,y0-6,cx,y1,SOIL,8);
     emoji('🕳️',cx,y1+10,34);
   }
-  /* a strip of world on top */
+  /* a strip of world on top, shifted off the shaft so the drill does not go
+     through the middle of the house */
   const top=cy-R;
-  emoji('🌳',cx-64,top-20,34); emoji('🏠',cx+58,top-22,38); emoji('🧒',cx,top-24,34);
-  label('you are here',cx,top-58,{size:21,display:true});
+  emoji('🌳',cx+40,top-20,34); emoji('🏠',cx+160,top-22,38); emoji('🧒',cx+96,top-24,34);
+  label('you are here',cx+96,top-56,{size:21,display:true});
   /* One callout per layer, out to the right with a leader line back to the
      band it names — a stack of floating words in the middle of the ball is
      unreadable, and half of them landed on the wrong ring. */
-  const CALL=[['The crust',.99,-.66,150],['The mantle',.76,-.20,268],['Outer core',.37,.18,386],['Inner core',.08,.62,502]];
+  const CALL=[['The crust',.99,-.66,146],['The mantle',.76,-.20,250],['Outer core',.37,.18,354],['Inner core',.08,.62,458]];
   CALL.forEach((c,i)=>{
     const a=c[2], px=cx+Math.cos(a)*c[1]*R, py=cy+Math.sin(a)*c[1]*R, lx=cx+R+56, ly=c[3];
     path([[px,py],[lerp(px,lx,.62),ly],[lx-10,ly]],rgba(GOLD,.9),4);
@@ -727,6 +739,10 @@ const CR={thick:false, weigh:false, tilt:0};
 const SEA_Y=232, SHELF=575;
 function crustItems(){
   return [
+    {id:'mtnRoot', name:'The mountain root', sub:'The deep half of a mountain', emoji:'⛰️', bg:GRANITE_DK,
+     fact:'Where the crust is piled up high, it also pokes down deep. There is far more mountain below the ground than above it.',
+     extra:'Chapter 4 is about how that pile got there.',
+     hit:{t:'c',x:250,y:452,r:74}, mark:[250,452,74]},
     {id:'sea', name:'The ocean', sub:'Sitting in the low place', emoji:'🌊', bg:SEA,
      fact:'Water runs downhill and stops at the bottom. The sea floor rides lower than the continents, so that is where all the water ends up.',
      extra:'Drain the sea and you would see the ocean crust is a real floor, not a hole.',
@@ -742,10 +758,6 @@ function crustItems(){
     {id:'mantleTop', name:'The mantle', sub:'What both of them float on', emoji:'🟥', bg:MANTLE,
      fact:'The same creeping hot rock from the first chapter. Both kinds of crust rest on it, and both of them sink into it a little — the heavy one more.',
      hit:{t:'r',x:70,y:470,w:880,h:120}, mark:[500,520,180]},
-    {id:'mtnRoot', name:'The mountain root', sub:'The deep half of a mountain', emoji:'⛰️', bg:GRANITE_DK,
-     fact:'Where the crust is piled up high, it also pokes down deep. There is far more mountain below the ground than above it.',
-     extra:'Chapter 4 is about how that pile got there.',
-     hit:{t:'c',x:250,y:452,r:74}, mark:[250,452,74]},
   ];
 }
 function drawCrust(){
@@ -824,14 +836,18 @@ function floatItems(){
       fact:facts[b.id], extra:'Look at how much of it is under the line compared with over it.',
       hit:{t:'r',x:b.x-b.w/2-22,y:top-20,w:b.w+44,h:b.h+40}, mark:[b.x,top+b.h/2,Math.max(b.w,b.h)*.55]};
   });
-  if(FL.ice>0) out.unshift({id:'ice', name:'The ice sheet', sub:'A very heavy blanket', emoji:'🧊', bg:'#dff3ff',
-    fact:'An ice sheet is thousands of metres of ice, and it is heavy. Pile it on and the land underneath sinks down into the mantle.',
-    extra:'Melt it and the land rises again — slowly. Land that was under ice long ago is still rising a little every year.',
-    hit:{t:'r',x:150,y:WL-(FL.blocks[2].h-FL.blocks[2].d)-106,w:660,h:116}, mark:[500,WL-150,130]});
+  if(FL.ice>0){ const th=FL.blocks[2], itop=WL-(th.h-th.d);
+    out.unshift({id:'ice', name:'The ice sheet', sub:'A very heavy blanket', emoji:'🧊', bg:'#dff3ff',
+      fact:'An ice sheet is thousands of metres of ice, and it is heavy. Pile it on and the land underneath sinks down into the mantle.',
+      extra:'Melt it and the land rises again — slowly. Land that was under ice long ago is still rising a little every year.',
+      hit:{t:'r',x:150,y:itop-106,w:660,h:116}, mark:[480,itop-48,110]}); }
+  /* the mantle is claimed in the clear corner below the two shorter blocks;
+     the band along the very bottom was mostly off the picture and under the
+     thick block's own hit, so it could not be tapped at all */
   out.push({id:'goo', name:'The mantle', sub:'The stuff they float on', emoji:'🟥', bg:MANTLE,
     fact:'Not water — hot rock. But over a long time it behaves a bit like very, very thick honey, and crust floats on it just the way wood floats in a sink.',
     extra:'Push down on it and it slowly squeezes out of the way sideways.',
-    hit:{t:'r',x:100,y:WL+300,w:760,h:120}, mark:[500,WL+356,160]});
+    hit:{t:'r',x:86,y:394,w:316,h:192}, mark:[244,490,140]});
   return out;
 }
 function drawFloat(){
@@ -915,10 +931,12 @@ function mtnItems(){
      fact:'The root pushes down into the mantle and the mantle pushes back. That is what stops a mountain sinking to the middle of the Earth.',
      hit:{t:'r',x:60,y:400,w:240,h:180}, mark:[180,480,130]},
   ];
+  /* the clouds only — the old rectangle reached down over the summit, so
+     while it was raining you could not tap the mountain */
   if(MT.rain>0.05) out.unshift({id:'rain', name:'Rain, ice and wind', sub:'The mountain wreckers', emoji:'🌧️', bg:'#bcdcf5',
     fact:'Rain washes grit away. Water freezes in cracks and splits the rock. Bit by bit the top of a mountain goes down the rivers to the sea.',
     extra:'Missouri is partly made of old mountains that went down a river.',
-    hit:{t:'r',x:300,y:40,w:400,h:150}, mark:[500,110,140]});
+    hit:{t:'r',x:250,y:28,w:500,h:78}, mark:[500,67,150]});
   return out;
 }
 function drawMtn(){
@@ -982,11 +1000,11 @@ function volItems(){
     out.push({id:'lava', name:'Lava', sub:'Magma that got out', emoji:'🔥', bg:'#ff5a1f',
       fact:'The same melted rock — but magma is the name for it underground and lava is the name once it is out in the air. It cools into new rock, layer on layer, and that is what builds the mountain.',
       extra:'The cone is just a heap of its own old eruptions.',
-      hit:{t:'c',x:700,y:150,r:110}, mark:[700,150,90]});
+      hit:{t:'c',x:700,y:138,r:70}, mark:[700,138,66]});
     out.push({id:'ash', name:'The ash cloud', sub:'Rock smashed into dust', emoji:'☁️', bg:'#9aa3ad',
       fact:'Gas trapped in the magma bursts out and blasts the rock into powder. Ash can drift for hundreds of miles and turn the sky grey.',
       extra:'Volcanic ash makes wonderfully good soil once it settles.',
-      hit:{t:'r',x:540,y:10,w:330,h:120}, mark:[705,70,130]});
+      hit:{t:'r',x:540,y:4,w:330,h:100}, mark:[705,50,130]});
   }
   out.push(
     {id:'magma', name:'The magma chamber', sub:'A pocket of melted rock', emoji:'🫧', bg:'#ff7a1f',
@@ -996,7 +1014,7 @@ function volItems(){
     {id:'cone', name:'The volcano', sub:'Built out of its own eruptions', emoji:'🌋', bg:'#6b4a3a',
      fact:'Every eruption leaves a layer of lava and ash. Do that over and over and you get a mountain with a hole down the middle.',
      extra:'Volcanoes line up in a row above a diving plate — a whole chain of them.',
-     hit:{t:'r',x:600,y:108,w:210,h:150}, mark:[700,190,110]},
+     hit:{t:'r',x:600,y:108,w:210,h:150}, mark:[700,224,105]},
     {id:'trench', name:'The trench', sub:'The deepest place in the sea', emoji:'🕳️', bg:SEA_DK,
      fact:'Where the sea floor bends downwards it makes a long, narrow ditch. Trenches are the deepest water anywhere on Earth — deeper than the tallest mountain is tall.',
      hit:{t:'c',x:424,y:318,r:94}, mark:[424,318,80]},
@@ -1087,7 +1105,7 @@ function quakeItems(){
   if(QK.waveT>=0) out.push({id:'waves', name:'The shaking', sub:'Waves, spreading out', emoji:'〰️', bg:'#ffd9a8',
     fact:'The snap sends waves out through the rock in every direction, like ripples from a stone dropped in a pond. The waves are the earthquake — the shaking you feel.',
     extra:'They travel through the whole Earth. A machine on the far side can feel them.',
-    hit:{t:'c',x:FAULT_X,y:400,r:170}, mark:[FAULT_X,400,150]});
+    hit:{t:'c',x:FAULT_X,y:412,r:126}, mark:[FAULT_X,412,120]});
   out.push(
     {id:'seismo', name:'The seismograph', sub:'The squiggle machine', emoji:'📈', bg:'#fff6e2',
      fact:'A weight on a spring that stays still while the ground jiggles underneath it, and a pen that draws the difference. Small squiggle, small quake. Big squiggle, big quake.',
@@ -1096,7 +1114,7 @@ function quakeItems(){
     {id:'fault', name:'The fault', sub:'A crack where two pieces meet', emoji:'⚡', bg:'#6b6b78',
      fact:'Two pieces of crust trying to slide past each other. The rock is rough, so they catch and stick — and then the plates keep pushing anyway.',
      extra:'They are stuck almost all the time. The sliding happens in a few seconds, once in a great while.',
-     hit:{t:'r',x:434,y:196,w:132,h:420}, mark:[FAULT_X,410,110]},
+     hit:{t:'r',x:434,y:196,w:132,h:420}, mark:[FAULT_X,258,110]},
     {id:'road', name:'The road', sub:'A ruler laid across the crack', emoji:'🛣️', bg:'#8a8a92',
      fact:'A straight road is the easiest way to see it. While the rock is stuck, the road bends. When it snaps, the bend turns into a step — and half the road is suddenly somewhere else.',
      extra:'Real roads, fences and rows of trees have been broken exactly like this.',

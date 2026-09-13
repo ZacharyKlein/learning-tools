@@ -89,8 +89,16 @@ picture, off-screen until focused, wired to the same handler as a tap — so a
 "tap the ..." challenge step can be answered without a pointer. Done in Flower
 Explorer and Forest Elevator, Under Your Feet and Egg to Wings; the other five still need it.
 
-**Testing.** Every tool exposes `window.<toolName>` for the headless tests. Run
-`node tests/layout-check.mjs` before pushing.
+**What you can tap.** A chapter's hit list is tried in order and the first
+match wins, so it goes **small things first, big background regions last**. A
+caterpillar sitting on a milkweed has to be listed before the milkweed, or the
+plant swallows it and a "tap the ..." challenge step becomes unanswerable.
+
+**Testing.** Every tool exposes `window.<toolName>` for the headless tests, and
+the two newest also expose `items()` and `hitTest()` so `tests/tap-check.mjs`
+can check that everything in the picture is actually reachable. Run
+`node tests/layout-check.mjs`, `node tests/smoke-check.mjs` and
+`node tests/tap-check.mjs` before pushing.
 
 ## Publishing
 
